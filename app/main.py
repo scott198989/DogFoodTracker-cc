@@ -48,11 +48,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
-app.include_router(dogs.router)
-app.include_router(ingredients.router)
-app.include_router(recipes.router)
-app.include_router(plans.router)
+# Include routers with /api prefix for Vercel deployment
+app.include_router(dogs.router, prefix="/api")
+app.include_router(ingredients.router, prefix="/api")
+app.include_router(recipes.router, prefix="/api")
+app.include_router(plans.router, prefix="/api")
 
 
 @app.get("/")
