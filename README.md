@@ -207,3 +207,25 @@ PRIORITY
 - Clean architecture
 - Deterministic outputs
 - Clarity over cleverness
+
+------------------------------------------------------------
+VERCEL DEPLOYMENT
+------------------------------------------------------------
+
+This project is configured for deployment on Vercel.
+
+1. Connect your GitHub repository to Vercel
+
+2. Set up a cloud PostgreSQL database:
+   - Vercel Postgres
+   - Neon (https://neon.tech)
+   - Supabase (https://supabase.com)
+
+3. Configure environment variables in Vercel:
+   - DATABASE_URL: Your PostgreSQL connection string
+   - USDA_API_KEY: Your USDA FoodData Central API key (optional)
+
+4. Deploy! Vercel will automatically detect the Python configuration.
+
+Note: SQLite is only suitable for local development. For production
+deployment on Vercel, you must use a cloud database like PostgreSQL.
