@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dog Meal Planner</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .list-item {
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+
+        .list-item h3 {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .list-item p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .stat {
+            background: #f0f4ff;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            flex: 1;
+        }
+
+        .result-item {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .result-item:hover {
+            background: #f0f4ff;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            color: #856404;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+            color: #155724;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .nutrient-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .nutrient {
+            background: #f8f9fa;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .nutrient strong {
+            display: block;
+            color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        #plan-result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Dog Meal Planner</h1>
+            <p>Calculate precise meals for your dog using real nutrition data</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="dogs">Dogs</button>
+            <button class="tab-btn" data-tab="ingredients">Ingredients</button>
+            <button class="tab-btn" data-tab="recipes">Recipes</button>
+            <button class="tab-btn" data-tab="planner">Meal Planner</button>
+        </div>
+
+        <div class="card">
+            <!-- Dogs Tab -->
+            <div id="dogs" class="tab-content active">
+                <h2>Add a Dog</h2>
+                <form id="dog-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="dog-name" required placeholder="e.g., Buddy">
+                        </div>
+                        <div class="form-group">
+                            <label>Weight (kg)</label>
+                            <input type="number" id="dog-weight" step="0.1" required placeholder="e.g., 25">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Age (years)</label>
+                            <input type="number" id="dog-age" step="0.1" required placeholder="e.g., 3">
+                        </div>
+                        <div class="form-group">
+                            <label>Activity Level</label>
+                            <select id="dog-activity">
+                                <option value="low">Low</option>
+                                <option value="moderate" selected>Moderate</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Neutered</label>
+                            <select id="dog-neutered">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sex</label>
+                            <select id="dog-sex">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Dog</button>
+                </form>
+
+                <h2 style="margin-top: 30px;">Your Dogs</h2>
+                <div id="dogs-list">
+                    <div class="empty-state">No dogs added yet</div>
+                </div>
+            </div>
+
+            <!-- Ingredients Tab -->
+            <div id="ingredients" class="tab-content">
+                <h2>Search USDA Ingredients</h2>
+                <div class="search-box">
+                    <input type="text" id="ingredient-search" placeholder="Search for ingredients (e.g., chicken breast)">
+                    <button class="btn btn-primary" onclick="searchIngredients()">Search</button>
+                </div>
+                <div id="search-results"></div>
+
+                <h2 style="margin-top: 30px;">Add Custom Ingredient</h2>
+                <form id="ingredient-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" id="ing-name" required placeholder="e.g., Homemade Beef Mix">
+                        </div>
+                        <div class="form-group">
+                            <label>Calories (per 100g)</label>
+                            <input type="number" id="ing-kcal" step="0.1" required placeholder="e.g., 250">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Protein (g per 100g)</label>
+                            <input type="number" id="ing-protein" step="0.1" required placeholder="e.g., 26">
+                        </div>
+                        <div class="form-group">
+                            <label>Fat (g per 100g)</label>
+                            <input type="number" id="ing-fat" step="0.1" required placeholder="e.g., 15">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Ingredient</button>
+                </form>
+
+                <h2 style="margin-top: 30px;">Saved Ingredients</h2>
+                <div id="ingredients-list">
+                    <div class="empty-state">No ingredients saved yet</div>
+                </div>
+            </div>
+
+            <!-- Recipes Tab -->
+            <div id="recipes" class="tab-content">
+                <h2>Create Recipe</h2>
+                <form id="recipe-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Recipe Name</label>
+                            <input type="text" id="recipe-name" required placeholder="e.g., Chicken & Rice Mix">
+                        </div>
+                        <div class="form-group">
+                            <label>Meals per Day</label>
+                            <input type="number" id="recipe-meals" value="2" min="1" max="6">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Recipe</button>
+                </form>
+
+                <h2 style="margin-top: 30px;">Add Ingredient to Recipe</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Select Recipe</label>
+                        <select id="recipe-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Ingredient</label>
+                        <select id="recipe-ingredient-select"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Amount (grams)</label>
+                    <input type="number" id="recipe-ingredient-grams" placeholder="e.g., 100">
+                </div>
+                <button class="btn btn-primary" onclick="addIngredientToRecipe()">Add to Recipe</button>
+
+                <h2 style="margin-top: 30px;">Your Recipes</h2>
+                <div id="recipes-list">
+                    <div class="empty-state">No recipes created yet</div>
+                </div>
+            </div>
+
+            <!-- Meal Planner Tab -->
+            <div id="planner" class="tab-content">
+                <h2>Calculate Feeding Plan</h2>
+                <form id="plan-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Select Dog</label>
+                            <select id="plan-dog" required></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Recipe</label>
+                            <select id="plan-recipe" required></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Kibble Calories (daily)</label>
+                            <input type="number" id="plan-kibble" value="0" min="0" placeholder="0 for homemade only">
+                        </div>
+                        <div class="form-group">
+                            <label>Treat Calories (daily)</label>
+                            <input type="number" id="plan-treats" value="0" min="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Calculate Plan</button>
+                </form>
+
+                <div id="plan-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Load initial data
+        loadDogs();
+        loadIngredients();
+        loadRecipes();
+
+        // Dog form
+        document.getElementById('dog-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('dog-name').value,
+                weight_kg: parseFloat(document.getElementById('dog-weight').value),
+                age_years: parseFloat(document.getElementById('dog-age').value),
+                activity_level: document.getElementById('dog-activity').value,
+                neutered: document.getElementById('dog-neutered').value === 'true',
+                sex: document.getElementById('dog-sex').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/dog`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    e.target.reset();
+                    loadDogs();
+                } else {
+                    alert('Error adding dog');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function loadDogs() {
+            try {
+                const res = await fetch(`${API_BASE}/dog`);
+                const dogs = await res.json();
+                const list = document.getElementById('dogs-list');
+                const planSelect = document.getElementById('plan-dog');
+
+                if (dogs.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No dogs added yet</div>';
+                    planSelect.innerHTML = '<option value="">Add a dog first</option>';
+                    return;
+                }
+
+                list.innerHTML = dogs.map(dog => `
+                    <div class="list-item">
+                        <h3>${dog.name}</h3>
+                        <p>${dog.weight_kg} kg | ${dog.age_years} years | ${dog.activity_level} activity | ${dog.neutered ? 'Neutered' : 'Intact'}</p>
+                        <div class="stats">
+                            <div class="stat">
+                                <div class="stat-value">${dog.rer?.toFixed(0) || 'N/A'}</div>
+                                <div class="stat-label">RER (kcal)</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${dog.mer?.toFixed(0) || 'N/A'}</div>
+                                <div class="stat-label">MER (kcal)</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                planSelect.innerHTML = dogs.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            } catch (err) {
+                console.error('Error loading dogs:', err);
+            }
+        }
+
+        // Ingredient search
+        async function searchIngredients() {
+            const query = document.getElementById('ingredient-search').value;
+            if (!query) return;
+
+            const results = document.getElementById('search-results');
+            results.innerHTML = '<div class="loading">Searching...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
+                const data = await res.json();
+
+                if (data.results && data.results.length > 0) {
+                    results.innerHTML = data.results.slice(0, 10).map(item => `
+                        <div class="result-item" onclick="importFromUSDA('${item.fdcId}', '${item.description.replace(/'/g, "\\'")}')">
+                            <strong>${item.description}</strong>
+                            <p style="color:#666;font-size:0.85rem">${item.dataType || 'USDA'} | Click to import</p>
+                        </div>
+                    `).join('');
+                } else {
+                    results.innerHTML = '<div class="empty-state">No results found</div>';
+                }
+            } catch (err) {
+                results.innerHTML = '<div class="warning">Error searching. Make sure USDA API key is configured.</div>';
+            }
+        }
+
+        async function importFromUSDA(fdcId, name) {
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/from-usda`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fdc_id: fdcId })
+                });
+                if (res.ok) {
+                    document.getElementById('search-results').innerHTML = '<div class="success">Ingredient imported!</div>';
+                    loadIngredients();
+                } else {
+                    alert('Error importing ingredient');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        // Custom ingredient form
+        document.getElementById('ingredient-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('ing-name').value,
+                kcal_per_100g: parseFloat(document.getElementById('ing-kcal').value),
+                protein_g_per_100g: parseFloat(document.getElementById('ing-protein').value),
+                fat_g_per_100g: parseFloat(document.getElementById('ing-fat').value),
+                carbs_g_per_100g: 0,
+                source_type: 'USER'
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/manual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    e.target.reset();
+                    loadIngredients();
+                } else {
+                    alert('Error adding ingredient');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function loadIngredients() {
+            try {
+                const res = await fetch(`${API_BASE}/ingredient`);
+                const ingredients = await res.json();
+                const list = document.getElementById('ingredients-list');
+                const recipeSelect = document.getElementById('recipe-ingredient-select');
+
+                if (ingredients.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No ingredients saved yet</div>';
+                    recipeSelect.innerHTML = '<option value="">Add ingredients first</option>';
+                    return;
+                }
+
+                list.innerHTML = ingredients.map(ing => `
+                    <div class="list-item">
+                        <h3>${ing.name}</h3>
+                        <p>${ing.source_type} | ${ing.kcal_per_100g} kcal/100g</p>
+                        <div class="nutrient-grid">
+                            <div class="nutrient"><strong>${ing.protein_g_per_100g?.toFixed(1) || 0}g</strong>Protein</div>
+                            <div class="nutrient"><strong>${ing.fat_g_per_100g?.toFixed(1) || 0}g</strong>Fat</div>
+                            <div class="nutrient"><strong>${ing.carbs_g_per_100g?.toFixed(1) || 0}g</strong>Carbs</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                recipeSelect.innerHTML = ingredients.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+            } catch (err) {
+                console.error('Error loading ingredients:', err);
+            }
+        }
+
+        // Recipe form
+        document.getElementById('recipe-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('recipe-name').value,
+                meals_per_day: parseInt(document.getElementById('recipe-meals').value)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/recipe`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    e.target.reset();
+                    loadRecipes();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function addIngredientToRecipe() {
+            const recipeId = document.getElementById('recipe-select').value;
+            const ingredientId = document.getElementById('recipe-ingredient-select').value;
+            const grams = parseFloat(document.getElementById('recipe-ingredient-grams').value);
+
+            if (!recipeId || !ingredientId || !grams) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ingredient_id: parseInt(ingredientId), grams: grams })
+                });
+                if (res.ok) {
+                    document.getElementById('recipe-ingredient-grams').value = '';
+                    loadRecipes();
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function loadRecipes() {
+            try {
+                const res = await fetch(`${API_BASE}/recipe`);
+                const recipes = await res.json();
+                const list = document.getElementById('recipes-list');
+                const recipeSelect = document.getElementById('recipe-select');
+                const planRecipeSelect = document.getElementById('plan-recipe');
+
+                if (recipes.length === 0) {
+                    list.innerHTML = '<div class="empty-state">No recipes created yet</div>';
+                    recipeSelect.innerHTML = '<option value="">Create a recipe first</option>';
+                    planRecipeSelect.innerHTML = '<option value="">Create a recipe first</option>';
+                    return;
+                }
+
+                // Load full recipe details
+                const fullRecipes = await Promise.all(
+                    recipes.map(r => fetch(`${API_BASE}/recipe/${r.id}`).then(res => res.json()))
+                );
+
+                list.innerHTML = fullRecipes.map(recipe => `
+                    <div class="list-item">
+                        <h3>${recipe.name}</h3>
+                        <p>${recipe.meals_per_day} meals/day</p>
+                        ${recipe.ingredients && recipe.ingredients.length > 0 ? `
+                            <div style="margin-top:10px">
+                                <strong>Ingredients:</strong>
+                                <ul style="margin-left:20px;margin-top:5px">
+                                    ${recipe.ingredients.map(i => `<li>${i.name}: ${i.grams}g</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : '<p style="color:#999;margin-top:10px">No ingredients added yet</p>'}
+                    </div>
+                `).join('');
+
+                const options = recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+                recipeSelect.innerHTML = options;
+                planRecipeSelect.innerHTML = options;
+            } catch (err) {
+                console.error('Error loading recipes:', err);
+            }
+        }
+
+        // Feeding plan form
+        document.getElementById('plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                dog_id: parseInt(document.getElementById('plan-dog').value),
+                recipe_id: parseInt(document.getElementById('plan-recipe').value),
+                kibble_kcal: parseFloat(document.getElementById('plan-kibble').value) || 0,
+                treats_kcal: parseFloat(document.getElementById('plan-treats').value) || 0
+            };
+
+            const resultDiv = document.getElementById('plan-result');
+            resultDiv.innerHTML = '<div class="loading">Calculating...</div>';
+
+            try {
+                const res = await fetch(`${API_BASE}/plan/compute`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const plan = await res.json();
+
+                if (res.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>Feeding Plan for ${plan.dog_name}</h3>
+                        </div>
+                        <div class="stats" style="margin-top:15px">
+                            <div class="stat">
+                                <div class="stat-value">${plan.target_kcal?.toFixed(0)}</div>
+                                <div class="stat-label">Target kcal/day</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${plan.homemade_kcal?.toFixed(0)}</div>
+                                <div class="stat-label">Homemade kcal</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${plan.kcal_per_meal?.toFixed(0)}</div>
+                                <div class="stat-label">kcal/meal</div>
+                            </div>
+                        </div>
+
+                        ${plan.portions && plan.portions.length > 0 ? `
+                            <h3 style="margin-top:20px">Daily Portions</h3>
+                            <div style="margin-top:10px">
+                                ${plan.portions.map(p => `
+                                    <div class="list-item">
+                                        <strong>${p.ingredient_name}</strong>
+                                        <p>${p.grams_per_day?.toFixed(1)}g/day (${p.grams_per_meal?.toFixed(1)}g/meal)</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+
+                        ${plan.warnings && plan.warnings.length > 0 ? `
+                            <div class="warning" style="margin-top:15px">
+                                <strong>AAFCO Warnings:</strong>
+                                <ul style="margin-left:20px;margin-top:5px">
+                                    ${plan.warnings.map(w => `<li>${w}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : '<div class="success" style="margin-top:15px">Meets AAFCO guidelines!</div>'}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="warning">Error: ${plan.detail || 'Could not calculate plan'}</div>`;
+                }
+            } catch (err) {
+                resultDiv.innerHTML = `<div class="warning">Error: ${err.message}</div>`;
+            }
+        });
+
+        // Enter key for search
+        document.getElementById('ingredient-search').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchIngredients();
+            }
+        });
+    </script>
+</body>
+</html>
