@@ -1395,6 +1395,12 @@
                 const res = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
 
+                // Check for API error response
+                if (!res.ok) {
+                    results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>Error: ${data.detail || 'Search failed'}</p></div>`;
+                    return;
+                }
+
                 // API returns array directly with snake_case keys
                 if (Array.isArray(data) && data.length > 0) {
                     results.innerHTML = data.slice(0, 8).map(item => `
@@ -1407,7 +1413,8 @@
                     results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>No results found. Try a different search term.</p></div>`;
                 }
             } catch (err) {
-                results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>Search failed. Make sure USDA API key is configured.</p></div>`;
+                console.error('USDA search error:', err);
+                results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>Search failed: ${err.message || 'Unknown error'}</p></div>`;
             }
         }
 
