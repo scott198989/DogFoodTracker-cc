@@ -29,9 +29,13 @@ NUTRIENT_IDS = {
 class USDAService:
     """Service for interacting with USDA FoodData Central API."""
 
+    # USDA provides DEMO_KEY for testing (limited to 30 requests/hour)
+    DEMO_KEY = "DEMO_KEY"
+
     def __init__(self):
         self.base_url = settings.USDA_BASE_URL
-        self.api_key = settings.USDA_API_KEY
+        # Use configured key, or fall back to DEMO_KEY for basic functionality
+        self.api_key = settings.USDA_API_KEY or self.DEMO_KEY
 
     async def search_foods(self, query: str, page_size: int = 25) -> dict:
         """
@@ -49,9 +53,8 @@ class USDAService:
             "query": query,
             "pageSize": page_size,
             "dataType": "Foundation,SR Legacy",  # Comma-separated string, not list
+            "api_key": self.api_key,
         }
-        if self.api_key:
-            params["api_key"] = self.api_key
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
@@ -69,9 +72,7 @@ class USDAService:
             Detailed food data including nutrients
         """
         url = f"{self.base_url}/food/{fdc_id}"
-        params = {}
-        if self.api_key:
-            params["api_key"] = self.api_key
+        params = {"api_key": self.api_key}
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
