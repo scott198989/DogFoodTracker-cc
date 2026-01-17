@@ -1395,11 +1395,12 @@
                 const res = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
 
-                if (data.results && data.results.length > 0) {
-                    results.innerHTML = data.results.slice(0, 8).map(item => `
-                        <div class="search-result" onclick="importFromUSDA('${item.fdcId}', '${item.description.replace(/'/g, "\\'")}')">
+                // API returns array directly with snake_case keys
+                if (Array.isArray(data) && data.length > 0) {
+                    results.innerHTML = data.slice(0, 8).map(item => `
+                        <div class="search-result" onclick="importFromUSDA('${item.fdc_id}', '${item.description.replace(/'/g, "\\'")}')">
                             <h4>${item.description}</h4>
-                            <p>USDA ${item.dataType || 'Food'} · Click to import</p>
+                            <p>USDA ${item.data_type || 'Food'} · Click to import</p>
                         </div>
                     `).join('');
                 } else {
