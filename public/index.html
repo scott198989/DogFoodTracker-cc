@@ -463,6 +463,9 @@
         .ingredient-card {
             padding: 20px;
             transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            min-height: 280px;
         }
 
         .ingredient-card:hover {
@@ -475,19 +478,25 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 16px;
+            gap: 10px;
         }
 
         .ingredient-header h3 {
             color: white;
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 600;
+            line-height: 1.3;
+            word-break: break-word;
+            flex: 1;
         }
 
         .ingredient-badge {
             padding: 4px 10px;
             border-radius: 20px;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .badge-usda {
@@ -498,6 +507,83 @@
         .badge-user {
             background: rgba(139, 92, 246, 0.2);
             color: #a78bfa;
+        }
+
+        /* Checkbox Ingredient List */
+        .ingredient-checkbox-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+        }
+
+        .ingredient-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .ingredient-checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .ingredient-checkbox-item.checked {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: var(--accent-1);
+        }
+
+        .ingredient-checkbox-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--accent-1);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .ingredient-checkbox-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ingredient-checkbox-name {
+            color: white;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ingredient-checkbox-macros {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.8rem;
+        }
+
+        .ingredient-checkbox-grams {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .ingredient-checkbox-grams input {
+            width: 80px;
+            padding: 8px 10px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .ingredient-checkbox-grams span {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.85rem;
         }
 
         .nutrient-bars {
@@ -993,10 +1079,12 @@
         .macro-display {
             display: flex;
             justify-content: space-around;
-            margin-top: 20px;
-            padding: 20px;
+            margin-top: 15px;
+            padding: 15px 10px;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .macro-item {
@@ -1004,15 +1092,16 @@
         }
 
         .macro-circle {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
+            font-size: 0.85rem;
             color: white;
-            margin: 0 auto 8px;
+            margin: 0 auto 6px;
         }
 
         .macro-circle.kcal { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
@@ -1047,7 +1136,7 @@
         .card-actions {
             display: flex;
             gap: 8px;
-            margin-top: 16px;
+            margin-top: auto;
             padding-top: 16px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -1663,21 +1752,22 @@
                         </div>
 
                         <div class="builder-section glass-dark">
-                            <h3>➕ Add Ingredient to Recipe</h3>
+                            <h3>✅ Select Ingredients for Recipe</h3>
                             <div class="form-group">
                                 <label>Select Recipe</label>
-                                <select id="recipe-select"></select>
+                                <select id="recipe-select" onchange="loadRecipeIngredientCheckboxes()"></select>
                             </div>
-                            <div class="form-group">
-                                <label>Select Ingredient</label>
-                                <select id="recipe-ingredient-select"></select>
+                            <div class="checkbox-actions" style="display: flex; gap: 10px; margin: 15px 0;">
+                                <button class="btn btn-sm" onclick="selectAllIngredients()">Select All</button>
+                                <button class="btn btn-sm" onclick="clearAllIngredients()">Clear All</button>
                             </div>
-                            <div class="form-group">
-                                <label>Amount (grams)</label>
-                                <input type="number" id="recipe-ingredient-grams" placeholder="e.g., 150">
+                            <div id="ingredient-checkbox-list" class="ingredient-checkbox-list">
+                                <div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones to include in this recipe</p></div>
                             </div>
-                            <div class="quick-actions">
-                                <button class="btn btn-success" onclick="addIngredientToRecipe()">Add to Recipe</button>
+                            <div class="quick-actions" style="margin-top: 20px;">
+                                <button class="btn btn-success" onclick="saveRecipeIngredients()">
+                                    <span>💾</span> Save Ingredients to Recipe
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -2773,11 +2863,13 @@
                 const res = await fetch(`${API_BASE}/ingredient`);
                 const ingredients = await res.json();
                 const list = document.getElementById('ingredients-list');
-                const recipeSelect = document.getElementById('recipe-ingredient-select');
+
+                // Cache ingredients for checkbox list
+                allIngredientsCache = ingredients;
 
                 if (ingredients.length === 0) {
                     list.innerHTML = `<div class="empty-state"><span>🥩</span><p>No ingredients saved yet. Search USDA or add custom ingredients!</p></div>`;
-                    recipeSelect.innerHTML = '<option value="">Add ingredients first</option>';
+                    loadRecipeIngredientCheckboxes();
                     return;
                 }
 
@@ -2812,7 +2904,8 @@
                     </div>
                 `).join('');
 
-                recipeSelect.innerHTML = ingredients.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
+                // Refresh checkbox list with new ingredients
+                loadRecipeIngredientCheckboxes();
             } catch (err) {
                 console.error('Error loading ingredients:', err);
             }
@@ -2916,29 +3009,123 @@
             }
         });
 
-        async function addIngredientToRecipe() {
-            const recipeId = document.getElementById('recipe-select').value;
-            const ingredientId = document.getElementById('recipe-ingredient-select').value;
-            const grams = parseFloat(document.getElementById('recipe-ingredient-grams').value);
+        // Store all ingredients globally for checkbox list
+        let allIngredientsCache = [];
 
-            if (!recipeId || !ingredientId || !grams) {
-                showToast('Please fill in all fields', 'error');
+        async function loadRecipeIngredientCheckboxes() {
+            const recipeId = document.getElementById('recipe-select').value;
+            const list = document.getElementById('ingredient-checkbox-list');
+
+            if (!recipeId || allIngredientsCache.length === 0) {
+                list.innerHTML = `<div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones to include in this recipe</p></div>`;
                 return;
             }
 
+            // Get current recipe ingredients to pre-check
+            let existingIngredients = [];
             try {
-                const res = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ingredient_id: parseInt(ingredientId), grams: grams })
-                });
-                if (res.ok) {
-                    document.getElementById('recipe-ingredient-grams').value = '';
-                    loadRecipes();
-                    showToast('Ingredient added to recipe!', 'success');
-                }
+                const recipeRes = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const recipe = await recipeRes.json();
+                existingIngredients = recipe.ingredients || [];
             } catch (err) {
-                showToast('Error adding ingredient', 'error');
+                console.error('Error loading recipe:', err);
+            }
+
+            // Create checkbox list
+            list.innerHTML = allIngredientsCache.map(ing => {
+                const existing = existingIngredients.find(ri => ri.ingredient_id === ing.id);
+                const isChecked = existing ? 'checked' : '';
+                const grams = existing ? existing.grams : 100;
+                return `
+                    <div class="ingredient-checkbox-item ${isChecked ? 'checked' : ''}" data-id="${ing.id}">
+                        <input type="checkbox" id="ing-check-${ing.id}" ${isChecked}
+                               onchange="toggleIngredientCheck(this, ${ing.id})">
+                        <div class="ingredient-checkbox-info">
+                            <div class="ingredient-checkbox-name">${ing.name}</div>
+                            <div class="ingredient-checkbox-macros">${ing.kcal_per_100g?.toFixed(0) || 0} kcal | ${ing.protein_g_per_100g?.toFixed(0) || 0}g P | ${ing.fat_g_per_100g?.toFixed(0) || 0}g F</div>
+                        </div>
+                        <div class="ingredient-checkbox-grams">
+                            <input type="number" id="ing-grams-${ing.id}" value="${grams}" min="1" placeholder="g">
+                            <span>g</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleIngredientCheck(checkbox, ingredientId) {
+            const item = checkbox.closest('.ingredient-checkbox-item');
+            if (checkbox.checked) {
+                item.classList.add('checked');
+            } else {
+                item.classList.remove('checked');
+            }
+        }
+
+        function selectAllIngredients() {
+            document.querySelectorAll('#ingredient-checkbox-list input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+                cb.closest('.ingredient-checkbox-item')?.classList.add('checked');
+            });
+        }
+
+        function clearAllIngredients() {
+            document.querySelectorAll('#ingredient-checkbox-list input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.ingredient-checkbox-item')?.classList.remove('checked');
+            });
+        }
+
+        async function saveRecipeIngredients() {
+            const recipeId = document.getElementById('recipe-select').value;
+            if (!recipeId) {
+                showToast('Please select a recipe first', 'error');
+                return;
+            }
+
+            // Get all checked ingredients with their grams
+            const checkedItems = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item');
+            const ingredientsToAdd = [];
+
+            checkedItems.forEach(item => {
+                const checkbox = item.querySelector('input[type="checkbox"]');
+                if (checkbox.checked) {
+                    const ingredientId = parseInt(item.dataset.id);
+                    const gramsInput = item.querySelector('input[type="number"]');
+                    const grams = parseFloat(gramsInput.value) || 100;
+                    ingredientsToAdd.push({ ingredient_id: ingredientId, grams: grams });
+                }
+            });
+
+            if (ingredientsToAdd.length === 0) {
+                showToast('Please check at least one ingredient', 'error');
+                return;
+            }
+
+            // First, remove all existing ingredients from recipe
+            try {
+                const recipeRes = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const recipe = await recipeRes.json();
+
+                // Delete existing ingredients
+                for (const ing of recipe.ingredients || []) {
+                    await fetch(`${API_BASE}/recipe/${recipeId}/ingredient/${ing.id}`, { method: 'DELETE' });
+                }
+
+                // Add all checked ingredients
+                for (const ing of ingredientsToAdd) {
+                    await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(ing)
+                    });
+                }
+
+                loadRecipes();
+                showToast(`Recipe updated with ${ingredientsToAdd.length} ingredients!`, 'success');
+            } catch (err) {
+                showToast('Error updating recipe ingredients', 'error');
+                console.error(err);
             }
         }
 
@@ -2990,6 +3177,9 @@
                 const options = recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
                 recipeSelect.innerHTML = options;
                 planRecipeSelect.innerHTML = options;
+
+                // Refresh checkbox list when recipes change
+                loadRecipeIngredientCheckboxes();
             } catch (err) {
                 console.error('Error loading recipes:', err);
             }
