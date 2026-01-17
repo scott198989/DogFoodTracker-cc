@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(timeout 5 python:*)"
+      "Bash(timeout 5 python:*)",
+      "Bash(dir /b \"c:\\\\Users\\\\Scott\\\\Desktop\\\\DogFoodTracker-cc\\\\public\\\\images\")"
     ]
   }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dog Meal Planner</title>
+    <title>Fresh Pup - Dog Meal Planner</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -142,6 +142,12 @@
             font-size: 32px;
             box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
             animation: pulse 2s ease-in-out infinite;
+        }
+
+        .app-logo {
+            max-width: 350px;
+            height: auto;
+            filter: drop-shadow(0 10px 40px rgba(99, 102, 241, 0.3));
         }
 
         @keyframes pulse {
@@ -1322,9 +1328,9 @@
         .category-content {
             display: none;
             padding: 15px;
-            gap: 10px;
+            gap: 15px;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         }
 
         .category-content.show {
@@ -1333,24 +1339,41 @@
 
         .ingredient-card {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            padding: 15px;
-            border-radius: 10px;
+            text-align: center;
+            padding: 20px;
+            border-radius: 16px;
             gap: 15px;
+        }
+
+        .ingredient-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 16px;
+            flex-shrink: 0;
+        }
+
+        .ingredient-info {
+            flex: 1;
+            width: 100%;
         }
 
         .ingredient-info h4 {
             color: white;
-            font-size: 1rem;
-            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .ingredient-info p {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.85rem;
             margin: 0;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .ingredient-info .warning-text {
@@ -1488,9 +1511,8 @@
             <!-- Header -->
             <header>
                 <div class="logo">
-                    <div class="logo-icon">🐕</div>
+                    <img src="images/Logo.png" alt="Fresh Pup" class="app-logo">
                 </div>
-                <h1>Dog Meal Planner</h1>
                 <p>Precision nutrition for your best friend</p>
                 <div class="unit-toggle" style="margin-top: 16px;">
                     <span style="color: rgba(255,255,255,0.7); margin-right: 12px;">Weight Unit:</span>
@@ -1919,97 +1941,97 @@
                             <span class="expand-icon">+</span>
                         </div>
                         <div class="category-content">
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Beef.png" alt="Beef" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Beef.png" alt="Beef" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Beef (lean)</h4>
                                     <p>Muscle building, iron, B12, zinc for immune health</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Beef, ground, lean')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Chicken.png" alt="Chicken" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Chicken.png" alt="Chicken" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Chicken</h4>
                                     <p>Lean protein, glucosamine for joints, B vitamins</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Chicken, breast')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Turkey.png" alt="Turkey" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Turkey.png" alt="Turkey" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Turkey</h4>
                                     <p>Low-fat protein, selenium, tryptophan for calm</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Turkey, ground')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Lamb.png" alt="Lamb" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Lamb.png" alt="Lamb" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Lamb</h4>
                                     <p>Iron-rich, good for dogs with chicken allergies</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Lamb, ground')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Salmon.png" alt="Salmon" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Salmon.png" alt="Salmon" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Salmon</h4>
                                     <p>Omega-3 for coat/skin, brain health, anti-inflammatory</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Salmon, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Sardines.png" alt="Sardines" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Sardines.png" alt="Sardines" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Sardines</h4>
                                     <p>Omega-3, calcium (with bones), CoQ10 for heart</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Sardines, canned')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Eggs.png" alt="Eggs" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Eggs.png" alt="Eggs" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Eggs</h4>
                                     <p>Complete protein, biotin for coat, choline for brain</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Egg, whole, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Beef Liver.png" alt="Beef Liver" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Beef Liver.png" alt="Beef Liver" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Beef Liver</h4>
                                     <p class="warning-text">Vitamin A powerhouse, iron, B12 - feed sparingly (max 5% of diet)</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Beef liver, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Beef Heart.png" alt="Beef Heart" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Beef Heart.png" alt="Beef Heart" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Beef Heart</h4>
                                     <p>Taurine for heart health, CoQ10, B vitamins</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Beef heart, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Duck.png" alt="Duck" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Duck.png" alt="Duck" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Duck</h4>
                                     <p>Novel protein for allergies, rich in iron and amino acids</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Duck, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/Venison.png" alt="Venison" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Venison.png" alt="Venison" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Venison</h4>
                                     <p>Novel protein for allergies, very lean</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Venison, cooked')">+ Add</button>
                             </div>
-                            <div class="ingredient-card glass-dark" style="display: flex; align-items: center; gap: 15px;">
-                                <img src="images/ingredients/COD.png" alt="Cod" style="width: 100px; height: 100px; object-fit: cover; border-radius: 12px;">
-                                <div class="ingredient-info" style="flex: 1;">
+                            <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/COD.png" alt="Cod" class="ingredient-img">
+                                <div class="ingredient-info">
                                     <h4>Cod</h4>
                                     <p>Lean white fish, iodine for thyroid</p>
                                 </div>
