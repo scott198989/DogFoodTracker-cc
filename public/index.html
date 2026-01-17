@@ -1495,6 +1495,119 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
+        /* Dangerous Foods Section */
+        .danger-section {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .danger-section-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .danger-section-header h2 {
+            color: #ef4444;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .danger-section-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+        }
+
+        .danger-tier {
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .danger-tier-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .danger-tier-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .tier-deadly .danger-tier-header h3 { color: #dc2626; }
+        .tier-very-dangerous .danger-tier-header h3 { color: #f97316; }
+        .tier-toxic .danger-tier-header h3 { color: #eab308; }
+        .tier-harmful .danger-tier-header h3 { color: #a855f7; }
+        .tier-info .danger-tier-header h3 { color: #3b82f6; }
+
+        .danger-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .danger-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .danger-item.skull::before { content: '☠️'; }
+        .danger-item.warning::before { content: '⚠️'; }
+        .danger-item.caution::before { content: '⚡'; }
+        .danger-item.no::before { content: '❌'; }
+        .danger-item.maybe::before { content: '🟡'; }
+
+        .danger-note {
+            margin-top: 12px;
+            padding: 12px 15px;
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 3px solid #ef4444;
+            border-radius: 0 10px 10px 0;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-style: italic;
+        }
+
+        .danger-note.info {
+            background: rgba(59, 130, 246, 0.15);
+            border-left-color: #3b82f6;
+        }
+
+        .symptoms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+        }
+
+        .symptom-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        .symptom-item::before { content: '🚨'; }
+
         /* Sticky Disclaimer */
         .sticky-disclaimer {
             position: fixed;
@@ -2212,6 +2325,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Strawberries, raw')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Cantaloupe.png" alt="Cantaloupe" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Cantaloupe</h4>
                                     <p>Beta-carotene, fiber, hydration</p>
@@ -2229,6 +2343,7 @@
                         </div>
                         <div class="category-content">
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/White Rice.png" alt="White Rice" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>White Rice</h4>
                                     <p>Easy to digest, good for upset stomach</p>
@@ -2236,6 +2351,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Rice, white, cooked')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Brown Rice.png" alt="Brown Rice" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Brown Rice</h4>
                                     <p>Fiber, B vitamins, manganese</p>
@@ -2243,6 +2359,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Rice, brown, cooked')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Oatmeal.png" alt="Oatmeal" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Oatmeal</h4>
                                     <p>Fiber, soothes skin allergies, B vitamins</p>
@@ -2250,6 +2367,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Oatmeal, cooked')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Quinoa.png" alt="Quinoa" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Quinoa</h4>
                                     <p>Complete protein, fiber, magnesium</p>
@@ -2257,13 +2375,15 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Quinoa, cooked')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Sweet Potato.png" alt="Sweet Potato" class="ingredient-img">
                                 <div class="ingredient-info">
-                                    <h4>Potato (cooked only)</h4>
-                                    <p class="warning-text">Vitamin C, B6, potassium - NEVER feed raw!</p>
+                                    <h4>Sweet Potato</h4>
+                                    <p>Fiber, beta-carotene, vitamins A/C</p>
                                 </div>
-                                <button class="btn btn-small" onclick="openAddToRecipeModal('Potatoes, boiled')">+ Add</button>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Sweet potato, cooked')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Lentils.png" alt="Lentils" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Lentils</h4>
                                     <p>Protein, fiber, iron, folate</p>
@@ -2281,6 +2401,7 @@
                         </div>
                         <div class="category-content">
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Salmon Oil.png" alt="Salmon Oil" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Salmon Oil</h4>
                                     <p>Omega-3 EPA/DHA, coat shine, joint health</p>
@@ -2288,6 +2409,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Fish oil, salmon')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Coconut Oil.png" alt="Coconut Oil" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Coconut Oil</h4>
                                     <p>MCTs for energy, skin health, antibacterial</p>
@@ -2295,6 +2417,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Coconut oil')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Flaxseed Oil.png" alt="Flaxseed Oil" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Flaxseed Oil</h4>
                                     <p>Plant omega-3 (ALA), fiber, coat health</p>
@@ -2302,6 +2425,7 @@
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Flaxseed oil')">+ Add</button>
                             </div>
                             <div class="ingredient-card glass-dark">
+                                <img src="images/ingredients/Olive Oil.png" alt="Olive Oil" class="ingredient-img">
                                 <div class="ingredient-info">
                                     <h4>Olive Oil</h4>
                                     <p>Healthy fats, vitamin E, antioxidants</p>
@@ -2380,6 +2504,169 @@
                                     <p>Joint support, gut healing, hydration</p>
                                 </div>
                                 <button class="btn btn-small" onclick="openAddToRecipeModal('Bone broth')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dangerous Foods Section -->
+                    <div class="danger-section">
+                        <div class="danger-section-header">
+                            <h2>🚫 Dangerous Foods for Dogs</h2>
+                            <p>Know what to avoid — some of these can be fatal</p>
+                        </div>
+
+                        <!-- Tier 1: Deadly -->
+                        <div class="danger-tier tier-deadly">
+                            <div class="danger-tier-header">
+                                <h3>🍫 DEADLY — Can Kill Quickly</h3>
+                            </div>
+                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 10px;">Human Foods That Kill Dogs</h4>
+                            <div class="danger-grid">
+                                <div class="danger-item skull">Chocolate (dark & baking worst)</div>
+                                <div class="danger-item skull">Cocoa powder</div>
+                                <div class="danger-item skull">Coffee / Espresso / Caffeine</div>
+                                <div class="danger-item skull">Grapes</div>
+                                <div class="danger-item skull">Raisins</div>
+                                <div class="danger-item skull">Alcohol</div>
+                                <div class="danger-item skull">Macadamia nuts</div>
+                                <div class="danger-item skull">Xylitol (artificial sweetener)</div>
+                                <div class="danger-item skull">Nutmeg (large amounts)</div>
+                            </div>
+
+                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 20px 0 10px 0;">🧅 Plants/Veggies That Destroy Organs</h4>
+                            <div class="danger-grid">
+                                <div class="danger-item skull">Onions (raw, cooked, powdered)</div>
+                                <div class="danger-item skull">Garlic (raw, cooked, powdered)</div>
+                                <div class="danger-item skull">Chives</div>
+                                <div class="danger-item skull">Leeks</div>
+                                <div class="danger-item skull">Shallots</div>
+                            </div>
+                            <div class="danger-note">These cause hemolytic anemia — red blood cells literally explode.</div>
+                        </div>
+
+                        <!-- Tier 2: Very Dangerous -->
+                        <div class="danger-tier tier-very-dangerous">
+                            <div class="danger-tier-header">
+                                <h3>🚨 VERY DANGEROUS — Can Kill, Often Dose-Dependent</h3>
+                            </div>
+                            <div class="danger-grid">
+                                <div class="danger-item warning">Cooked bones (splinter, perforate)</div>
+                                <div class="danger-item warning">Corn cobs (blockage risk)</div>
+                                <div class="danger-item warning">Peach / Plum / Cherry pits</div>
+                                <div class="danger-item warning">Apple seeds (cyanide)</div>
+                                <div class="danger-item warning">Raw yeast dough</div>
+                                <div class="danger-item warning">Fat trimmings / Grease</div>
+                                <div class="danger-item warning">Moldy food</div>
+                                <div class="danger-item warning">Rotten food</div>
+                                <div class="danger-item warning">Hops (beer brewing)</div>
+                                <div class="danger-item warning">Large amounts of liver</div>
+                            </div>
+                            <div class="danger-note">Fat trimmings trigger pancreatitis. Pits contain cyanide + obstruction risk. Large liver amounts cause vitamin A toxicity.</div>
+                        </div>
+
+                        <!-- Tier 3: Toxic -->
+                        <div class="danger-tier tier-toxic">
+                            <div class="danger-tier-header">
+                                <h3>⚠️ TOXIC — Damages Organs Over Time</h3>
+                            </div>
+                            <div class="danger-grid">
+                                <div class="danger-item caution">Avocado (persin + fat)</div>
+                                <div class="danger-item caution">Wild mushrooms</div>
+                                <div class="danger-item caution">Raw potatoes</div>
+                                <div class="danger-item caution">Green potato skins</div>
+                                <div class="danger-item caution">Tomato leaves / stems</div>
+                                <div class="danger-item caution">Rhubarb leaves</div>
+                                <div class="danger-item caution">Excess salt</div>
+                                <div class="danger-item caution">Excess sugar</div>
+                                <div class="danger-item caution">Excess iodine (kelp, seaweed)</div>
+                                <div class="danger-item caution">Excess vitamin D</div>
+                                <div class="danger-item caution">Excess calcium (large breeds)</div>
+                            </div>
+                        </div>
+
+                        <!-- Tier 4: Harmful -->
+                        <div class="danger-tier tier-harmful">
+                            <div class="danger-tier-header">
+                                <h3>🤢 HARMFUL — Not Toxic But Can Wreck Them</h3>
+                            </div>
+                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 10px;">Dairy & Processed Foods</h4>
+                            <div class="danger-grid">
+                                <div class="danger-item no">Milk</div>
+                                <div class="danger-item no">Ice cream</div>
+                                <div class="danger-item no">Cheese (small amounts sometimes ok)</div>
+                                <div class="danger-item no">Spicy food</div>
+                                <div class="danger-item no">Fried food</div>
+                                <div class="danger-item no">Highly processed food</div>
+                                <div class="danger-item no">Sugary food</div>
+                                <div class="danger-item no">Seasoned food</div>
+                                <div class="danger-item no">Human sauces (BBQ, teriyaki)</div>
+                                <div class="danger-item no">Fast food</div>
+                                <div class="danger-item no">Anything heavily salted</div>
+                            </div>
+                        </div>
+
+                        <!-- Bones Info -->
+                        <div class="danger-tier tier-info">
+                            <div class="danger-tier-header">
+                                <h3>🦴 Bones — Important Distinction</h3>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <h4 style="color: #ef4444; font-size: 0.9rem; margin-bottom: 10px;">❌ NEVER Give:</h4>
+                                    <div class="danger-grid" style="grid-template-columns: 1fr;">
+                                        <div class="danger-item no">Cooked bones</div>
+                                        <div class="danger-item no">Smoked bones</div>
+                                        <div class="danger-item no">Store-bought brittle bones</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 style="color: #eab308; font-size: 0.9rem; margin-bottom: 10px;">⚠️ Maybe, With Caution:</h4>
+                                    <div class="danger-grid" style="grid-template-columns: 1fr;">
+                                        <div class="danger-item maybe">Raw bones (reputable source)</div>
+                                        <div class="danger-item maybe">Size-appropriate only</div>
+                                        <div class="danger-item maybe">Supervised only</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spices -->
+                        <div class="danger-tier tier-deadly">
+                            <div class="danger-tier-header">
+                                <h3>🧂 Dangerous Spices & Seasonings</h3>
+                            </div>
+                            <div class="danger-grid">
+                                <div class="danger-item skull">Onion powder</div>
+                                <div class="danger-item skull">Garlic powder</div>
+                                <div class="danger-item skull">Nutmeg</div>
+                                <div class="danger-item warning">Excess salt</div>
+                                <div class="danger-item warning">Chili powder</div>
+                                <div class="danger-item warning">Cayenne</div>
+                                <div class="danger-item warning">Paprika (irritates GI)</div>
+                                <div class="danger-item warning">"Seasoning blends" (contain onion/garlic)</div>
+                            </div>
+                        </div>
+
+                        <!-- Emergency Symptoms -->
+                        <div class="danger-tier tier-deadly" style="background: rgba(220, 38, 38, 0.2);">
+                            <div class="danger-tier-header">
+                                <h3>🧠 Emergency Symptoms — VET NOW!</h3>
+                            </div>
+                            <p style="color: rgba(255,255,255,0.8); margin-bottom: 15px;">If your dog shows ANY of these symptoms after eating something suspicious:</p>
+                            <div class="symptoms-grid">
+                                <div class="symptom-item">Vomiting</div>
+                                <div class="symptom-item">Lethargy</div>
+                                <div class="symptom-item">Tremors</div>
+                                <div class="symptom-item">Seizures</div>
+                                <div class="symptom-item">Collapse</div>
+                                <div class="symptom-item">Pale gums</div>
+                                <div class="symptom-item">Refusing food</div>
+                                <div class="symptom-item">Bloody diarrhea</div>
+                                <div class="symptom-item">Abdominal pain</div>
+                                <div class="symptom-item">Disorientation</div>
+                            </div>
+                            <div class="danger-note" style="margin-top: 15px; background: rgba(255,255,255,0.1); border-left-color: #fff;">
+                                <strong>ASPCA Animal Poison Control:</strong> (888) 426-4435 (fee applies) — Available 24/7
                             </div>
                         </div>
                     </div>

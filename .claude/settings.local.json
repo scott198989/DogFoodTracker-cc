@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(timeout 5 python:*)",
-      "Bash(dir /b \"c:\\\\Users\\\\Scott\\\\Desktop\\\\DogFoodTracker-cc\\\\public\\\\images\")"
+      "Bash(dir /b \"c:\\\\Users\\\\Scott\\\\Desktop\\\\DogFoodTracker-cc\\\\public\\\\images\")",
+      "Bash(copy \"C:\\\\Users\\\\Scott\\\\OneDrive\\\\Pictures\\\\DogFood App\\\\Fruits\\\\Cantaloupe.png\" \"c:\\\\Users\\\\Scott\\\\Desktop\\\\DogFoodTracker-cc\\\\public\\\\images\\\\ingredients\"\")",
+      "Bash(copy:*)",
+      "Bash(cmd /c copy:*)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }
