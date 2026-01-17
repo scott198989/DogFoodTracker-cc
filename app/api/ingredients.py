@@ -93,11 +93,14 @@ def create_manual_ingredient(
     Create a manually entered ingredient.
 
     Use this for brand foods or custom ingredients not in USDA database.
+    Supports different ingredient types: food, oil, supplement, treat.
     """
     db_ingredient = Ingredient(
         name=ingredient.name,
         source_type=ingredient.source_type.value,
         source_id=ingredient.source_id,
+        ingredient_type=ingredient.ingredient_type,
+        category=ingredient.category,
         kcal_per_100g=ingredient.kcal_per_100g,
         protein_g_per_100g=ingredient.protein_g_per_100g,
         fat_g_per_100g=ingredient.fat_g_per_100g,
@@ -109,6 +112,12 @@ def create_manual_ingredient(
         vitamin_a_mcg_per_100g=ingredient.vitamin_a_mcg_per_100g,
         vitamin_d_mcg_per_100g=ingredient.vitamin_d_mcg_per_100g,
         vitamin_e_mg_per_100g=ingredient.vitamin_e_mg_per_100g,
+        # Oil-specific fields
+        kcal_per_ml=ingredient.kcal_per_ml,
+        serving_size_ml=ingredient.serving_size_ml,
+        # Supplement/Treat-specific fields
+        kcal_per_unit=ingredient.kcal_per_unit,
+        units_per_day=ingredient.units_per_day,
     )
     db.add(db_ingredient)
     db.commit()

@@ -4,13 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.models import Recipe, RecipeIngredient, Ingredient
+from app.models.models import Recipe, RecipeIngredient, Ingredient, IngredientType, FoodCategory
 from app.schemas.schemas import (
     RecipeCreate,
     RecipeUpdate,
     RecipeResponse,
     RecipeIngredientAdd,
     RecipeIngredientResponse,
+    IngredientType as IngredientTypeSchema,
+    FoodCategory as FoodCategorySchema,
 )
 
 router = APIRouter(prefix="/recipe", tags=["recipes"])
@@ -146,12 +148,17 @@ def _recipe_to_response(recipe: Recipe) -> RecipeResponse:
     """Convert Recipe model to response schema."""
     ingredients = []
     for ri in recipe.ingredients:
+        ing = ri.ingredient
+        ing_type = ing.ingredient_type or IngredientType.FOOD
+        ing_category = ing.category or FoodCategory.OTHER
         ingredients.append(RecipeIngredientResponse(
             id=ri.id,
             ingredient_id=ri.ingredient_id,
-            ingredient_name=ri.ingredient.name,
+            ingredient_name=ing.name,
             percentage=ri.percentage,
-            kcal_per_100g=ri.ingredient.kcal_per_100g,
+            kcal_per_100g=ing.kcal_per_100g,
+            ingredient_type=IngredientTypeSchema(ing_type.value),
+            category=FoodCategorySchema(ing_category.value),
         ))
     return RecipeResponse(
         id=recipe.id,

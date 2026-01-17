@@ -580,10 +580,52 @@
         .category-protein { background: rgba(239, 68, 68, 0.2); color: #f87171; }
         .category-carbs { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
         .category-veggies { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .category-vegetables { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
         .category-fruits { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
         .category-fats { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .category-seeds { background: rgba(234, 179, 8, 0.2); color: #facc15; }
         .category-supplements { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
         .category-other { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+
+        /* Food Pyramid Visualization */
+        .food-pyramid {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 4px;
+        }
+
+        .pyramid-level {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .pyramid-level:hover {
+            transform: scale(1.02);
+        }
+
+        .pyramid-level .emoji { font-size: 1.2rem; }
+        .pyramid-level .label { flex: 1; }
+        .pyramid-level .percent { font-weight: 800; min-width: 50px; text-align: right; }
+
+        .pyramid-protein { background: linear-gradient(135deg, rgba(239, 68, 68, 0.4), rgba(220, 38, 38, 0.4)); width: 95%; }
+        .pyramid-carbs { background: linear-gradient(135deg, rgba(251, 191, 36, 0.4), rgba(245, 158, 11, 0.4)); width: 75%; }
+        .pyramid-vegetables { background: linear-gradient(135deg, rgba(34, 197, 94, 0.4), rgba(22, 163, 74, 0.4)); width: 70%; }
+        .pyramid-fruits { background: linear-gradient(135deg, rgba(168, 85, 247, 0.4), rgba(147, 51, 234, 0.4)); width: 50%; }
+        .pyramid-fats { background: linear-gradient(135deg, rgba(59, 130, 246, 0.4), rgba(37, 99, 235, 0.4)); width: 40%; }
+        .pyramid-seeds { background: linear-gradient(135deg, rgba(234, 179, 8, 0.4), rgba(202, 138, 4, 0.4)); width: 35%; }
+        .pyramid-supplements { background: linear-gradient(135deg, rgba(236, 72, 153, 0.4), rgba(219, 39, 119, 0.4)); width: 30%; }
+        .pyramid-other { background: linear-gradient(135deg, rgba(156, 163, 175, 0.4), rgba(107, 114, 128, 0.4)); width: 30%; }
 
         .nutrient-bars {
             display: flex;
@@ -3436,11 +3478,49 @@
                             </div>
                         </div>
 
+                        <!-- Calorie Budget Summary -->
+                        ${plan.calorie_budget ? `
+                            <div class="form-card glass-dark" style="margin-bottom: 20px; padding: 20px;">
+                                <h3 style="color: white; margin-bottom: 15px;">📊 Daily Calorie Budget</h3>
+                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; color: rgba(255,255,255,0.9);">
+                                    <span>🍖 Homemade Food:</span>
+                                    <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.homemade_food_kcal?.toFixed(0)} kcal</span>
+                                    ${plan.calorie_budget.kibble_kcal > 0 ? `
+                                        <span>🥣 Kibble:</span>
+                                        <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.kibble_kcal?.toFixed(0)} kcal</span>
+                                    ` : ''}
+                                    ${plan.calorie_budget.oils_kcal > 0 ? `
+                                        <span>🫒 Oils (at mealtime):</span>
+                                        <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.oils_kcal?.toFixed(0)} kcal</span>
+                                    ` : ''}
+                                    ${plan.calorie_budget.supplements_kcal > 0 ? `
+                                        <span>💊 Supplements:</span>
+                                        <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.supplements_kcal?.toFixed(0)} kcal</span>
+                                    ` : ''}
+                                    ${plan.calorie_budget.treats_kcal > 0 ? `
+                                        <span>🦴 Treats:</span>
+                                        <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.treats_kcal?.toFixed(0)} kcal</span>
+                                    ` : ''}
+                                    <div style="grid-column: 1/-1; border-top: 1px solid rgba(255,255,255,0.2); margin: 8px 0;"></div>
+                                    <span style="font-weight: bold;">Total:</span>
+                                    <span style="text-align: right; font-weight: bold; color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : '#10b981'};">${plan.calorie_budget.total_kcal?.toFixed(0)} / ${plan.calorie_budget.target_daily_kcal?.toFixed(0)} kcal</span>
+                                    ${plan.calorie_budget.remaining_kcal !== 0 ? `
+                                        <span style="color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'rgba(255,255,255,0.6)'};">
+                                            ${plan.calorie_budget.remaining_kcal > 0 ? 'Remaining:' : 'Over by:'}
+                                        </span>
+                                        <span style="text-align: right; color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'rgba(255,255,255,0.6)'};">
+                                            ${Math.abs(plan.calorie_budget.remaining_kcal)?.toFixed(0)} kcal
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+
                         <!-- Container Instructions -->
                         <div class="form-card glass-dark" style="margin-bottom: 20px; padding: 20px;">
                             <h3 style="color: white; margin-bottom: 15px;">📦 How to Prep</h3>
                             <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
-                                <strong>1.</strong> Cook/prep all ingredients using the batch amounts below
+                                <strong>1.</strong> Cook/prep all batch ingredients using the amounts below
                             </p>
                             <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
                                 <strong>2.</strong> Mix everything together thoroughly
@@ -3451,12 +3531,41 @@
                             <p style="color: rgba(255,255,255,0.9); font-size: 1.1em;">
                                 <strong>4.</strong> Feed <strong>${plan.meals_per_day}</strong> container(s) per day (${plan.per_meal_kcal?.toFixed(0)} kcal each)
                             </p>
+                            ${plan.oils && plan.oils.length > 0 ? `
+                                <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-top: 10px;">
+                                    <strong>5.</strong> Add oils at mealtime (see "Given Separately" section)
+                                </p>
+                            ` : ''}
                         </div>
 
-                        ${plan.ingredient_portions && plan.ingredient_portions.length > 0 ? `
+                        <!-- BATCH Ingredients (FOOD type only) -->
+                        ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
                             <div class="portions-section">
                                 <h3><span>🛒</span> Batch Ingredients (${plan.num_days} days)</h3>
-                                ${plan.ingredient_portions.map(p => `
+                                ${plan.batch_ingredients.map(p => `
+                                    <div class="portion-item glass-dark">
+                                        <span class="name">${p.ingredient_name} <span class="category-badge category-${p.category || 'other'}">${p.category || 'other'}</span></span>
+                                        <div class="portion-amounts">
+                                            <div class="portion-amount" style="background: rgba(138, 43, 226, 0.3);">
+                                                <div class="value">${p.total_grams_batch?.toFixed(0)}g</div>
+                                                <div class="label">TOTAL BATCH</div>
+                                            </div>
+                                            <div class="portion-amount">
+                                                <div class="value">${p.grams_per_day?.toFixed(1)}g</div>
+                                                <div class="label">per day</div>
+                                            </div>
+                                            <div class="portion-amount">
+                                                <div class="value">${p.grams_per_meal?.toFixed(1)}g</div>
+                                                <div class="label">per meal</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : plan.ingredient_portions && plan.ingredient_portions.length > 0 ? `
+                            <div class="portions-section">
+                                <h3><span>🛒</span> Batch Ingredients (${plan.num_days} days)</h3>
+                                ${plan.ingredient_portions.filter(p => p.ingredient_type === 'food' || !p.ingredient_type).map(p => `
                                     <div class="portion-item glass-dark">
                                         <span class="name">${p.ingredient_name}</span>
                                         <div class="portion-amounts">
@@ -3475,6 +3584,84 @@
                                         </div>
                                     </div>
                                 `).join('')}
+                            </div>
+                        ` : ''}
+
+                        <!-- GIVEN SEPARATELY Section (Oils, Supplements, Treats) -->
+                        ${(plan.oils && plan.oils.length > 0) || (plan.supplements && plan.supplements.length > 0) || (plan.treats && plan.treats.length > 0) ? `
+                            <div class="portions-section" style="margin-top: 20px;">
+                                <h3><span>🔔</span> Given Separately (at mealtime)</h3>
+
+                                ${plan.oils && plan.oils.length > 0 ? `
+                                    <div style="margin-bottom: 15px;">
+                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">🫒 Oils</h4>
+                                        ${plan.oils.map(o => `
+                                            <div class="portion-item glass-dark">
+                                                <span class="name">${o.ingredient_name}</span>
+                                                <div class="portion-amounts">
+                                                    <div class="portion-amount" style="background: rgba(234, 179, 8, 0.3);">
+                                                        <div class="value">${o.tsp_per_meal?.toFixed(1)} tsp</div>
+                                                        <div class="label">PER MEAL</div>
+                                                    </div>
+                                                    <div class="portion-amount">
+                                                        <div class="value">${o.ml_per_meal?.toFixed(1)}ml</div>
+                                                        <div class="label">per meal</div>
+                                                    </div>
+                                                    <div class="portion-amount">
+                                                        <div class="value">${o.kcal_per_day?.toFixed(0)}</div>
+                                                        <div class="label">kcal/day</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+
+                                ${plan.supplements && plan.supplements.length > 0 ? `
+                                    <div style="margin-bottom: 15px;">
+                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">💊 Supplements</h4>
+                                        ${plan.supplements.map(s => `
+                                            <div class="portion-item glass-dark">
+                                                <span class="name">${s.ingredient_name}</span>
+                                                <div class="portion-amounts">
+                                                    <div class="portion-amount" style="background: rgba(16, 185, 129, 0.3);">
+                                                        <div class="value">${s.units_per_day?.toFixed(0)}</div>
+                                                        <div class="label">UNITS/DAY</div>
+                                                    </div>
+                                                    ${s.kcal_from_supplement > 0 ? `
+                                                        <div class="portion-amount">
+                                                            <div class="value">${s.kcal_from_supplement?.toFixed(0)}</div>
+                                                            <div class="label">kcal/day</div>
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+
+                                ${plan.treats && plan.treats.length > 0 ? `
+                                    <div>
+                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">🦴 Treats</h4>
+                                        ${plan.treats.map(t => `
+                                            <div class="portion-item glass-dark">
+                                                <span class="name">${t.ingredient_name}</span>
+                                                <div class="portion-amounts">
+                                                    <div class="portion-amount" style="background: rgba(249, 115, 22, 0.3);">
+                                                        <div class="value">${t.units_per_day?.toFixed(0)}</div>
+                                                        <div class="label">MAX/DAY</div>
+                                                    </div>
+                                                    ${t.treat_kcal_budget > 0 ? `
+                                                        <div class="portion-amount">
+                                                            <div class="value">${t.treat_kcal_budget?.toFixed(0)}</div>
+                                                            <div class="label">kcal budget</div>
+                                                        </div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
                             </div>
                         ` : ''}
 
@@ -3504,6 +3691,68 @@
                                         <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Phosphorus</div>
                                     </div>
                                 </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- Food Pyramid Visualization -->
+                        ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
+                            <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
+                                <h3 style="color: white; margin-bottom: 15px; text-align: center;">🔺 Recipe Food Pyramid</h3>
+                                <div class="food-pyramid">
+                                    ${(() => {
+                                        // Group by category and calculate percentages
+                                        const categoryTotals = {};
+                                        let totalGrams = 0;
+                                        plan.batch_ingredients.forEach(ing => {
+                                            const cat = ing.category || 'other';
+                                            categoryTotals[cat] = (categoryTotals[cat] || 0) + (ing.grams_per_day || 0);
+                                            totalGrams += ing.grams_per_day || 0;
+                                        });
+
+                                        const categoryEmojis = {
+                                            protein: '🥩',
+                                            carbs: '🍚',
+                                            vegetables: '🥦',
+                                            fruits: '🍎',
+                                            fats: '🫒',
+                                            seeds: '🌻',
+                                            supplements: '💊',
+                                            other: '📦'
+                                        };
+
+                                        const categoryLabels = {
+                                            protein: 'Protein',
+                                            carbs: 'Carbs',
+                                            vegetables: 'Vegetables',
+                                            fruits: 'Fruits',
+                                            fats: 'Fats/Oils',
+                                            seeds: 'Seeds',
+                                            supplements: 'Supplements',
+                                            other: 'Other'
+                                        };
+
+                                        // Sort by percentage (largest first)
+                                        const sortedCategories = Object.entries(categoryTotals)
+                                            .map(([cat, grams]) => ({
+                                                category: cat,
+                                                grams,
+                                                percent: totalGrams > 0 ? (grams / totalGrams * 100) : 0
+                                            }))
+                                            .filter(c => c.percent > 0)
+                                            .sort((a, b) => b.percent - a.percent);
+
+                                        return sortedCategories.map(c => `
+                                            <div class="pyramid-level pyramid-${c.category}">
+                                                <span class="emoji">${categoryEmojis[c.category] || '📦'}</span>
+                                                <span class="label">${categoryLabels[c.category] || c.category}</span>
+                                                <span class="percent">${c.percent.toFixed(0)}%</span>
+                                            </div>
+                                        `).join('');
+                                    })()}
+                                </div>
+                                <p style="color: rgba(255,255,255,0.5); font-size: 0.8em; text-align: center; margin-top: 10px;">
+                                    Ideal: 50% protein, 20% carbs, 20% veggies, 5% fruits, 3% fats, 2% supplements
+                                </p>
                             </div>
                         ` : ''}
 

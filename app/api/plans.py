@@ -14,7 +14,7 @@ from app.core.calculations import (
     nutrient_per_1000kcal,
     check_aafco_compliance,
 )
-from app.models.models import Dog, Recipe, FeedingPlan, AAFCORequirement
+from app.models.models import Dog, Recipe, FeedingPlan, AAFCORequirement, IngredientType, FoodCategory
 from app.schemas.schemas import (
     PlanComputeRequest,
     PlanComputeResponse,
@@ -26,6 +26,9 @@ from app.schemas.schemas import (
     SimulateRequest,
     SimulateResponse,
     NutrientStatusResponse,
+    CalorieBudgetResponse,
+    IngredientType as IngredientTypeSchema,
+    FoodCategory as FoodCategorySchema,
 )
 
 router = APIRouter(prefix="/plan", tags=["feeding plans"])
@@ -85,14 +88,20 @@ def compute_feeding_plan(
         request.treats_kcal
     )
 
-    # Collect ingredient data with percentages
-    ingredient_data = []
+    # Separate ingredients by type
+    food_ingredients = []  # FOOD type - goes in batch
+    oil_ingredients = []   # OIL type - added at mealtime
+    supplement_ingredients = []  # SUPPLEMENT type - given separately
+    treat_ingredients = []  # TREAT type - given separately
+
     for ri in recipe.ingredients:
         ing = ri.ingredient
-        ingredient_data.append({
+        ing_data = {
             "ingredient_id": ing.id,
             "ingredient_name": ing.name,
             "percentage": ri.percentage,
+            "ingredient_type": ing.ingredient_type or IngredientType.FOOD,
+            "category": ing.category or FoodCategory.OTHER,
             "kcal_per_100g": ing.kcal_per_100g,
             "protein_g_per_100g": ing.protein_g_per_100g,
             "fat_g_per_100g": ing.fat_g_per_100g,
@@ -104,19 +113,62 @@ def compute_feeding_plan(
             "vitamin_a_mcg_per_100g": ing.vitamin_a_mcg_per_100g,
             "vitamin_d_mcg_per_100g": ing.vitamin_d_mcg_per_100g,
             "vitamin_e_mg_per_100g": ing.vitamin_e_mg_per_100g,
-        })
+            # Type-specific fields
+            "kcal_per_ml": ing.kcal_per_ml,
+            "serving_size_ml": ing.serving_size_ml,
+            "kcal_per_unit": ing.kcal_per_unit,
+            "units_per_day": ing.units_per_day,
+        }
 
-    # Calculate weighted average kcal per 100g of the mixed recipe
-    # Formula: sum(percentage/100 * kcal_per_100g) for all ingredients
-    weighted_avg_kcal_per_100g = sum(
-        (ing["percentage"] / 100) * ing["kcal_per_100g"]
-        for ing in ingredient_data
-    )
+        ing_type = ing.ingredient_type or IngredientType.FOOD
+        if ing_type == IngredientType.FOOD:
+            food_ingredients.append(ing_data)
+        elif ing_type == IngredientType.OIL:
+            oil_ingredients.append(ing_data)
+        elif ing_type == IngredientType.SUPPLEMENT:
+            supplement_ingredients.append(ing_data)
+        elif ing_type == IngredientType.TREAT:
+            treat_ingredients.append(ing_data)
 
-    # Calculate total grams needed per day to hit calorie target
-    # Formula: homemade_kcal / (weighted_avg_kcal_per_100g / 100)
-    if weighted_avg_kcal_per_100g > 0:
-        total_grams_per_day = (homemade_kcal / weighted_avg_kcal_per_100g) * 100
+    # Validate FOOD percentages sum to ~100% (only for food ingredients)
+    food_total_percentage = sum(ing["percentage"] for ing in food_ingredients)
+    if food_ingredients and (food_total_percentage < 99 or food_total_percentage > 101):
+        # Normalize to 100% if not exact
+        for ing in food_ingredients:
+            ing["percentage"] = (ing["percentage"] / food_total_percentage) * 100
+
+    # Calculate kcal from oils, supplements, treats (these are subtracted from homemade budget)
+    oils_kcal_per_day = 0
+    for oil in oil_ingredients:
+        if oil["kcal_per_ml"] and oil["serving_size_ml"]:
+            oils_kcal_per_day += oil["kcal_per_ml"] * oil["serving_size_ml"]
+        elif oil["kcal_per_100g"] and oil["serving_size_ml"]:
+            # Approximate: oil is about 0.92g per ml
+            oils_kcal_per_day += (oil["serving_size_ml"] * 0.92 / 100) * oil["kcal_per_100g"]
+
+    supplements_kcal_per_day = 0
+    for supp in supplement_ingredients:
+        if supp["kcal_per_unit"] and supp["units_per_day"]:
+            supplements_kcal_per_day += supp["kcal_per_unit"] * supp["units_per_day"]
+
+    # Treats come from request, not recipe
+    treats_kcal_per_day = request.treats_kcal
+
+    # Calculate weighted average kcal per 100g of the mixed FOOD recipe only
+    if food_ingredients:
+        weighted_avg_kcal_per_100g = sum(
+            (ing["percentage"] / 100) * ing["kcal_per_100g"]
+            for ing in food_ingredients
+        )
+    else:
+        weighted_avg_kcal_per_100g = 0
+
+    # Actual homemade food kcal (subtract oils/supplements from budget)
+    actual_batch_kcal = homemade_kcal - oils_kcal_per_day - supplements_kcal_per_day
+
+    # Calculate total grams needed per day for FOOD type only
+    if weighted_avg_kcal_per_100g > 0 and actual_batch_kcal > 0:
+        total_grams_per_day = (actual_batch_kcal / weighted_avg_kcal_per_100g) * 100
     else:
         total_grams_per_day = 0
 
@@ -126,20 +178,17 @@ def compute_feeding_plan(
     total_batch_kcal = homemade_kcal * num_days
     total_batch_grams = total_grams_per_day * num_days
 
-    # Calculate per-ingredient portions based on percentages
-    ingredient_portions = []
-    scaled_ingredients = []
+    # Calculate per-ingredient portions based on type
+    batch_ingredients = []  # FOOD type only
+    oils = []  # OIL type
+    supplements = []  # SUPPLEMENT type
+    treats = []  # TREAT type
+    ingredient_portions = []  # All combined (for backwards compatibility)
+    scaled_ingredients = []  # For nutrient aggregation
     warnings = []
 
-    # Safety limits for specific ingredients (grams per day)
-    safety_limits = {
-        "turmeric": 2,  # max 1-2g per day
-        "liver": None,  # 5% of diet - calculated dynamically
-        "coconut oil": None,  # 1 tbsp per 30 lbs - calculated based on dog weight
-    }
-
-    for ing_data in ingredient_data:
-        # Calculate grams based on percentage
+    # Process FOOD type ingredients (batch cooking)
+    for ing_data in food_ingredients:
         grams_per_day = total_grams_per_day * (ing_data["percentage"] / 100)
         grams_per_meal = grams_per_day / recipe.meals_per_day
         kcal_per_day = grams_to_kcal(grams_per_day, ing_data["kcal_per_100g"])
@@ -148,31 +197,25 @@ def compute_feeding_plan(
         # Check safety limits
         ing_name_lower = ing_data["ingredient_name"].lower()
 
-        # Turmeric limit
         if "turmeric" in ing_name_lower and grams_per_day > 2:
             warnings.append(f"⚠️ Turmeric exceeds safe limit: {grams_per_day:.1f}g/day (max 2g recommended)")
 
-        # Liver limit (5% of diet)
         if "liver" in ing_name_lower and ing_data["percentage"] > 5:
             warnings.append(f"⚠️ Liver exceeds 5% of diet: {ing_data['percentage']:.1f}% (max 5% recommended)")
 
-        # Coconut oil limit (1 tbsp = ~14g per 30 lbs body weight)
-        if "coconut" in ing_name_lower and "oil" in ing_name_lower:
-            dog_weight_lbs = dog.weight_kg * 2.205
-            max_coconut_g = (dog_weight_lbs / 30) * 14
-            if grams_per_day > max_coconut_g:
-                warnings.append(f"⚠️ Coconut oil exceeds safe limit: {grams_per_day:.1f}g/day (max {max_coconut_g:.0f}g for {dog_weight_lbs:.0f} lb dog)")
-
-        ingredient_portions.append(IngredientPortionResponse(
+        portion = IngredientPortionResponse(
             ingredient_id=ing_data["ingredient_id"],
             ingredient_name=ing_data["ingredient_name"],
+            ingredient_type=IngredientTypeSchema.FOOD,
+            category=FoodCategorySchema(ing_data["category"].value) if ing_data["category"] else FoodCategorySchema.OTHER,
             grams_per_day=round(grams_per_day, 2),
             grams_per_meal=round(grams_per_meal, 2),
             kcal_per_day=round(kcal_per_day, 2),
             total_grams_batch=round(total_grams_batch, 2),
-        ))
+        )
+        batch_ingredients.append(portion)
+        ingredient_portions.append(portion)
 
-        # Prepare for nutrient aggregation
         scaled_ingredients.append({
             "grams": grams_per_day,
             "kcal_per_100g": ing_data["kcal_per_100g"],
@@ -187,6 +230,74 @@ def compute_feeding_plan(
             "vitamin_d_mcg_per_100g": ing_data["vitamin_d_mcg_per_100g"],
             "vitamin_e_mg_per_100g": ing_data["vitamin_e_mg_per_100g"],
         })
+
+    # Process OIL type ingredients (added at mealtime)
+    for oil_data in oil_ingredients:
+        serving_ml = oil_data["serving_size_ml"] or 5  # Default 5ml (1 tsp)
+        ml_per_day = serving_ml * recipe.meals_per_day
+        ml_per_meal = serving_ml
+        tsp_per_meal = ml_per_meal / 5  # 1 tsp = 5ml
+
+        if oil_data["kcal_per_ml"]:
+            kcal_per_day = oil_data["kcal_per_ml"] * ml_per_day
+        else:
+            # Approximate: oil is about 0.92g per ml
+            kcal_per_day = (ml_per_day * 0.92 / 100) * oil_data["kcal_per_100g"]
+
+        # Check coconut oil limit
+        ing_name_lower = oil_data["ingredient_name"].lower()
+        if "coconut" in ing_name_lower:
+            dog_weight_lbs = dog.weight_kg * 2.205
+            max_tsp = dog_weight_lbs / 30  # 1 tsp per 30 lbs
+            if tsp_per_meal * recipe.meals_per_day > max_tsp:
+                warnings.append(f"⚠️ Coconut oil may exceed safe limit for {dog_weight_lbs:.0f} lb dog")
+
+        portion = IngredientPortionResponse(
+            ingredient_id=oil_data["ingredient_id"],
+            ingredient_name=oil_data["ingredient_name"],
+            ingredient_type=IngredientTypeSchema.OIL,
+            category=FoodCategorySchema.FATS,
+            kcal_per_day=round(kcal_per_day, 2),
+            ml_per_meal=round(ml_per_meal, 2),
+            ml_per_day=round(ml_per_day, 2),
+            tsp_per_meal=round(tsp_per_meal, 2),
+        )
+        oils.append(portion)
+        ingredient_portions.append(portion)
+
+    # Process SUPPLEMENT type ingredients (given separately)
+    for supp_data in supplement_ingredients:
+        units = supp_data["units_per_day"] or 1
+        kcal_from_supp = (supp_data["kcal_per_unit"] or 0) * units
+
+        portion = IngredientPortionResponse(
+            ingredient_id=supp_data["ingredient_id"],
+            ingredient_name=supp_data["ingredient_name"],
+            ingredient_type=IngredientTypeSchema.SUPPLEMENT,
+            category=FoodCategorySchema.SUPPLEMENTS,
+            units_per_day=units,
+            kcal_from_supplement=round(kcal_from_supp, 2),
+            kcal_per_day=round(kcal_from_supp, 2),
+        )
+        supplements.append(portion)
+        ingredient_portions.append(portion)
+
+    # Process TREAT type ingredients (optional, separate)
+    for treat_data in treat_ingredients:
+        units = treat_data["units_per_day"] or 0
+        kcal_from_treat = (treat_data["kcal_per_unit"] or 0) * units
+
+        portion = IngredientPortionResponse(
+            ingredient_id=treat_data["ingredient_id"],
+            ingredient_name=treat_data["ingredient_name"],
+            ingredient_type=IngredientTypeSchema.TREAT,
+            category=FoodCategorySchema.OTHER,
+            units_per_day=units,
+            treat_kcal_budget=round(kcal_from_treat, 2),
+            kcal_per_day=round(kcal_from_treat, 2),
+        )
+        treats.append(portion)
+        ingredient_portions.append(portion)
 
     # Calculate grams per container (per meal)
     grams_per_container = total_batch_grams / total_meals if total_meals > 0 else 0
@@ -250,6 +361,26 @@ def compute_feeding_plan(
     db.add(feeding_plan)
     db.commit()
 
+    # Build calorie budget summary
+    total_kcal_accounted = (
+        actual_batch_kcal +
+        request.kibble_kcal +
+        oils_kcal_per_day +
+        supplements_kcal_per_day +
+        treats_kcal_per_day
+    )
+
+    calorie_budget = CalorieBudgetResponse(
+        target_daily_kcal=round(target_kcal, 2),
+        homemade_food_kcal=round(actual_batch_kcal, 2),
+        kibble_kcal=round(request.kibble_kcal, 2),
+        oils_kcal=round(oils_kcal_per_day, 2),
+        supplements_kcal=round(supplements_kcal_per_day, 2),
+        treats_kcal=round(treats_kcal_per_day, 2),
+        total_kcal=round(total_kcal_accounted, 2),
+        remaining_kcal=round(target_kcal - total_kcal_accounted, 2),
+    )
+
     return PlanComputeResponse(
         dog_id=dog.id,
         dog_name=dog.name,
@@ -259,15 +390,22 @@ def compute_feeding_plan(
         kibble_kcal=request.kibble_kcal,
         treats_kcal=request.treats_kcal,
         homemade_kcal=round(homemade_kcal, 2),
-        per_meal_kcal=round(homemade_kcal / recipe.meals_per_day, 2),
+        per_meal_kcal=round(actual_batch_kcal / recipe.meals_per_day, 2),
         meals_per_day=recipe.meals_per_day,
         # Batch fields
         num_days=num_days,
         total_meals=total_meals,
-        total_batch_kcal=round(total_batch_kcal, 2),
+        total_batch_kcal=round(actual_batch_kcal * num_days, 2),
         total_batch_grams=round(total_batch_grams, 2),
         grams_per_container=round(grams_per_container, 2),
-        ingredient_portions=ingredient_portions,
+        # Separated by type
+        batch_ingredients=batch_ingredients,
+        oils=oils,
+        supplements=supplements,
+        treats=treats,
+        ingredient_portions=ingredient_portions,  # Backwards compatibility
+        # Calorie budget
+        calorie_budget=calorie_budget,
         nutrient_totals=nutrient_totals,
         aafco_checks=aafco_checks,
         warnings=warnings,

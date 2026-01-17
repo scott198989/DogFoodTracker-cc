@@ -29,6 +29,24 @@ class SourceType(str, enum.Enum):
     USER = "USER"
 
 
+class IngredientType(str, enum.Enum):
+    FOOD = "food"           # Goes in batch (meats, veggies, grains)
+    OIL = "oil"             # Added at mealtime, measured in mL/tsp
+    SUPPLEMENT = "supplement"  # Chews/pills, given separately
+    TREAT = "treat"         # Given separately, optional
+
+
+class FoodCategory(str, enum.Enum):
+    PROTEIN = "protein"
+    CARBS = "carbs"
+    VEGETABLES = "vegetables"
+    FRUITS = "fruits"
+    FATS = "fats"
+    SEEDS = "seeds"
+    SUPPLEMENTS = "supplements"
+    OTHER = "other"
+
+
 class Dog(Base):
     __tablename__ = "dogs"
 
@@ -58,6 +76,12 @@ class Ingredient(Base):
     name = Column(String, nullable=False, index=True)
     source_type = Column(Enum(SourceType), nullable=False)
     source_id = Column(String, nullable=True)
+
+    # Type determines how ingredient is used
+    ingredient_type = Column(Enum(IngredientType), default=IngredientType.FOOD)
+    category = Column(Enum(FoodCategory), default=FoodCategory.OTHER)
+
+    # Standard nutrition per 100g (for FOOD type)
     kcal_per_100g = Column(Float, nullable=False)
     protein_g_per_100g = Column(Float, default=0)
     fat_g_per_100g = Column(Float, default=0)
@@ -69,6 +93,14 @@ class Ingredient(Base):
     vitamin_a_mcg_per_100g = Column(Float, default=0)
     vitamin_d_mcg_per_100g = Column(Float, default=0)
     vitamin_e_mg_per_100g = Column(Float, default=0)
+
+    # For OIL type: measured in mL/tsp
+    kcal_per_ml = Column(Float, nullable=True)  # ~8.6 kcal/mL for most oils
+    serving_size_ml = Column(Float, nullable=True)  # Default serving in mL
+
+    # For SUPPLEMENT/TREAT type: per-unit measurements
+    kcal_per_unit = Column(Float, nullable=True)  # kcal per chew/pill
+    units_per_day = Column(Float, nullable=True)  # Recommended daily units
 
     recipe_ingredients = relationship("RecipeIngredient", back_populates="ingredient")
 

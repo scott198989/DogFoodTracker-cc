@@ -29,6 +29,24 @@ class SourceType(str, Enum):
     USER = "USER"
 
 
+class IngredientType(str, Enum):
+    FOOD = "food"           # Goes in batch (meats, veggies, grains)
+    OIL = "oil"             # Added at mealtime, measured in mL/tsp
+    SUPPLEMENT = "supplement"  # Chews/pills, given separately
+    TREAT = "treat"         # Given separately, optional
+
+
+class FoodCategory(str, Enum):
+    PROTEIN = "protein"
+    CARBS = "carbs"
+    VEGETABLES = "vegetables"
+    FRUITS = "fruits"
+    FATS = "fats"
+    SEEDS = "seeds"
+    SUPPLEMENTS = "supplements"
+    OTHER = "other"
+
+
 class WeightUnit(str, Enum):
     KG = "kg"
     LBS = "lbs"
@@ -92,6 +110,10 @@ class DogWithCalculations(DogResponse):
 # Ingredient schemas
 class IngredientBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
+    ingredient_type: IngredientType = IngredientType.FOOD
+    category: FoodCategory = FoodCategory.OTHER
+
+    # Standard nutrition per 100g (for FOOD type)
     kcal_per_100g: float = Field(..., ge=0)
     protein_g_per_100g: float = Field(0, ge=0)
     fat_g_per_100g: float = Field(0, ge=0)
@@ -103,6 +125,14 @@ class IngredientBase(BaseModel):
     vitamin_a_mcg_per_100g: float = Field(0, ge=0)
     vitamin_d_mcg_per_100g: float = Field(0, ge=0)
     vitamin_e_mg_per_100g: float = Field(0, ge=0)
+
+    # For OIL type: measured in mL/tsp
+    kcal_per_ml: Optional[float] = Field(None, ge=0)  # ~8.6 kcal/mL for most oils
+    serving_size_ml: Optional[float] = Field(None, ge=0)  # Default serving in mL
+
+    # For SUPPLEMENT/TREAT type: per-unit measurements
+    kcal_per_unit: Optional[float] = Field(None, ge=0)  # kcal per chew/pill
+    units_per_day: Optional[float] = Field(None, ge=0)  # Recommended daily units
 
 
 class IngredientCreate(IngredientBase):
@@ -116,6 +146,8 @@ class USDAIngredientCreate(BaseModel):
 
 class IngredientUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=200)
+    ingredient_type: Optional[IngredientType] = None
+    category: Optional[FoodCategory] = None
     kcal_per_100g: Optional[float] = Field(None, ge=0)
     protein_g_per_100g: Optional[float] = Field(None, ge=0)
     fat_g_per_100g: Optional[float] = Field(None, ge=0)
@@ -127,12 +159,39 @@ class IngredientUpdate(BaseModel):
     vitamin_a_mcg_per_100g: Optional[float] = Field(None, ge=0)
     vitamin_d_mcg_per_100g: Optional[float] = Field(None, ge=0)
     vitamin_e_mg_per_100g: Optional[float] = Field(None, ge=0)
+    # Oil fields
+    kcal_per_ml: Optional[float] = Field(None, ge=0)
+    serving_size_ml: Optional[float] = Field(None, ge=0)
+    # Supplement/Treat fields
+    kcal_per_unit: Optional[float] = Field(None, ge=0)
+    units_per_day: Optional[float] = Field(None, ge=0)
 
 
-class IngredientResponse(IngredientBase):
+class IngredientResponse(BaseModel):
     id: int
+    name: str
     source_type: SourceType
     source_id: Optional[str]
+    ingredient_type: IngredientType
+    category: FoodCategory
+    # Standard nutrition per 100g
+    kcal_per_100g: float
+    protein_g_per_100g: float
+    fat_g_per_100g: float
+    carbs_g_per_100g: float
+    calcium_mg_per_100g: float
+    phosphorus_mg_per_100g: float
+    iron_mg_per_100g: float
+    zinc_mg_per_100g: float
+    vitamin_a_mcg_per_100g: float
+    vitamin_d_mcg_per_100g: float
+    vitamin_e_mg_per_100g: float
+    # Oil fields
+    kcal_per_ml: Optional[float]
+    serving_size_ml: Optional[float]
+    # Supplement/Treat fields
+    kcal_per_unit: Optional[float]
+    units_per_day: Optional[float]
 
     class Config:
         from_attributes = True
@@ -167,6 +226,8 @@ class RecipeIngredientResponse(BaseModel):
     ingredient_name: str
     percentage: float
     kcal_per_100g: float = 0  # Include for UI display
+    ingredient_type: IngredientType = IngredientType.FOOD
+    category: FoodCategory = FoodCategory.OTHER
 
     class Config:
         from_attributes = True
@@ -217,10 +278,34 @@ class AAFCOCheckResponse(BaseModel):
 class IngredientPortionResponse(BaseModel):
     ingredient_id: int
     ingredient_name: str
-    grams_per_day: float
-    grams_per_meal: float
-    kcal_per_day: float
+    ingredient_type: IngredientType = IngredientType.FOOD
+    category: FoodCategory = FoodCategory.OTHER
+    # For FOOD type (batch cooking)
+    grams_per_day: float = 0
+    grams_per_meal: float = 0
+    kcal_per_day: float = 0
     total_grams_batch: float = Field(0, description="Total grams needed for entire batch")
+    # For OIL type (added at mealtime)
+    ml_per_meal: Optional[float] = None
+    ml_per_day: Optional[float] = None
+    tsp_per_meal: Optional[float] = None  # 1 tsp = ~5ml
+    # For SUPPLEMENT type (given separately)
+    units_per_day: Optional[float] = None
+    kcal_from_supplement: Optional[float] = None
+    # For TREAT type
+    treat_kcal_budget: Optional[float] = None
+
+
+class CalorieBudgetResponse(BaseModel):
+    """Complete breakdown of daily calorie sources."""
+    target_daily_kcal: float
+    homemade_food_kcal: float
+    kibble_kcal: float
+    oils_kcal: float
+    supplements_kcal: float
+    treats_kcal: float
+    total_kcal: float
+    remaining_kcal: float  # Can be negative if over budget
 
 
 class PlanComputeResponse(BaseModel):
@@ -240,7 +325,15 @@ class PlanComputeResponse(BaseModel):
     total_batch_kcal: float = Field(0, description="Total calories in entire batch")
     total_batch_grams: float = Field(0, description="Total grams of food in entire batch")
     grams_per_container: float = Field(0, description="Grams per meal container")
-    ingredient_portions: list[IngredientPortionResponse]
+    # Separated by ingredient type
+    batch_ingredients: list[IngredientPortionResponse] = []  # FOOD type only
+    oils: list[IngredientPortionResponse] = []  # OIL type - added at mealtime
+    supplements: list[IngredientPortionResponse] = []  # SUPPLEMENT type - given separately
+    treats: list[IngredientPortionResponse] = []  # TREAT type - given separately
+    # Legacy field for backwards compatibility
+    ingredient_portions: list[IngredientPortionResponse] = []
+    # Calorie budget
+    calorie_budget: Optional[CalorieBudgetResponse] = None
     nutrient_totals: NutrientTotalsResponse
     aafco_checks: list[AAFCOCheckResponse]
     warnings: list[str]
