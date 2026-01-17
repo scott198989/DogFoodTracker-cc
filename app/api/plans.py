@@ -105,13 +105,22 @@ def compute_feeding_plan(
     else:
         scale_factor = 0
 
+    # Calculate batch totals
+    num_days = request.num_days
+    total_meals = recipe.meals_per_day * num_days
+    total_batch_kcal = homemade_kcal * num_days
+
     # Calculate scaled portions
     ingredient_portions = []
     scaled_ingredients = []
+    total_batch_grams = 0
+
     for ing_data in ingredient_data:
         grams_per_day = ing_data["base_grams"] * scale_factor
         grams_per_meal = grams_per_day / recipe.meals_per_day
         kcal_per_day = ing_data["base_kcal"] * scale_factor
+        total_grams_batch = grams_per_day * num_days
+        total_batch_grams += total_grams_batch
 
         ingredient_portions.append(IngredientPortionResponse(
             ingredient_id=ing_data["ingredient_id"],
@@ -119,6 +128,7 @@ def compute_feeding_plan(
             grams_per_day=round(grams_per_day, 2),
             grams_per_meal=round(grams_per_meal, 2),
             kcal_per_day=round(kcal_per_day, 2),
+            total_grams_batch=round(total_grams_batch, 2),
         ))
 
         # Prepare for nutrient aggregation
@@ -136,6 +146,9 @@ def compute_feeding_plan(
             "vitamin_d_mcg_per_100g": ing_data["vitamin_d_mcg_per_100g"],
             "vitamin_e_mg_per_100g": ing_data["vitamin_e_mg_per_100g"],
         })
+
+    # Calculate grams per container (per meal)
+    grams_per_container = total_batch_grams / total_meals if total_meals > 0 else 0
 
     # Aggregate nutrients
     totals = aggregate_nutrients(scaled_ingredients)
@@ -208,6 +221,12 @@ def compute_feeding_plan(
         homemade_kcal=round(homemade_kcal, 2),
         per_meal_kcal=round(homemade_kcal / recipe.meals_per_day, 2),
         meals_per_day=recipe.meals_per_day,
+        # Batch fields
+        num_days=num_days,
+        total_meals=total_meals,
+        total_batch_kcal=round(total_batch_kcal, 2),
+        total_batch_grams=round(total_batch_grams, 2),
+        grams_per_container=round(grams_per_container, 2),
         ingredient_portions=ingredient_portions,
         nutrient_totals=nutrient_totals,
         aafco_checks=aafco_checks,

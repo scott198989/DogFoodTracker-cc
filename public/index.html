@@ -1504,10 +1504,14 @@
                                     <label>Treat Calories (daily)</label>
                                     <input type="number" id="plan-treats" value="0" min="0" placeholder="Account for treats">
                                 </div>
+                                <div class="form-group">
+                                    <label>Prep Days (batch size)</label>
+                                    <input type="number" id="plan-days" value="7" min="1" max="30" placeholder="Days to prep">
+                                </div>
                             </div>
                             <div class="quick-actions">
                                 <button type="submit" class="btn btn-primary">
-                                    <span>🧮</span> Calculate Plan
+                                    <span>🧮</span> Calculate Batch Plan
                                 </button>
                             </div>
                         </form>
@@ -2363,7 +2367,8 @@
                 dog_id: parseInt(document.getElementById('plan-dog').value),
                 recipe_id: parseInt(document.getElementById('plan-recipe').value),
                 kibble_kcal: parseFloat(document.getElementById('plan-kibble').value) || 0,
-                treats_kcal: parseFloat(document.getElementById('plan-treats').value) || 0
+                treats_kcal: parseFloat(document.getElementById('plan-treats').value) || 0,
+                num_days: parseInt(document.getElementById('plan-days').value) || 7
             };
 
             const resultDiv = document.getElementById('plan-result');
@@ -2382,37 +2387,59 @@
                         <div class="plan-header glass-dark">
                             <div class="plan-dog-avatar">🐕</div>
                             <div class="plan-dog-info">
-                                <h2>Feeding Plan for ${plan.dog_name || 'Your Dog'}</h2>
-                                <p>Based on ${plan.recipe_name || 'selected recipe'}</p>
+                                <h2>Batch Meal Plan for ${plan.dog_name || 'Your Dog'}</h2>
+                                <p>${plan.num_days} day batch using ${plan.recipe_name || 'selected recipe'}</p>
                             </div>
                         </div>
 
+                        <!-- Batch Summary -->
                         <div class="calorie-breakdown">
                             <div class="calorie-card glass-dark highlight">
+                                <div class="value">${plan.total_meals || '—'}</div>
+                                <div class="label">Meal Containers</div>
+                            </div>
+                            <div class="calorie-card glass-dark">
+                                <div class="value">${plan.grams_per_container?.toFixed(0) || '—'}g</div>
+                                <div class="label">Per Container</div>
+                            </div>
+                            <div class="calorie-card glass-dark">
+                                <div class="value">${plan.per_meal_kcal?.toFixed(0) || '—'}</div>
+                                <div class="label">kcal/meal</div>
+                            </div>
+                            <div class="calorie-card glass-dark">
                                 <div class="value">${plan.target_kcal?.toFixed(0) || '—'}</div>
-                                <div class="label">Target kcal/day</div>
-                            </div>
-                            <div class="calorie-card glass-dark">
-                                <div class="value">${plan.homemade_kcal?.toFixed(0) || '—'}</div>
-                                <div class="label">Homemade kcal</div>
-                            </div>
-                            <div class="calorie-card glass-dark">
-                                <div class="value">${plan.kibble_kcal?.toFixed(0) || '0'}</div>
-                                <div class="label">Kibble kcal</div>
-                            </div>
-                            <div class="calorie-card glass-dark">
-                                <div class="value">${plan.kcal_per_meal?.toFixed(0) || '—'}</div>
-                                <div class="label">kcal per meal</div>
+                                <div class="label">kcal/day target</div>
                             </div>
                         </div>
 
-                        ${plan.portions && plan.portions.length > 0 ? `
+                        <!-- Container Instructions -->
+                        <div class="form-card glass-dark" style="margin-bottom: 20px; padding: 20px;">
+                            <h3 style="color: white; margin-bottom: 15px;">📦 How to Prep</h3>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                                <strong>1.</strong> Cook/prep all ingredients using the batch amounts below
+                            </p>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                                <strong>2.</strong> Mix everything together thoroughly
+                            </p>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                                <strong>3.</strong> Divide into <strong>${plan.total_meals}</strong> containers of <strong>${plan.grams_per_container?.toFixed(0)}g</strong> each
+                            </p>
+                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em;">
+                                <strong>4.</strong> Feed <strong>${plan.meals_per_day}</strong> container(s) per day (${plan.per_meal_kcal?.toFixed(0)} kcal each)
+                            </p>
+                        </div>
+
+                        ${plan.ingredient_portions && plan.ingredient_portions.length > 0 ? `
                             <div class="portions-section">
-                                <h3><span>📊</span> Daily Portions</h3>
-                                ${plan.portions.map(p => `
+                                <h3><span>🛒</span> Batch Ingredients (${plan.num_days} days)</h3>
+                                ${plan.ingredient_portions.map(p => `
                                     <div class="portion-item glass-dark">
                                         <span class="name">${p.ingredient_name}</span>
                                         <div class="portion-amounts">
+                                            <div class="portion-amount" style="background: rgba(138, 43, 226, 0.3);">
+                                                <div class="value">${p.total_grams_batch?.toFixed(0)}g</div>
+                                                <div class="label">TOTAL BATCH</div>
+                                            </div>
                                             <div class="portion-amount">
                                                 <div class="value">${p.grams_per_day?.toFixed(1)}g</div>
                                                 <div class="label">per day</div>
@@ -2427,21 +2454,51 @@
                             </div>
                         ` : ''}
 
+                        <!-- Nutrition Summary -->
+                        ${plan.nutrient_totals ? `
+                            <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
+                                <h3 style="color: white; margin-bottom: 15px;">📊 Daily Nutrition (per ${plan.homemade_kcal?.toFixed(0)} kcal)</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
+                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
+                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Protein</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
+                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Fat</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
+                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Carbs</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.calcium_mg?.toFixed(0)}mg</div>
+                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Calcium</div>
+                                    </div>
+                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.phosphorus_mg?.toFixed(0)}mg</div>
+                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Phosphorus</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
                         ${plan.warnings && plan.warnings.length > 0 ? `
                             <div class="warnings-section has-warnings">
                                 <h4>⚠️ AAFCO Warnings</h4>
                                 <ul>
                                     ${plan.warnings.map(w => `<li>${w}</li>`).join('')}
                                 </ul>
+                                <p style="color: rgba(255,255,255,0.7); font-size: 0.9em; margin-top: 10px;">Consider adding supplements to address deficiencies.</p>
                             </div>
                         ` : `
                             <div class="warnings-section success">
                                 <h4>✓ Nutritionally Complete</h4>
-                                <p style="color: rgba(255,255,255,0.8);">This meal plan meets AAFCO nutritional guidelines.</p>
+                                <p style="color: rgba(255,255,255,0.8);">This meal plan meets AAFCO nutritional guidelines for adult dogs.</p>
                             </div>
                         `}
                     `;
-                    showToast('Feeding plan calculated!', 'success');
+                    showToast('Batch meal plan calculated!', 'success');
                 } else {
                     resultDiv.innerHTML = `<div class="warnings-section has-warnings"><h4>⚠️ Error</h4><p style="color: rgba(255,255,255,0.8);">${plan.detail || 'Could not calculate plan. Make sure you have a dog, recipe, and ingredients set up.'}</p></div>`;
                 }

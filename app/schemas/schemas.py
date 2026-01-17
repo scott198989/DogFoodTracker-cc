@@ -187,6 +187,7 @@ class PlanComputeRequest(BaseModel):
     recipe_id: int
     kibble_kcal: float = Field(0, ge=0)
     treats_kcal: float = Field(0, ge=0)
+    num_days: int = Field(1, ge=1, le=30, description="Number of days to prep batch for")
 
 
 class NutrientTotalsResponse(BaseModel):
@@ -218,6 +219,7 @@ class IngredientPortionResponse(BaseModel):
     grams_per_day: float
     grams_per_meal: float
     kcal_per_day: float
+    total_grams_batch: float = Field(0, description="Total grams needed for entire batch")
 
 
 class PlanComputeResponse(BaseModel):
@@ -231,6 +233,12 @@ class PlanComputeResponse(BaseModel):
     homemade_kcal: float
     per_meal_kcal: float
     meals_per_day: int
+    # Batch planning fields
+    num_days: int = Field(1, description="Number of days this batch covers")
+    total_meals: int = Field(1, description="Total number of meal containers to prep")
+    total_batch_kcal: float = Field(0, description="Total calories in entire batch")
+    total_batch_grams: float = Field(0, description="Total grams of food in entire batch")
+    grams_per_container: float = Field(0, description="Grams per meal container")
     ingredient_portions: list[IngredientPortionResponse]
     nutrient_totals: NutrientTotalsResponse
     aafco_checks: list[AAFCOCheckResponse]
