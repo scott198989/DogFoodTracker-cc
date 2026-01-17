@@ -1730,28 +1730,54 @@
                                     <input type="text" id="ing-name" required placeholder="e.g., Homemade Beef Mix">
                                 </div>
                                 <div class="form-group">
-                                    <label>Calories (per 100g)</label>
-                                    <input type="number" id="ing-kcal" step="0.1" required placeholder="e.g., 250">
+                                    <label>Total Calories (kcal)</label>
+                                    <input type="number" id="ing-kcal" step="0.1" required placeholder="e.g., 500">
                                 </div>
                                 <div class="form-group">
-                                    <label>Protein (g per 100g)</label>
-                                    <input type="number" id="ing-protein" step="0.1" placeholder="e.g., 26">
+                                    <label>Total Weight (g) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <input type="number" id="ing-weight" step="0.1" placeholder="e.g., 200 (default: 100)">
                                 </div>
                                 <div class="form-group">
-                                    <label>Fat (g per 100g)</label>
-                                    <input type="number" id="ing-fat" step="0.1" placeholder="e.g., 15">
+                                    <label>Protein (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <input type="number" id="ing-protein" step="0.1" placeholder="e.g., 52">
                                 </div>
                                 <div class="form-group">
-                                    <label>Carbs (g per 100g)</label>
+                                    <label>Fat (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <input type="number" id="ing-fat" step="0.1" placeholder="e.g., 30">
+                                </div>
+                                <div class="form-group">
+                                    <label>Carbs (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
                                     <input type="number" id="ing-carbs" step="0.1" placeholder="e.g., 0">
                                 </div>
                             </div>
+                            <p style="color: rgba(255,255,255,0.6); font-size: 0.85em; margin: 10px 0;">
+                                Enter total values for your ingredient. If you specify weight, values will be converted to per-100g automatically.
+                            </p>
                             <div class="quick-actions">
                                 <button type="submit" class="btn btn-primary">
                                     <span>➕</span> Add Ingredient
                                 </button>
                             </div>
                         </form>
+                    </div>
+
+                    <!-- Cal to kcal Converter -->
+                    <div class="form-card glass-dark" style="margin-top: 20px;">
+                        <h3 style="color: white; margin-bottom: 16px;">🔄 Calorie Converter</h3>
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: end;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Calories (cal)</label>
+                                <input type="number" id="cal-input" step="0.1" placeholder="e.g., 1000" oninput="convertCalToKcal()">
+                            </div>
+                            <div style="padding-bottom: 8px; color: rgba(255,255,255,0.7); font-size: 1.5em;">=</div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>Kilocalories (kcal)</label>
+                                <input type="number" id="kcal-output" step="0.1" placeholder="Result" readonly style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5);">
+                            </div>
+                        </div>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.8em; margin-top: 12px; text-align: center;">
+                            1 kcal = 1000 cal (small calories) | Food labels typically show kcal (large Calories)
+                        </p>
                     </div>
 
                     <h3 class="section-title" style="margin-bottom: 20px;"><span>📦</span> Saved Ingredients</h3>
@@ -2873,15 +2899,34 @@
             }
         }
 
-        // Custom ingredient form
+        // Cal to kcal converter
+        function convertCalToKcal() {
+            const calInput = document.getElementById('cal-input');
+            const kcalOutput = document.getElementById('kcal-output');
+            const cal = parseFloat(calInput.value) || 0;
+            kcalOutput.value = (cal / 1000).toFixed(3);
+        }
+
+        // Custom ingredient form - converts total values to per-100g
         document.getElementById('ingredient-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Get total values from form
+            const totalKcal = parseFloat(document.getElementById('ing-kcal').value) || 0;
+            const totalWeight = parseFloat(document.getElementById('ing-weight').value) || 100; // Default to 100g
+            const totalProtein = parseFloat(document.getElementById('ing-protein').value) || 0;
+            const totalFat = parseFloat(document.getElementById('ing-fat').value) || 0;
+            const totalCarbs = parseFloat(document.getElementById('ing-carbs').value) || 0;
+
+            // Convert to per-100g values
+            const multiplier = 100 / totalWeight;
+
             const data = {
                 name: document.getElementById('ing-name').value,
-                kcal_per_100g: parseFloat(document.getElementById('ing-kcal').value),
-                protein_g_per_100g: parseFloat(document.getElementById('ing-protein').value) || 0,
-                fat_g_per_100g: parseFloat(document.getElementById('ing-fat').value) || 0,
-                carbs_g_per_100g: parseFloat(document.getElementById('ing-carbs').value) || 0,
+                kcal_per_100g: totalKcal * multiplier,
+                protein_g_per_100g: totalProtein * multiplier,
+                fat_g_per_100g: totalFat * multiplier,
+                carbs_g_per_100g: totalCarbs * multiplier,
                 source_type: 'USER'
             };
 
@@ -3665,31 +3710,61 @@
                             </div>
                         ` : ''}
 
-                        <!-- Nutrition Summary -->
+                        <!-- Nutrition Summary - Total, Per Day, Per Meal -->
                         ${plan.nutrient_totals ? `
                             <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
-                                <h3 style="color: white; margin-bottom: 15px;">📊 Daily Nutrition (per ${plan.homemade_kcal?.toFixed(0)} kcal)</h3>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;">
-                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
-                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Protein</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
-                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Fat</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
-                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Carbs</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.calcium_mg?.toFixed(0)}mg</div>
-                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Calcium</div>
-                                    </div>
-                                    <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                        <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.phosphorus_mg?.toFixed(0)}mg</div>
-                                        <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Phosphorus</div>
-                                    </div>
+                                <h3 style="color: white; margin-bottom: 20px;">📊 Nutrition Breakdown</h3>
+
+                                <!-- Nutrition Table -->
+                                <div style="overflow-x: auto;">
+                                    <table style="width: 100%; border-collapse: collapse; color: white;">
+                                        <thead>
+                                            <tr style="border-bottom: 2px solid rgba(255,255,255,0.3);">
+                                                <th style="text-align: left; padding: 12px 8px; font-weight: 600;">Nutrient</th>
+                                                <th style="text-align: center; padding: 12px 8px; font-weight: 600; background: rgba(138, 43, 226, 0.2);">Total (${plan.num_days} days)</th>
+                                                <th style="text-align: center; padding: 12px 8px; font-weight: 600; background: rgba(16, 185, 129, 0.2);">Per Day</th>
+                                                <th style="text-align: center; padding: 12px 8px; font-weight: 600; background: rgba(234, 179, 8, 0.2);">Per Meal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <td style="padding: 10px 8px;">🔥 Calories</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1); font-weight: bold;">${(plan.nutrient_totals.kcal * plan.num_days)?.toFixed(0) || (plan.target_kcal * plan.num_days)?.toFixed(0)} kcal</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1); font-weight: bold;">${plan.nutrient_totals.kcal?.toFixed(0) || plan.target_kcal?.toFixed(0)} kcal</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1); font-weight: bold;">${plan.per_meal_kcal?.toFixed(0)} kcal</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <td style="padding: 10px 8px;">🥩 Protein</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.protein_g * plan.num_days)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.protein_g?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.protein_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <td style="padding: 10px 8px;">🧈 Fat</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.fat_g * plan.num_days)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.fat_g?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.fat_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <td style="padding: 10px 8px;">🍚 Carbs</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.carbs_g * plan.num_days)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.carbs_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                                <td style="padding: 10px 8px;">🦴 Calcium</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.calcium_mg * plan.num_days)?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.calcium_mg?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.calcium_mg / plan.meals_per_day)?.toFixed(0)}mg</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 10px 8px;">⚡ Phosphorus</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.phosphorus_mg * plan.num_days)?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.phosphorus_mg?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.phosphorus_mg / plan.meals_per_day)?.toFixed(0)}mg</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         ` : ''}
