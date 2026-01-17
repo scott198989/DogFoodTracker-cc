@@ -1161,6 +1161,7 @@
             <!-- Navigation -->
             <nav class="nav-tabs glass">
                 <button class="nav-tab active" data-tab="dogs"><span>🐕</span> Dogs</button>
+                <button class="nav-tab" data-tab="tracking"><span>📊</span> Tracking</button>
                 <button class="nav-tab" data-tab="ingredients"><span>🥩</span> Ingredients</button>
                 <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
                 <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
@@ -1182,12 +1183,28 @@
                                     <input type="text" id="dog-name" required placeholder="e.g., Buddy">
                                 </div>
                                 <div class="form-group">
-                                    <label>Weight (<span class="weight-unit-label">kg</span>)</label>
+                                    <label>Breed (optional)</label>
+                                    <input type="text" id="dog-breed" placeholder="e.g., Golden Retriever">
+                                </div>
+                                <div class="form-group">
+                                    <label>Current Weight (<span class="weight-unit-label">kg</span>)</label>
                                     <input type="number" id="dog-weight" step="0.1" required placeholder="e.g., 25">
+                                </div>
+                                <div class="form-group">
+                                    <label>Target Weight (<span class="weight-unit-label">kg</span>)</label>
+                                    <input type="number" id="dog-target-weight" step="0.1" placeholder="Leave empty if at ideal weight">
                                 </div>
                                 <div class="form-group">
                                     <label>Age (years)</label>
                                     <input type="number" id="dog-age" step="0.1" required placeholder="e.g., 3">
+                                </div>
+                                <div class="form-group">
+                                    <label>Life Stage</label>
+                                    <select id="dog-life-stage">
+                                        <option value="puppy">Puppy (under 1 year)</option>
+                                        <option value="adult" selected>Adult (1-7 years)</option>
+                                        <option value="senior">Senior (7+ years)</option>
+                                    </select>
                                 </div>
                                 <div class="form-group">
                                     <label>Activity Level</label>
@@ -1196,6 +1213,10 @@
                                         <option value="moderate" selected>Moderate - Regular walks</option>
                                         <option value="high">High - Very active</option>
                                     </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Target Daily Kcal (optional)</label>
+                                    <input type="number" id="dog-target-kcal" step="1" placeholder="Override calculated MER">
                                 </div>
                                 <div class="form-group">
                                     <label>Sex</label>
@@ -1211,6 +1232,10 @@
                                         <option value="false">No</option>
                                     </select>
                                 </div>
+                                <div class="form-group" style="grid-column: span 2;">
+                                    <label>Notes (allergies, medical conditions, etc.)</label>
+                                    <textarea id="dog-notes" rows="2" placeholder="Any special dietary needs or medical conditions"></textarea>
+                                </div>
                             </div>
                             <div class="quick-actions">
                                 <button type="submit" class="btn btn-primary">
@@ -1225,6 +1250,114 @@
                             <span>🐕</span>
                             <p>No dogs added yet. Add your first furry friend above!</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Tracking Tab -->
+                <div id="tracking" class="tab-panel">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>📊</span> Daily Tracking</h2>
+                    </div>
+
+                    <!-- Dog Selector for Tracking -->
+                    <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                        <div class="form-group">
+                            <label>Select Dog</label>
+                            <select id="tracking-dog-select" onchange="loadTrackingData()">
+                                <option value="">Select a dog...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Daily Summary Card -->
+                    <div id="daily-summary" class="glass-dark" style="padding: 24px; border-radius: 16px; margin-bottom: 24px; display: none;">
+                        <h3 style="color: white; margin-bottom: 16px;">Today's Summary</h3>
+                        <div class="dog-stats" style="margin-bottom: 16px;">
+                            <div class="stat-box">
+                                <div class="stat-value" id="summary-target">--</div>
+                                <div class="stat-label">Target kcal</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="summary-fed">--</div>
+                                <div class="stat-label">Fed today</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value" id="summary-remaining">--</div>
+                                <div class="stat-label">Remaining</div>
+                            </div>
+                        </div>
+                        <div id="summary-status" style="text-align: center; padding: 12px; border-radius: 8px;"></div>
+                    </div>
+
+                    <!-- Log Meal Form -->
+                    <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                        <h3 style="color: white; margin-bottom: 16px;">Log a Meal</h3>
+                        <form id="feeding-log-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Meal Type</label>
+                                    <select id="log-meal-type">
+                                        <option value="breakfast">Breakfast</option>
+                                        <option value="lunch">Lunch</option>
+                                        <option value="dinner">Dinner</option>
+                                        <option value="snack">Snack/Treat</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Calories (kcal)</label>
+                                    <input type="number" id="log-kcal" step="1" required placeholder="e.g., 250">
+                                </div>
+                                <div class="form-group">
+                                    <label>Recipe (optional)</label>
+                                    <select id="log-recipe">
+                                        <option value="">No recipe</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Notes</label>
+                                    <input type="text" id="log-notes" placeholder="Optional notes">
+                                </div>
+                            </div>
+                            <div class="quick-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <span>📝</span> Log Meal
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Today's Meals -->
+                    <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                        <h3 style="color: white; margin-bottom: 16px;">Today's Meals</h3>
+                        <div id="todays-meals-list"></div>
+                    </div>
+
+                    <!-- Weight Log Section -->
+                    <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                        <h3 style="color: white; margin-bottom: 16px;">Log Weight</h3>
+                        <form id="weight-log-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Weight (<span class="weight-unit-label">kg</span>)</label>
+                                    <input type="number" id="log-weight" step="0.1" required placeholder="Current weight">
+                                </div>
+                                <div class="form-group">
+                                    <label>Notes</label>
+                                    <input type="text" id="weight-log-notes" placeholder="Optional notes">
+                                </div>
+                            </div>
+                            <div class="quick-actions">
+                                <button type="submit" class="btn btn-secondary">
+                                    <span>⚖️</span> Log Weight
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Weight History -->
+                    <div class="form-card glass-dark">
+                        <h3 style="color: white; margin-bottom: 16px;">Weight History</h3>
+                        <div id="weight-history-list"></div>
                     </div>
                 </div>
 
@@ -1397,12 +1530,28 @@
                     <input type="text" id="edit-dog-name" required>
                 </div>
                 <div class="form-group">
-                    <label>Weight (<span class="weight-unit-label">kg</span>)</label>
+                    <label>Breed</label>
+                    <input type="text" id="edit-dog-breed" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label>Current Weight (<span class="weight-unit-label">kg</span>)</label>
                     <input type="number" id="edit-dog-weight" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Weight (<span class="weight-unit-label">kg</span>)</label>
+                    <input type="number" id="edit-dog-target-weight" step="0.1" placeholder="Leave empty for no target">
                 </div>
                 <div class="form-group">
                     <label>Age (years)</label>
                     <input type="number" id="edit-dog-age" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Life Stage</label>
+                    <select id="edit-dog-life-stage">
+                        <option value="puppy">Puppy</option>
+                        <option value="adult">Adult</option>
+                        <option value="senior">Senior</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Activity Level</label>
@@ -1411,6 +1560,10 @@
                         <option value="moderate">Moderate</option>
                         <option value="high">High</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Target Daily Kcal (optional)</label>
+                    <input type="number" id="edit-dog-target-kcal" step="1" placeholder="Override calculated MER">
                 </div>
                 <div class="form-group">
                     <label>Sex</label>
@@ -1425,6 +1578,10 @@
                         <option value="true">Yes</option>
                         <option value="false">No</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="edit-dog-notes" rows="2" placeholder="Allergies, medical conditions, etc."></textarea>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('edit-dog-modal')">Cancel</button>
@@ -1614,13 +1771,21 @@
             btn.disabled = true;
 
             const weightInput = parseFloat(document.getElementById('dog-weight').value);
+            const targetWeightInput = document.getElementById('dog-target-weight').value;
+            const targetKcalInput = document.getElementById('dog-target-kcal').value;
+
             const data = {
                 name: document.getElementById('dog-name').value,
+                breed: document.getElementById('dog-breed').value || null,
                 weight_kg: inputToKg(weightInput),
+                target_weight_kg: targetWeightInput ? inputToKg(parseFloat(targetWeightInput)) : null,
+                target_daily_kcal: targetKcalInput ? parseFloat(targetKcalInput) : null,
                 age_years: parseFloat(document.getElementById('dog-age').value),
+                life_stage: document.getElementById('dog-life-stage').value,
                 activity_level: document.getElementById('dog-activity').value,
                 neutered: document.getElementById('dog-neutered').value === 'true',
-                sex: document.getElementById('dog-sex').value
+                sex: document.getElementById('dog-sex').value,
+                notes: document.getElementById('dog-notes').value || null
             };
 
             try {
@@ -1649,40 +1814,56 @@
                 const dogs = await res.json();
                 const list = document.getElementById('dogs-list');
                 const planSelect = document.getElementById('plan-dog');
+                const trackingSelect = document.getElementById('tracking-dog-select');
 
                 if (dogs.length === 0) {
                     list.innerHTML = `<div class="empty-state"><span>🐕</span><p>No dogs added yet. Add your first furry friend above!</p></div>`;
                     planSelect.innerHTML = '<option value="">Add a dog first</option>';
+                    trackingSelect.innerHTML = '<option value="">Add a dog first</option>';
                     return;
                 }
 
-                list.innerHTML = dogs.map(dog => `
+                list.innerHTML = dogs.map(dog => {
+                    const breedInfo = dog.breed ? ` · ${dog.breed}` : '';
+                    const targetInfo = dog.target_weight_kg ? ` (target: ${displayWeight(dog.target_weight_kg)})` : '';
+                    const dailyKcal = dog.target_daily_kcal || dog.mer || '—';
+                    const lifeStageLabel = dog.life_stage ? dog.life_stage.charAt(0).toUpperCase() + dog.life_stage.slice(1) : '';
+
+                    return `
                     <div class="dog-card glass-dark">
                         <div class="dog-header">
                             <div class="dog-avatar">🐕</div>
                             <div class="dog-info">
                                 <h3>${dog.name}</h3>
-                                <p>${displayWeight(dog.weight_kg)} · ${dog.age_years} years · ${dog.activity_level}</p>
+                                <p>${displayWeight(dog.weight_kg)}${targetInfo}${breedInfo}</p>
+                                <p style="font-size: 0.85rem; opacity: 0.7;">${dog.age_years} years · ${lifeStageLabel} · ${dog.activity_level}</p>
                             </div>
                         </div>
                         <div class="dog-stats">
                             <div class="stat-box">
                                 <div class="stat-value">${dog.rer?.toFixed(0) || '—'}</div>
-                                <div class="stat-label">RER (kcal)</div>
+                                <div class="stat-label">RER</div>
                             </div>
                             <div class="stat-box">
                                 <div class="stat-value">${dog.mer?.toFixed(0) || '—'}</div>
-                                <div class="stat-label">MER (kcal)</div>
+                                <div class="stat-label">MER</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="stat-value">${typeof dailyKcal === 'number' ? dailyKcal.toFixed(0) : dailyKcal}</div>
+                                <div class="stat-label">Daily kcal</div>
                             </div>
                         </div>
+                        ${dog.notes ? `<p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">📝 ${dog.notes}</p>` : ''}
                         <div class="card-actions">
                             <button class="btn btn-sm btn-edit" onclick="editDog(${dog.id})">Edit</button>
                             <button class="btn btn-sm btn-delete" onclick="confirmDeleteDog(${dog.id}, '${dog.name}')">Delete</button>
                         </div>
                     </div>
-                `).join('');
+                `}).join('');
 
-                planSelect.innerHTML = dogs.map(d => `<option value="${d.id}">${d.name} (${displayWeight(d.weight_kg)})</option>`).join('');
+                const dogOptions = dogs.map(d => `<option value="${d.id}">${d.name} (${displayWeight(d.weight_kg)})</option>`).join('');
+                planSelect.innerHTML = dogOptions;
+                trackingSelect.innerHTML = '<option value="">Select a dog...</option>' + dogOptions;
             } catch (err) {
                 console.error('Error loading dogs:', err);
             }
@@ -1696,11 +1877,16 @@
 
                 document.getElementById('edit-dog-id').value = dog.id;
                 document.getElementById('edit-dog-name').value = dog.name;
+                document.getElementById('edit-dog-breed').value = dog.breed || '';
                 document.getElementById('edit-dog-weight').value = kgToInput(dog.weight_kg).toFixed(1);
+                document.getElementById('edit-dog-target-weight').value = dog.target_weight_kg ? kgToInput(dog.target_weight_kg).toFixed(1) : '';
+                document.getElementById('edit-dog-target-kcal').value = dog.target_daily_kcal || '';
                 document.getElementById('edit-dog-age').value = dog.age_years;
+                document.getElementById('edit-dog-life-stage').value = dog.life_stage || 'adult';
                 document.getElementById('edit-dog-activity').value = dog.activity_level;
                 document.getElementById('edit-dog-sex').value = dog.sex;
                 document.getElementById('edit-dog-neutered').value = dog.neutered.toString();
+                document.getElementById('edit-dog-notes').value = dog.notes || '';
 
                 openModal('edit-dog-modal');
             } catch (err) {
@@ -1713,14 +1899,21 @@
             e.preventDefault();
             const dogId = document.getElementById('edit-dog-id').value;
             const weightInput = parseFloat(document.getElementById('edit-dog-weight').value);
+            const targetWeightInput = document.getElementById('edit-dog-target-weight').value;
+            const targetKcalInput = document.getElementById('edit-dog-target-kcal').value;
 
             const data = {
                 name: document.getElementById('edit-dog-name').value,
+                breed: document.getElementById('edit-dog-breed').value || null,
                 weight_kg: inputToKg(weightInput),
+                target_weight_kg: targetWeightInput ? inputToKg(parseFloat(targetWeightInput)) : 0,
+                target_daily_kcal: targetKcalInput ? parseFloat(targetKcalInput) : 0,
                 age_years: parseFloat(document.getElementById('edit-dog-age').value),
+                life_stage: document.getElementById('edit-dog-life-stage').value,
                 activity_level: document.getElementById('edit-dog-activity').value,
                 sex: document.getElementById('edit-dog-sex').value,
-                neutered: document.getElementById('edit-dog-neutered').value === 'true'
+                neutered: document.getElementById('edit-dog-neutered').value === 'true',
+                notes: document.getElementById('edit-dog-notes').value || null
             };
 
             try {
@@ -2262,6 +2455,195 @@
                 searchIngredients();
             }
         });
+
+        // ==================== Tracking Functions ====================
+
+        async function loadTrackingData() {
+            const dogId = document.getElementById('tracking-dog-select').value;
+            if (!dogId) {
+                document.getElementById('daily-summary').style.display = 'none';
+                document.getElementById('todays-meals-list').innerHTML = '<p style="color: rgba(255,255,255,0.5);">Select a dog to view tracking data</p>';
+                document.getElementById('weight-history-list').innerHTML = '';
+                return;
+            }
+
+            // Load daily summary
+            try {
+                const summaryRes = await fetch(`${API_BASE}/log/summary/today/${dogId}`);
+                if (summaryRes.ok) {
+                    const summary = await summaryRes.json();
+                    document.getElementById('daily-summary').style.display = 'block';
+                    document.getElementById('summary-target').textContent = summary.target_kcal.toFixed(0);
+                    document.getElementById('summary-fed').textContent = summary.total_kcal_fed.toFixed(0);
+                    document.getElementById('summary-remaining').textContent = summary.remaining_kcal.toFixed(0);
+
+                    const statusEl = document.getElementById('summary-status');
+                    if (summary.on_track) {
+                        statusEl.style.background = 'rgba(16, 185, 129, 0.2)';
+                        statusEl.style.color = '#10b981';
+                        statusEl.innerHTML = '✓ On track! ' + (summary.remaining_kcal > 0 ? `${summary.remaining_kcal.toFixed(0)} kcal remaining` : 'Daily target reached');
+                    } else {
+                        statusEl.style.background = 'rgba(245, 158, 11, 0.2)';
+                        statusEl.style.color = '#f59e0b';
+                        statusEl.innerHTML = '⚠️ Over daily target by ' + (summary.total_kcal_fed - summary.target_kcal).toFixed(0) + ' kcal';
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading summary:', err);
+            }
+
+            // Load today's meals
+            try {
+                const mealsRes = await fetch(`${API_BASE}/log/feeding/today/${dogId}`);
+                if (mealsRes.ok) {
+                    const meals = await mealsRes.json();
+                    const mealsList = document.getElementById('todays-meals-list');
+                    if (meals.length === 0) {
+                        mealsList.innerHTML = '<p style="color: rgba(255,255,255,0.5);">No meals logged today</p>';
+                    } else {
+                        mealsList.innerHTML = meals.map(meal => `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
+                                <div>
+                                    <strong style="color: white;">${meal.meal_type || 'Meal'}</strong>
+                                    <span style="color: rgba(255,255,255,0.6); margin-left: 12px;">${meal.kcal_fed} kcal</span>
+                                    ${meal.recipe_name ? `<span style="color: rgba(255,255,255,0.4); margin-left: 8px;">(${meal.recipe_name})</span>` : ''}
+                                </div>
+                                <button class="btn btn-sm btn-delete" onclick="deleteFeedingLog(${meal.id})">✕</button>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading meals:', err);
+            }
+
+            // Load weight history
+            try {
+                const weightRes = await fetch(`${API_BASE}/log/weight/dog/${dogId}?limit=10`);
+                if (weightRes.ok) {
+                    const weights = await weightRes.json();
+                    const weightList = document.getElementById('weight-history-list');
+                    if (weights.length === 0) {
+                        weightList.innerHTML = '<p style="color: rgba(255,255,255,0.5);">No weight history</p>';
+                    } else {
+                        weightList.innerHTML = weights.map(w => {
+                            const date = new Date(w.logged_at).toLocaleDateString();
+                            return `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
+                                <div>
+                                    <strong style="color: white;">${displayWeight(w.weight_kg)}</strong>
+                                    <span style="color: rgba(255,255,255,0.4); margin-left: 12px;">${date}</span>
+                                    ${w.notes ? `<span style="color: rgba(255,255,255,0.5); margin-left: 8px;">- ${w.notes}</span>` : ''}
+                                </div>
+                            </div>
+                        `}).join('');
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading weight history:', err);
+            }
+
+            // Populate recipe select for logging
+            try {
+                const recipesRes = await fetch(`${API_BASE}/recipe`);
+                if (recipesRes.ok) {
+                    const recipes = await recipesRes.json();
+                    document.getElementById('log-recipe').innerHTML = '<option value="">No recipe</option>' +
+                        recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('Error loading recipes:', err);
+            }
+        }
+
+        // Feeding log form
+        document.getElementById('feeding-log-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dogId = document.getElementById('tracking-dog-select').value;
+            if (!dogId) {
+                showToast('Please select a dog first', 'error');
+                return;
+            }
+
+            const recipeId = document.getElementById('log-recipe').value;
+            const data = {
+                dog_id: parseInt(dogId),
+                recipe_id: recipeId ? parseInt(recipeId) : null,
+                meal_type: document.getElementById('log-meal-type').value,
+                kcal_fed: parseFloat(document.getElementById('log-kcal').value),
+                notes: document.getElementById('log-notes').value || null
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/log/feeding`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    document.getElementById('log-kcal').value = '';
+                    document.getElementById('log-notes').value = '';
+                    loadTrackingData();
+                    showToast('Meal logged successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error logging meal', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        });
+
+        // Weight log form
+        document.getElementById('weight-log-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dogId = document.getElementById('tracking-dog-select').value;
+            if (!dogId) {
+                showToast('Please select a dog first', 'error');
+                return;
+            }
+
+            const weightInput = parseFloat(document.getElementById('log-weight').value);
+            const data = {
+                dog_id: parseInt(dogId),
+                weight_kg: inputToKg(weightInput),
+                notes: document.getElementById('weight-log-notes').value || null
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/log/weight`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    document.getElementById('log-weight').value = '';
+                    document.getElementById('weight-log-notes').value = '';
+                    loadTrackingData();
+                    loadDogs(); // Refresh dog list as weight is updated
+                    showToast('Weight logged successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error logging weight', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        });
+
+        async function deleteFeedingLog(logId) {
+            try {
+                const res = await fetch(`${API_BASE}/log/feeding/${logId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadTrackingData();
+                    showToast('Meal log deleted', 'success');
+                } else {
+                    showToast('Error deleting log', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        }
     </script>
 </body>
 </html>

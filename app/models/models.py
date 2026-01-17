@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Boolean, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Boolean, Enum, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
+from datetime import datetime
 import enum
 
 from app.core.database import Base
@@ -16,6 +17,12 @@ class ActivityLevel(str, enum.Enum):
     HIGH = "high"
 
 
+class LifeStage(str, enum.Enum):
+    PUPPY = "puppy"
+    ADULT = "adult"
+    SENIOR = "senior"
+
+
 class SourceType(str, enum.Enum):
     USDA = "USDA"
     BRAND = "BRAND"
@@ -27,14 +34,21 @@ class Dog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    breed = Column(String, nullable=True)
     age_years = Column(Float, nullable=False)
     sex = Column(Enum(Sex), nullable=False)
     neutered = Column(Boolean, nullable=False)
     weight_kg = Column(Float, nullable=False)
     target_weight_kg = Column(Float, nullable=True)
+    target_daily_kcal = Column(Float, nullable=True)  # Override calculated MER
     activity_level = Column(Enum(ActivityLevel), default=ActivityLevel.MODERATE)
+    life_stage = Column(Enum(LifeStage), default=LifeStage.ADULT)
+    notes = Column(Text, nullable=True)  # Medical conditions, allergies, etc.
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    feeding_plans = relationship("FeedingPlan", back_populates="dog")
+    feeding_plans = relationship("FeedingPlan", back_populates="dog", cascade="all, delete-orphan")
+    weight_logs = relationship("WeightLog", back_populates="dog", cascade="all, delete-orphan")
+    feeding_logs = relationship("FeedingLog", back_populates="dog", cascade="all, delete-orphan")
 
 
 class Ingredient(Base):
@@ -104,3 +118,32 @@ class AAFCORequirement(Base):
     nutrient = Column(String, nullable=False, unique=True)
     min_per_1000kcal = Column(Float, nullable=False)
     max_per_1000kcal = Column(Float, nullable=True)
+
+
+class WeightLog(Base):
+    """Track dog weight over time for progress monitoring."""
+    __tablename__ = "weight_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+    weight_kg = Column(Float, nullable=False)
+    logged_at = Column(DateTime, default=datetime.utcnow)
+    notes = Column(String, nullable=True)
+
+    dog = relationship("Dog", back_populates="weight_logs")
+
+
+class FeedingLog(Base):
+    """Track actual meals fed for accountability."""
+    __tablename__ = "feeding_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dog_id = Column(Integer, ForeignKey("dogs.id"), nullable=False)
+    recipe_id = Column(Integer, ForeignKey("recipes.id"), nullable=True)
+    meal_type = Column(String, nullable=True)  # breakfast, lunch, dinner, snack
+    kcal_fed = Column(Float, nullable=False)
+    notes = Column(String, nullable=True)
+    logged_at = Column(DateTime, default=datetime.utcnow)
+
+    dog = relationship("Dog", back_populates="feeding_logs")
+    recipe = relationship("Recipe")

@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.api import dogs, ingredients, recipes, plans
+from app.api import dogs, ingredients, recipes, plans, logs
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -53,6 +53,7 @@ app.include_router(dogs.router, prefix="/api")
 app.include_router(ingredients.router, prefix="/api")
 app.include_router(recipes.router, prefix="/api")
 app.include_router(plans.router, prefix="/api")
+app.include_router(logs.router, prefix="/api")
 
 
 @app.get("/")

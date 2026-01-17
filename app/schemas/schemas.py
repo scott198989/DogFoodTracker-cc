@@ -1,6 +1,7 @@
 """Pydantic schemas for request/response validation."""
 
 from typing import Optional
+from datetime import datetime
 from pydantic import BaseModel, Field
 from enum import Enum
 
@@ -14,6 +15,12 @@ class ActivityLevel(str, Enum):
     LOW = "low"
     MODERATE = "moderate"
     HIGH = "high"
+
+
+class LifeStage(str, Enum):
+    PUPPY = "puppy"
+    ADULT = "adult"
+    SENIOR = "senior"
 
 
 class SourceType(str, Enum):
@@ -30,33 +37,45 @@ class WeightUnit(str, Enum):
 # Dog schemas
 class DogCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
+    breed: Optional[str] = Field(None, max_length=100)
     age_years: float = Field(..., gt=0, le=30)
     sex: Sex
     neutered: bool
     weight_kg: float = Field(..., gt=0, le=200)
     target_weight_kg: Optional[float] = Field(None, gt=0, le=200)
+    target_daily_kcal: Optional[float] = Field(None, gt=0, le=10000)
     activity_level: ActivityLevel = ActivityLevel.MODERATE
+    life_stage: LifeStage = LifeStage.ADULT
+    notes: Optional[str] = None
 
 
 class DogUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
+    breed: Optional[str] = Field(None, max_length=100)
     age_years: Optional[float] = Field(None, gt=0, le=30)
     sex: Optional[Sex] = None
     neutered: Optional[bool] = None
     weight_kg: Optional[float] = Field(None, gt=0, le=200)
-    target_weight_kg: Optional[float] = Field(None, gt=0, le=200)
+    target_weight_kg: Optional[float] = Field(None, ge=0, le=200)  # Allow 0 to clear
+    target_daily_kcal: Optional[float] = Field(None, ge=0, le=10000)  # Allow 0 to clear
     activity_level: Optional[ActivityLevel] = None
+    life_stage: Optional[LifeStage] = None
+    notes: Optional[str] = None
 
 
 class DogResponse(BaseModel):
     id: int
     name: str
+    breed: Optional[str]
     age_years: float
     sex: Sex
     neutered: bool
     weight_kg: float
     target_weight_kg: Optional[float]
+    target_daily_kcal: Optional[float]
     activity_level: ActivityLevel
+    life_stage: LifeStage
+    notes: Optional[str]
 
     class Config:
         from_attributes = True
@@ -65,7 +84,9 @@ class DogResponse(BaseModel):
 class DogWithCalculations(DogResponse):
     rer: float
     mer: float
+    effective_daily_kcal: float  # Uses target_daily_kcal if set, otherwise MER
     activity_factor: float
+    weight_status: str  # "at_target", "needs_loss", "needs_gain", or "no_target"
 
 
 # Ingredient schemas
@@ -235,3 +256,56 @@ class FeedingPlanResponse(BaseModel):
 class FeedingPlanUpdate(BaseModel):
     kibble_kcal: Optional[float] = Field(None, ge=0)
     treats_kcal: Optional[float] = Field(None, ge=0)
+
+
+# Weight Log schemas
+class WeightLogCreate(BaseModel):
+    dog_id: int
+    weight_kg: float = Field(..., gt=0, le=200)
+    notes: Optional[str] = None
+
+
+class WeightLogResponse(BaseModel):
+    id: int
+    dog_id: int
+    weight_kg: float
+    logged_at: datetime
+    notes: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+# Feeding Log schemas
+class FeedingLogCreate(BaseModel):
+    dog_id: int
+    recipe_id: Optional[int] = None
+    meal_type: Optional[str] = None  # breakfast, lunch, dinner, snack
+    kcal_fed: float = Field(..., gt=0)
+    notes: Optional[str] = None
+
+
+class FeedingLogResponse(BaseModel):
+    id: int
+    dog_id: int
+    recipe_id: Optional[int]
+    recipe_name: Optional[str]
+    meal_type: Optional[str]
+    kcal_fed: float
+    notes: Optional[str]
+    logged_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Daily summary
+class DailySummary(BaseModel):
+    date: str
+    dog_id: int
+    dog_name: str
+    target_kcal: float
+    total_kcal_fed: float
+    remaining_kcal: float
+    meals_logged: int
+    on_track: bool

@@ -56,14 +56,18 @@ def compute_feeding_plan(
     if not recipe.ingredients:
         raise HTTPException(status_code=400, detail="Recipe has no ingredients")
 
-    # Calculate target calories
+    # Calculate target calories - use custom target if set, otherwise calculate MER
     factor = get_activity_factor(
         neutered=dog.neutered,
         age_years=dog.age_years,
         target_weight_kg=dog.target_weight_kg,
         current_weight_kg=dog.weight_kg
     )
-    target_kcal = calculate_mer(dog.weight_kg, factor)
+    calculated_mer = calculate_mer(dog.weight_kg, factor)
+
+    # Use dog's custom target_daily_kcal if set, otherwise use calculated MER
+    target_kcal = dog.target_daily_kcal if dog.target_daily_kcal else calculated_mer
+
     homemade_kcal = calculate_homemade_kcal(
         target_kcal,
         request.kibble_kcal,
