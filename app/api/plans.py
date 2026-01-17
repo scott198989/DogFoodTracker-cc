@@ -18,6 +18,8 @@ from app.models.models import Dog, Recipe, FeedingPlan, AAFCORequirement
 from app.schemas.schemas import (
     PlanComputeRequest,
     PlanComputeResponse,
+    FeedingPlanResponse,
+    FeedingPlanUpdate,
     NutrientTotalsResponse,
     AAFCOCheckResponse,
     IngredientPortionResponse,
@@ -206,4 +208,85 @@ def compute_feeding_plan(
         nutrient_totals=nutrient_totals,
         aafco_checks=aafco_checks,
         warnings=warnings,
+    )
+
+
+@router.get("", response_model=list[FeedingPlanResponse])
+def list_feeding_plans(db: Session = Depends(get_db)):
+    """List all saved feeding plans."""
+    plans = db.query(FeedingPlan).all()
+    return [_plan_to_response(p) for p in plans]
+
+
+@router.get("/{plan_id}", response_model=FeedingPlanResponse)
+def get_feeding_plan(plan_id: int, db: Session = Depends(get_db)):
+    """Get a specific feeding plan."""
+    plan = db.query(FeedingPlan).filter(FeedingPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Feeding plan not found")
+    return _plan_to_response(plan)
+
+
+@router.get("/dog/{dog_id}", response_model=list[FeedingPlanResponse])
+def get_feeding_plans_for_dog(dog_id: int, db: Session = Depends(get_db)):
+    """Get all feeding plans for a specific dog."""
+    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    if not dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+
+    plans = db.query(FeedingPlan).filter(FeedingPlan.dog_id == dog_id).all()
+    return [_plan_to_response(p) for p in plans]
+
+
+@router.put("/{plan_id}", response_model=FeedingPlanResponse)
+def update_feeding_plan(
+    plan_id: int,
+    plan_update: FeedingPlanUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update a feeding plan's kibble and treat calories."""
+    plan = db.query(FeedingPlan).filter(FeedingPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Feeding plan not found")
+
+    update_data = plan_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(plan, field, value)
+
+    # Recalculate homemade kcal
+    plan.homemade_kcal = calculate_homemade_kcal(
+        plan.target_kcal,
+        plan.kibble_kcal,
+        plan.treats_kcal
+    )
+
+    db.commit()
+    db.refresh(plan)
+    return _plan_to_response(plan)
+
+
+@router.delete("/{plan_id}", status_code=204)
+def delete_feeding_plan(plan_id: int, db: Session = Depends(get_db)):
+    """Delete a feeding plan."""
+    plan = db.query(FeedingPlan).filter(FeedingPlan.id == plan_id).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Feeding plan not found")
+
+    db.delete(plan)
+    db.commit()
+    return None
+
+
+def _plan_to_response(plan: FeedingPlan) -> FeedingPlanResponse:
+    """Convert FeedingPlan model to response schema."""
+    return FeedingPlanResponse(
+        id=plan.id,
+        dog_id=plan.dog_id,
+        dog_name=plan.dog.name,
+        recipe_id=plan.recipe_id,
+        recipe_name=plan.recipe.name,
+        kibble_kcal=plan.kibble_kcal,
+        treats_kcal=plan.treats_kcal,
+        homemade_kcal=plan.homemade_kcal,
+        target_kcal=plan.target_kcal,
     )

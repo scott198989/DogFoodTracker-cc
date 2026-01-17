@@ -1024,6 +1024,111 @@
             color: rgba(255, 255, 255, 0.6);
             font-size: 0.8rem;
         }
+
+        /* Unit Toggle */
+        .unit-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .unit-btn {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+        }
+
+        .unit-btn.active {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            border-color: transparent;
+        }
+
+        /* Card Actions */
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .btn-edit {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-edit:hover {
+            background: rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 24px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
@@ -1046,6 +1151,11 @@
                 </div>
                 <h1>Dog Meal Planner</h1>
                 <p>Precision nutrition for your best friend</p>
+                <div class="unit-toggle" style="margin-top: 16px;">
+                    <span style="color: rgba(255,255,255,0.7); margin-right: 12px;">Weight Unit:</span>
+                    <button class="btn btn-secondary unit-btn active" data-unit="kg" onclick="setWeightUnit('kg')">kg</button>
+                    <button class="btn btn-secondary unit-btn" data-unit="lbs" onclick="setWeightUnit('lbs')">lbs</button>
+                </div>
             </header>
 
             <!-- Navigation -->
@@ -1072,7 +1182,7 @@
                                     <input type="text" id="dog-name" required placeholder="e.g., Buddy">
                                 </div>
                                 <div class="form-group">
-                                    <label>Weight (kg)</label>
+                                    <label>Weight (<span class="weight-unit-label">kg</span>)</label>
                                     <input type="number" id="dog-weight" step="0.1" required placeholder="e.g., 25">
                                 </div>
                                 <div class="form-group">
@@ -1276,8 +1386,197 @@
         </div>
     </div>
 
+    <!-- Edit Dog Modal -->
+    <div class="modal-overlay" id="edit-dog-modal">
+        <div class="modal">
+            <h3>Edit Dog</h3>
+            <form id="edit-dog-form">
+                <input type="hidden" id="edit-dog-id">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="edit-dog-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Weight (<span class="weight-unit-label">kg</span>)</label>
+                    <input type="number" id="edit-dog-weight" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Age (years)</label>
+                    <input type="number" id="edit-dog-age" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Activity Level</label>
+                    <select id="edit-dog-activity">
+                        <option value="low">Low</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Sex</label>
+                    <select id="edit-dog-sex">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Neutered/Spayed</label>
+                    <select id="edit-dog-neutered">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-dog-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Ingredient Modal -->
+    <div class="modal-overlay" id="edit-ingredient-modal">
+        <div class="modal">
+            <h3>Edit Ingredient</h3>
+            <form id="edit-ingredient-form">
+                <input type="hidden" id="edit-ingredient-id">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="edit-ingredient-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Calories (per 100g)</label>
+                    <input type="number" id="edit-ingredient-kcal" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label>Protein (g per 100g)</label>
+                    <input type="number" id="edit-ingredient-protein" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Fat (g per 100g)</label>
+                    <input type="number" id="edit-ingredient-fat" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Carbs (g per 100g)</label>
+                    <input type="number" id="edit-ingredient-carbs" step="0.1">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-ingredient-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Recipe Modal -->
+    <div class="modal-overlay" id="edit-recipe-modal">
+        <div class="modal">
+            <h3>Edit Recipe</h3>
+            <form id="edit-recipe-form">
+                <input type="hidden" id="edit-recipe-id">
+                <div class="form-group">
+                    <label>Recipe Name</label>
+                    <input type="text" id="edit-recipe-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Meals per Day</label>
+                    <select id="edit-recipe-meals">
+                        <option value="1">1 meal</option>
+                        <option value="2">2 meals</option>
+                        <option value="3">3 meals</option>
+                        <option value="4">4 meals</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('edit-recipe-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirm-delete-modal">
+        <div class="modal">
+            <h3>Confirm Delete</h3>
+            <p id="delete-message" style="color: rgba(255,255,255,0.8); margin-bottom: 24px;">Are you sure you want to delete this item?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('confirm-delete-modal')">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
+
+        // Weight unit state
+        let currentWeightUnit = localStorage.getItem('weightUnit') || 'kg';
+        const KG_TO_LBS = 2.20462;
+        const LBS_TO_KG = 0.453592;
+
+        // Weight conversion functions
+        function kgToLbs(kg) { return Math.round(kg * KG_TO_LBS * 100) / 100; }
+        function lbsToKg(lbs) { return Math.round(lbs * LBS_TO_KG * 100) / 100; }
+        function displayWeight(kg) {
+            if (currentWeightUnit === 'lbs') {
+                return `${kgToLbs(kg).toFixed(1)} lbs`;
+            }
+            return `${kg.toFixed(1)} kg`;
+        }
+        function inputToKg(value) {
+            if (currentWeightUnit === 'lbs') {
+                return lbsToKg(value);
+            }
+            return value;
+        }
+        function kgToInput(kg) {
+            if (currentWeightUnit === 'lbs') {
+                return kgToLbs(kg);
+            }
+            return kg;
+        }
+
+        // Set weight unit
+        function setWeightUnit(unit) {
+            currentWeightUnit = unit;
+            localStorage.setItem('weightUnit', unit);
+            document.querySelectorAll('.unit-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.unit === unit);
+            });
+            document.querySelectorAll('.weight-unit-label').forEach(el => {
+                el.textContent = unit;
+            });
+            // Reload displays
+            loadDogs();
+        }
+
+        // Initialize unit toggle
+        function initWeightUnit() {
+            document.querySelectorAll('.unit-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.unit === currentWeightUnit);
+            });
+            document.querySelectorAll('.weight-unit-label').forEach(el => {
+                el.textContent = currentWeightUnit;
+            });
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Close modals on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        });
 
         // Toast notifications
         function showToast(message, type = 'info') {
@@ -1303,6 +1602,7 @@
         });
 
         // Initial load
+        initWeightUnit();
         loadDogs();
         loadIngredients();
         loadRecipes();
@@ -1313,9 +1613,10 @@
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
 
+            const weightInput = parseFloat(document.getElementById('dog-weight').value);
             const data = {
                 name: document.getElementById('dog-name').value,
-                weight_kg: parseFloat(document.getElementById('dog-weight').value),
+                weight_kg: inputToKg(weightInput),
                 age_years: parseFloat(document.getElementById('dog-age').value),
                 activity_level: document.getElementById('dog-activity').value,
                 neutered: document.getElementById('dog-neutered').value === 'true',
@@ -1361,7 +1662,7 @@
                             <div class="dog-avatar">🐕</div>
                             <div class="dog-info">
                                 <h3>${dog.name}</h3>
-                                <p>${dog.weight_kg} kg · ${dog.age_years} years · ${dog.activity_level}</p>
+                                <p>${displayWeight(dog.weight_kg)} · ${dog.age_years} years · ${dog.activity_level}</p>
                             </div>
                         </div>
                         <div class="dog-stats">
@@ -1374,12 +1675,93 @@
                                 <div class="stat-label">MER (kcal)</div>
                             </div>
                         </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-edit" onclick="editDog(${dog.id})">Edit</button>
+                            <button class="btn btn-sm btn-delete" onclick="confirmDeleteDog(${dog.id}, '${dog.name}')">Delete</button>
+                        </div>
                     </div>
                 `).join('');
 
-                planSelect.innerHTML = dogs.map(d => `<option value="${d.id}">${d.name} (${d.weight_kg}kg)</option>`).join('');
+                planSelect.innerHTML = dogs.map(d => `<option value="${d.id}">${d.name} (${displayWeight(d.weight_kg)})</option>`).join('');
             } catch (err) {
                 console.error('Error loading dogs:', err);
+            }
+        }
+
+        // Edit dog
+        async function editDog(dogId) {
+            try {
+                const res = await fetch(`${API_BASE}/dog/${dogId}`);
+                const dog = await res.json();
+
+                document.getElementById('edit-dog-id').value = dog.id;
+                document.getElementById('edit-dog-name').value = dog.name;
+                document.getElementById('edit-dog-weight').value = kgToInput(dog.weight_kg).toFixed(1);
+                document.getElementById('edit-dog-age').value = dog.age_years;
+                document.getElementById('edit-dog-activity').value = dog.activity_level;
+                document.getElementById('edit-dog-sex').value = dog.sex;
+                document.getElementById('edit-dog-neutered').value = dog.neutered.toString();
+
+                openModal('edit-dog-modal');
+            } catch (err) {
+                showToast('Error loading dog data', 'error');
+            }
+        }
+
+        // Edit dog form submit
+        document.getElementById('edit-dog-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const dogId = document.getElementById('edit-dog-id').value;
+            const weightInput = parseFloat(document.getElementById('edit-dog-weight').value);
+
+            const data = {
+                name: document.getElementById('edit-dog-name').value,
+                weight_kg: inputToKg(weightInput),
+                age_years: parseFloat(document.getElementById('edit-dog-age').value),
+                activity_level: document.getElementById('edit-dog-activity').value,
+                sex: document.getElementById('edit-dog-sex').value,
+                neutered: document.getElementById('edit-dog-neutered').value === 'true'
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/dog/${dogId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    closeModal('edit-dog-modal');
+                    loadDogs();
+                    showToast('Dog updated successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error updating dog', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        });
+
+        // Delete dog
+        function confirmDeleteDog(dogId, dogName) {
+            document.getElementById('delete-message').textContent = `Are you sure you want to delete ${dogName}?`;
+            document.getElementById('confirm-delete-btn').onclick = () => deleteDog(dogId);
+            openModal('confirm-delete-modal');
+        }
+
+        async function deleteDog(dogId) {
+            try {
+                const res = await fetch(`${API_BASE}/dog/${dogId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    closeModal('confirm-delete-modal');
+                    loadDogs();
+                    showToast('Dog deleted successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error deleting dog', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
             }
         }
 
@@ -1482,10 +1864,6 @@
                     return;
                 }
 
-                const maxProtein = Math.max(...ingredients.map(i => i.protein_g_per_100g || 0), 1);
-                const maxFat = Math.max(...ingredients.map(i => i.fat_g_per_100g || 0), 1);
-                const maxCarbs = Math.max(...ingredients.map(i => i.carbs_g_per_100g || 0), 1);
-
                 list.innerHTML = ingredients.map(ing => `
                     <div class="ingredient-card glass-dark">
                         <div class="ingredient-header">
@@ -1510,12 +1888,90 @@
                                 <div class="macro-label">Carbs</div>
                             </div>
                         </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-edit" onclick="editIngredient(${ing.id})">Edit</button>
+                            <button class="btn btn-sm btn-delete" onclick="confirmDeleteIngredient(${ing.id}, '${ing.name.replace(/'/g, "\\'")}')">Delete</button>
+                        </div>
                     </div>
                 `).join('');
 
                 recipeSelect.innerHTML = ingredients.map(i => `<option value="${i.id}">${i.name}</option>`).join('');
             } catch (err) {
                 console.error('Error loading ingredients:', err);
+            }
+        }
+
+        // Edit ingredient
+        async function editIngredient(ingredientId) {
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`);
+                const ing = await res.json();
+
+                document.getElementById('edit-ingredient-id').value = ing.id;
+                document.getElementById('edit-ingredient-name').value = ing.name;
+                document.getElementById('edit-ingredient-kcal').value = ing.kcal_per_100g || 0;
+                document.getElementById('edit-ingredient-protein').value = ing.protein_g_per_100g || 0;
+                document.getElementById('edit-ingredient-fat').value = ing.fat_g_per_100g || 0;
+                document.getElementById('edit-ingredient-carbs').value = ing.carbs_g_per_100g || 0;
+
+                openModal('edit-ingredient-modal');
+            } catch (err) {
+                showToast('Error loading ingredient data', 'error');
+            }
+        }
+
+        // Edit ingredient form submit
+        document.getElementById('edit-ingredient-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const ingredientId = document.getElementById('edit-ingredient-id').value;
+
+            const data = {
+                name: document.getElementById('edit-ingredient-name').value,
+                kcal_per_100g: parseFloat(document.getElementById('edit-ingredient-kcal').value) || 0,
+                protein_g_per_100g: parseFloat(document.getElementById('edit-ingredient-protein').value) || 0,
+                fat_g_per_100g: parseFloat(document.getElementById('edit-ingredient-fat').value) || 0,
+                carbs_g_per_100g: parseFloat(document.getElementById('edit-ingredient-carbs').value) || 0
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    closeModal('edit-ingredient-modal');
+                    loadIngredients();
+                    showToast('Ingredient updated successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error updating ingredient', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        });
+
+        // Delete ingredient
+        function confirmDeleteIngredient(ingredientId, ingredientName) {
+            document.getElementById('delete-message').textContent = `Are you sure you want to delete ${ingredientName}?`;
+            document.getElementById('confirm-delete-btn').onclick = () => deleteIngredient(ingredientId);
+            openModal('confirm-delete-modal');
+        }
+
+        async function deleteIngredient(ingredientId) {
+            try {
+                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    closeModal('confirm-delete-modal');
+                    loadIngredients();
+                    showToast('Ingredient deleted successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error deleting ingredient', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
             }
         }
 
@@ -1598,12 +2054,19 @@
                             <div class="recipe-ingredients">
                                 ${recipe.ingredients.map(i => `
                                     <div class="recipe-ingredient-item">
-                                        <span>${i.name}</span>
-                                        <strong>${i.grams}g</strong>
+                                        <span>${i.ingredient_name || i.name}</span>
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <strong>${i.grams}g</strong>
+                                            <button class="btn btn-sm btn-delete" style="padding: 4px 8px;" onclick="removeIngredientFromRecipe(${recipe.id}, ${i.ingredient_id})">✕</button>
+                                        </div>
                                     </div>
                                 `).join('')}
                             </div>
                         ` : `<div class="empty-state" style="padding: 20px;"><p>No ingredients yet</p></div>`}
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-edit" onclick="editRecipe(${recipe.id})">Edit</button>
+                            <button class="btn btn-sm btn-delete" onclick="confirmDeleteRecipe(${recipe.id}, '${recipe.name.replace(/'/g, "\\'")}')">Delete</button>
+                        </div>
                     </div>
                 `).join('');
 
@@ -1612,6 +2075,89 @@
                 planRecipeSelect.innerHTML = options;
             } catch (err) {
                 console.error('Error loading recipes:', err);
+            }
+        }
+
+        // Remove ingredient from recipe
+        async function removeIngredientFromRecipe(recipeId, ingredientId) {
+            try {
+                const res = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient/${ingredientId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    loadRecipes();
+                    showToast('Ingredient removed from recipe!', 'success');
+                } else {
+                    showToast('Error removing ingredient', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Edit recipe
+        async function editRecipe(recipeId) {
+            try {
+                const res = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const recipe = await res.json();
+
+                document.getElementById('edit-recipe-id').value = recipe.id;
+                document.getElementById('edit-recipe-name').value = recipe.name;
+                document.getElementById('edit-recipe-meals').value = recipe.meals_per_day;
+
+                openModal('edit-recipe-modal');
+            } catch (err) {
+                showToast('Error loading recipe data', 'error');
+            }
+        }
+
+        // Edit recipe form submit
+        document.getElementById('edit-recipe-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const recipeId = document.getElementById('edit-recipe-id').value;
+
+            const data = {
+                name: document.getElementById('edit-recipe-name').value,
+                meals_per_day: parseInt(document.getElementById('edit-recipe-meals').value)
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/recipe/${recipeId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    closeModal('edit-recipe-modal');
+                    loadRecipes();
+                    showToast('Recipe updated successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error updating recipe', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        });
+
+        // Delete recipe
+        function confirmDeleteRecipe(recipeId, recipeName) {
+            document.getElementById('delete-message').textContent = `Are you sure you want to delete ${recipeName}?`;
+            document.getElementById('confirm-delete-btn').onclick = () => deleteRecipe(recipeId);
+            openModal('confirm-delete-modal');
+        }
+
+        async function deleteRecipe(recipeId) {
+            try {
+                const res = await fetch(`${API_BASE}/recipe/${recipeId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    closeModal('confirm-delete-modal');
+                    loadRecipes();
+                    showToast('Recipe deleted successfully!', 'success');
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Error deleting recipe', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
             }
         }
 

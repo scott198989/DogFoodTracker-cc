@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.models import Recipe, RecipeIngredient, Ingredient
 from app.schemas.schemas import (
     RecipeCreate,
+    RecipeUpdate,
     RecipeResponse,
     RecipeIngredientAdd,
     RecipeIngredientResponse,
@@ -103,6 +104,42 @@ def list_recipes(db: Session = Depends(get_db)):
     """List all recipes."""
     recipes = db.query(Recipe).all()
     return [_recipe_to_response(r) for r in recipes]
+
+
+@router.put("/{recipe_id}", response_model=RecipeResponse)
+def update_recipe(
+    recipe_id: int,
+    recipe_update: RecipeUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update a recipe."""
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    update_data = recipe_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(recipe, field, value)
+
+    db.commit()
+    db.refresh(recipe)
+    return _recipe_to_response(recipe)
+
+
+@router.delete("/{recipe_id}", status_code=204)
+def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    """Delete a recipe."""
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # Delete associated recipe ingredients first
+    for ri in recipe.ingredients:
+        db.delete(ri)
+
+    db.delete(recipe)
+    db.commit()
+    return None
 
 
 def _recipe_to_response(recipe: Recipe) -> RecipeResponse:

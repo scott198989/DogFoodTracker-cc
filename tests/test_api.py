@@ -9,7 +9,7 @@ class TestDogEndpoints:
 
     def test_create_dog(self, client):
         """Test creating a dog."""
-        response = client.post("/dog", json={
+        response = client.post("/api/dog", json={
             "name": "Buddy",
             "age_years": 3,
             "sex": "male",
@@ -26,7 +26,7 @@ class TestDogEndpoints:
     def test_get_dog_with_calculations(self, client):
         """Test getting a dog with RER/MER calculations."""
         # Create dog first
-        create_response = client.post("/dog", json={
+        create_response = client.post("/api/dog", json={
             "name": "Max",
             "age_years": 5,
             "sex": "male",
@@ -36,7 +36,7 @@ class TestDogEndpoints:
         dog_id = create_response.json()["id"]
 
         # Get dog
-        response = client.get(f"/dog/{dog_id}")
+        response = client.get(f"/api/dog/{dog_id}")
         assert response.status_code == 200
         data = response.json()
         assert "rer" in data
@@ -50,22 +50,22 @@ class TestDogEndpoints:
 
     def test_get_dog_not_found(self, client):
         """Test getting non-existent dog returns 404."""
-        response = client.get("/dog/999")
+        response = client.get("/api/dog/999")
         assert response.status_code == 404
 
     def test_list_dogs(self, client):
         """Test listing all dogs."""
         # Create two dogs
-        client.post("/dog", json={
+        client.post("/api/dog", json={
             "name": "Dog1", "age_years": 2, "sex": "male",
             "neutered": True, "weight_kg": 10
         })
-        client.post("/dog", json={
+        client.post("/api/dog", json={
             "name": "Dog2", "age_years": 3, "sex": "female",
             "neutered": False, "weight_kg": 15
         })
 
-        response = client.get("/dog")
+        response = client.get("/api/dog")
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 2
@@ -76,7 +76,7 @@ class TestIngredientEndpoints:
 
     def test_create_manual_ingredient(self, client):
         """Test creating a manual ingredient."""
-        response = client.post("/ingredient/manual", json={
+        response = client.post("/api/ingredient/manual", json={
             "name": "Chicken Breast",
             "kcal_per_100g": 165,
             "protein_g_per_100g": 31,
@@ -92,27 +92,27 @@ class TestIngredientEndpoints:
     def test_get_ingredient(self, client):
         """Test getting an ingredient by ID."""
         # Create ingredient
-        create_response = client.post("/ingredient/manual", json={
+        create_response = client.post("/api/ingredient/manual", json={
             "name": "Rice",
             "kcal_per_100g": 130,
         })
         ing_id = create_response.json()["id"]
 
         # Get ingredient
-        response = client.get(f"/ingredient/{ing_id}")
+        response = client.get(f"/api/ingredient/{ing_id}")
         assert response.status_code == 200
         assert response.json()["name"] == "Rice"
 
     def test_list_ingredients(self, client):
         """Test listing all ingredients."""
-        client.post("/ingredient/manual", json={
+        client.post("/api/ingredient/manual", json={
             "name": "Ingredient1", "kcal_per_100g": 100
         })
-        client.post("/ingredient/manual", json={
+        client.post("/api/ingredient/manual", json={
             "name": "Ingredient2", "kcal_per_100g": 200
         })
 
-        response = client.get("/ingredient")
+        response = client.get("/api/ingredient")
         assert response.status_code == 200
         assert len(response.json()) == 2
 
@@ -122,7 +122,7 @@ class TestRecipeEndpoints:
 
     def test_create_recipe(self, client):
         """Test creating a recipe."""
-        response = client.post("/recipe", json={
+        response = client.post("/api/recipe", json={
             "name": "Chicken and Rice",
             "meals_per_day": 2
         })
@@ -134,17 +134,17 @@ class TestRecipeEndpoints:
     def test_add_ingredient_to_recipe(self, client):
         """Test adding an ingredient to a recipe."""
         # Create ingredient
-        ing_response = client.post("/ingredient/manual", json={
+        ing_response = client.post("/api/ingredient/manual", json={
             "name": "Chicken", "kcal_per_100g": 165
         })
         ing_id = ing_response.json()["id"]
 
         # Create recipe
-        recipe_response = client.post("/recipe", json={"name": "Test Recipe"})
+        recipe_response = client.post("/api/recipe", json={"name": "Test Recipe"})
         recipe_id = recipe_response.json()["id"]
 
         # Add ingredient to recipe
-        response = client.post(f"/recipe/{recipe_id}/ingredient", json={
+        response = client.post(f"/api/recipe/{recipe_id}/ingredient", json={
             "ingredient_id": ing_id,
             "grams": 100
         })
@@ -156,19 +156,19 @@ class TestRecipeEndpoints:
     def test_remove_ingredient_from_recipe(self, client):
         """Test removing an ingredient from a recipe."""
         # Create ingredient and recipe
-        ing_response = client.post("/ingredient/manual", json={
+        ing_response = client.post("/api/ingredient/manual", json={
             "name": "Beef", "kcal_per_100g": 250
         })
         ing_id = ing_response.json()["id"]
 
-        recipe_response = client.post("/recipe", json={"name": "Test Recipe"})
+        recipe_response = client.post("/api/recipe", json={"name": "Test Recipe"})
         recipe_id = recipe_response.json()["id"]
 
         # Add then remove
-        client.post(f"/recipe/{recipe_id}/ingredient", json={
+        client.post(f"/api/recipe/{recipe_id}/ingredient", json={
             "ingredient_id": ing_id, "grams": 100
         })
-        response = client.delete(f"/recipe/{recipe_id}/ingredient/{ing_id}")
+        response = client.delete(f"/api/recipe/{recipe_id}/ingredient/{ing_id}")
         assert response.status_code == 200
         assert len(response.json()["ingredients"]) == 0
 
@@ -192,7 +192,7 @@ class TestPlanCompute:
         db_session.commit()
 
         # Create dog
-        dog_response = client.post("/dog", json={
+        dog_response = client.post("/api/dog", json={
             "name": "Buddy",
             "age_years": 3,
             "sex": "male",
@@ -202,7 +202,7 @@ class TestPlanCompute:
         dog_id = dog_response.json()["id"]
 
         # Create ingredients
-        chicken_response = client.post("/ingredient/manual", json={
+        chicken_response = client.post("/api/ingredient/manual", json={
             "name": "Chicken",
             "kcal_per_100g": 165,
             "protein_g_per_100g": 31,
@@ -210,7 +210,7 @@ class TestPlanCompute:
         })
         chicken_id = chicken_response.json()["id"]
 
-        rice_response = client.post("/ingredient/manual", json={
+        rice_response = client.post("/api/ingredient/manual", json={
             "name": "Rice",
             "kcal_per_100g": 130,
             "protein_g_per_100g": 2.7,
@@ -219,21 +219,21 @@ class TestPlanCompute:
         rice_id = rice_response.json()["id"]
 
         # Create recipe with ingredients
-        recipe_response = client.post("/recipe", json={
+        recipe_response = client.post("/api/recipe", json={
             "name": "Test Recipe",
             "meals_per_day": 2
         })
         recipe_id = recipe_response.json()["id"]
 
-        client.post(f"/recipe/{recipe_id}/ingredient", json={
+        client.post(f"/api/recipe/{recipe_id}/ingredient", json={
             "ingredient_id": chicken_id, "grams": 150
         })
-        client.post(f"/recipe/{recipe_id}/ingredient", json={
+        client.post(f"/api/recipe/{recipe_id}/ingredient", json={
             "ingredient_id": rice_id, "grams": 100
         })
 
         # Compute plan
-        response = client.post("/plan/compute", json={
+        response = client.post("/api/plan/compute", json={
             "dog_id": dog_id,
             "recipe_id": recipe_id,
             "kibble_kcal": 0,
@@ -259,7 +259,7 @@ class TestPlanCompute:
     def test_compute_plan_recipe_not_found(self, client):
         """Test compute plan with non-existent recipe."""
         # Create dog
-        dog_response = client.post("/dog", json={
+        dog_response = client.post("/api/dog", json={
             "name": "Test",
             "age_years": 2,
             "sex": "male",
@@ -268,7 +268,7 @@ class TestPlanCompute:
         })
         dog_id = dog_response.json()["id"]
 
-        response = client.post("/plan/compute", json={
+        response = client.post("/api/plan/compute", json={
             "dog_id": dog_id,
             "recipe_id": 999
         })
@@ -277,7 +277,7 @@ class TestPlanCompute:
     def test_compute_plan_empty_recipe(self, client):
         """Test compute plan with empty recipe returns error."""
         # Create dog
-        dog_response = client.post("/dog", json={
+        dog_response = client.post("/api/dog", json={
             "name": "Test",
             "age_years": 2,
             "sex": "male",
@@ -287,10 +287,10 @@ class TestPlanCompute:
         dog_id = dog_response.json()["id"]
 
         # Create empty recipe
-        recipe_response = client.post("/recipe", json={"name": "Empty"})
+        recipe_response = client.post("/api/recipe", json={"name": "Empty"})
         recipe_id = recipe_response.json()["id"]
 
-        response = client.post("/plan/compute", json={
+        response = client.post("/api/plan/compute", json={
             "dog_id": dog_id,
             "recipe_id": recipe_id
         })

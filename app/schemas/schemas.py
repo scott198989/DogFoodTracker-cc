@@ -22,6 +22,11 @@ class SourceType(str, Enum):
     USER = "USER"
 
 
+class WeightUnit(str, Enum):
+    KG = "kg"
+    LBS = "lbs"
+
+
 # Dog schemas
 class DogCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
@@ -31,6 +36,16 @@ class DogCreate(BaseModel):
     weight_kg: float = Field(..., gt=0, le=200)
     target_weight_kg: Optional[float] = Field(None, gt=0, le=200)
     activity_level: ActivityLevel = ActivityLevel.MODERATE
+
+
+class DogUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    age_years: Optional[float] = Field(None, gt=0, le=30)
+    sex: Optional[Sex] = None
+    neutered: Optional[bool] = None
+    weight_kg: Optional[float] = Field(None, gt=0, le=200)
+    target_weight_kg: Optional[float] = Field(None, gt=0, le=200)
+    activity_level: Optional[ActivityLevel] = None
 
 
 class DogResponse(BaseModel):
@@ -78,6 +93,21 @@ class USDAIngredientCreate(BaseModel):
     fdc_id: int = Field(..., description="USDA FoodData Central ID")
 
 
+class IngredientUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    kcal_per_100g: Optional[float] = Field(None, ge=0)
+    protein_g_per_100g: Optional[float] = Field(None, ge=0)
+    fat_g_per_100g: Optional[float] = Field(None, ge=0)
+    carbs_g_per_100g: Optional[float] = Field(None, ge=0)
+    calcium_mg_per_100g: Optional[float] = Field(None, ge=0)
+    phosphorus_mg_per_100g: Optional[float] = Field(None, ge=0)
+    iron_mg_per_100g: Optional[float] = Field(None, ge=0)
+    zinc_mg_per_100g: Optional[float] = Field(None, ge=0)
+    vitamin_a_mcg_per_100g: Optional[float] = Field(None, ge=0)
+    vitamin_d_mcg_per_100g: Optional[float] = Field(None, ge=0)
+    vitamin_e_mg_per_100g: Optional[float] = Field(None, ge=0)
+
+
 class IngredientResponse(IngredientBase):
     id: int
     source_type: SourceType
@@ -98,6 +128,11 @@ class IngredientSearchResult(BaseModel):
 class RecipeCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     meals_per_day: int = Field(2, ge=1, le=10)
+
+
+class RecipeUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    meals_per_day: Optional[int] = Field(None, ge=1, le=10)
 
 
 class RecipeIngredientAdd(BaseModel):
@@ -179,3 +214,24 @@ class PlanComputeResponse(BaseModel):
     nutrient_totals: NutrientTotalsResponse
     aafco_checks: list[AAFCOCheckResponse]
     warnings: list[str]
+
+
+# Feeding Plan stored response (for listing saved plans)
+class FeedingPlanResponse(BaseModel):
+    id: int
+    dog_id: int
+    dog_name: str
+    recipe_id: int
+    recipe_name: str
+    kibble_kcal: float
+    treats_kcal: float
+    homemade_kcal: float
+    target_kcal: float
+
+    class Config:
+        from_attributes = True
+
+
+class FeedingPlanUpdate(BaseModel):
+    kibble_kcal: Optional[float] = Field(None, ge=0)
+    treats_kcal: Optional[float] = Field(None, ge=0)

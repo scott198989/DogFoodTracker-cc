@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.calculations import calculate_rer, calculate_mer, get_activity_factor
 from app.models.models import Dog
-from app.schemas.schemas import DogCreate, DogResponse, DogWithCalculations
+from app.schemas.schemas import DogCreate, DogUpdate, DogResponse, DogWithCalculations
 
 router = APIRouter(prefix="/dog", tags=["dogs"])
 
@@ -66,3 +66,36 @@ def list_dogs(db: Session = Depends(get_db)):
     """List all dogs."""
     dogs = db.query(Dog).all()
     return dogs
+
+
+@router.put("/{dog_id}", response_model=DogResponse)
+def update_dog(dog_id: int, dog_update: DogUpdate, db: Session = Depends(get_db)):
+    """Update a dog profile."""
+    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    if not dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+
+    update_data = dog_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        if field == "sex" and value is not None:
+            setattr(dog, field, value.value)
+        elif field == "activity_level" and value is not None:
+            setattr(dog, field, value.value)
+        else:
+            setattr(dog, field, value)
+
+    db.commit()
+    db.refresh(dog)
+    return dog
+
+
+@router.delete("/{dog_id}", status_code=204)
+def delete_dog(dog_id: int, db: Session = Depends(get_db)):
+    """Delete a dog profile."""
+    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    if not dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+
+    db.delete(dog)
+    db.commit()
+    return None

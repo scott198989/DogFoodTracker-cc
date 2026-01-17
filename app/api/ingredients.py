@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.models import Ingredient, SourceType
 from app.schemas.schemas import (
     IngredientCreate,
+    IngredientUpdate,
     IngredientResponse,
     USDAIngredientCreate,
     IngredientSearchResult,
@@ -128,3 +129,42 @@ def get_ingredient(ingredient_id: int, db: Session = Depends(get_db)):
 def list_ingredients(db: Session = Depends(get_db)):
     """List all ingredients."""
     return db.query(Ingredient).all()
+
+
+@router.put("/{ingredient_id}", response_model=IngredientResponse)
+def update_ingredient(
+    ingredient_id: int,
+    ingredient_update: IngredientUpdate,
+    db: Session = Depends(get_db)
+):
+    """Update an ingredient."""
+    ingredient = db.query(Ingredient).filter(Ingredient.id == ingredient_id).first()
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+
+    update_data = ingredient_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(ingredient, field, value)
+
+    db.commit()
+    db.refresh(ingredient)
+    return ingredient
+
+
+@router.delete("/{ingredient_id}", status_code=204)
+def delete_ingredient(ingredient_id: int, db: Session = Depends(get_db)):
+    """Delete an ingredient."""
+    ingredient = db.query(Ingredient).filter(Ingredient.id == ingredient_id).first()
+    if not ingredient:
+        raise HTTPException(status_code=404, detail="Ingredient not found")
+
+    # Check if ingredient is used in any recipes
+    if ingredient.recipe_ingredients:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete ingredient that is used in recipes. Remove from recipes first."
+        )
+
+    db.delete(ingredient)
+    db.commit()
+    return None
