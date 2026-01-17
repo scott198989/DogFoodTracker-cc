@@ -10,10 +10,10 @@
             --glass-bg: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
             --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --accent-1: #6366f1;
-            --accent-2: #8b5cf6;
-            --accent-3: #d946ef;
-            --accent-4: #f472b6;
+            --accent-1: #0ea5e9;
+            --accent-2: #06b6d4;
+            --accent-3: #38bdf8;
+            --accent-4: #22d3ee;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --success: #10b981;
@@ -30,7 +30,7 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #0c4a6e 50%, #0f172a 100%);
             overflow-x: hidden;
         }
 
@@ -57,7 +57,7 @@
         .aurora-blob:nth-child(1) {
             width: 600px;
             height: 600px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
             top: -200px;
             left: -100px;
             animation-delay: 0s;
@@ -66,7 +66,7 @@
         .aurora-blob:nth-child(2) {
             width: 500px;
             height: 500px;
-            background: linear-gradient(135deg, #d946ef, #f472b6);
+            background: linear-gradient(135deg, #38bdf8, #22d3ee);
             top: 50%;
             right: -150px;
             animation-delay: -5s;
@@ -75,7 +75,7 @@
         .aurora-blob:nth-child(3) {
             width: 400px;
             height: 400px;
-            background: linear-gradient(135deg, #06b6d4, #6366f1);
+            background: linear-gradient(135deg, #0284c7, #0891b2);
             bottom: -100px;
             left: 30%;
             animation-delay: -10s;
@@ -158,7 +158,7 @@
         header h1 {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #c7d2fe 100%);
+            background: linear-gradient(135deg, #fff 0%, #bae6fd 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -512,7 +512,7 @@
 
         .badge-user {
             background: rgba(139, 92, 246, 0.2);
-            color: #a78bfa;
+            color: #7dd3fc;
         }
 
         /* Checkbox Ingredient List */
@@ -587,10 +587,10 @@
         .category-carbs { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
         .category-veggies { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
         .category-vegetables { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .category-fruits { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .category-fruits { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
         .category-fats { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
         .category-seeds { background: rgba(234, 179, 8, 0.2); color: #facc15; }
-        .category-supplements { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .category-supplements { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
         .category-other { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
 
         /* Food Pyramid Visualization */
@@ -1151,7 +1151,7 @@
             margin: 0 auto 6px;
         }
 
-        .macro-circle.kcal { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+        .macro-circle.kcal { background: linear-gradient(135deg, #0ea5e9, #06b6d4); }
         .macro-circle.protein { background: linear-gradient(135deg, #ef4444, #f97316); }
         .macro-circle.fat { background: linear-gradient(135deg, #f59e0b, #eab308); }
         .macro-circle.carbs { background: linear-gradient(135deg, #10b981, #22c55e); }
@@ -1195,7 +1195,7 @@
 
         .btn-edit {
             background: rgba(99, 102, 241, 0.2);
-            color: #a5b4fc;
+            color: #7dd3fc;
             border: 1px solid rgba(99, 102, 241, 0.3);
         }
 
@@ -1546,7 +1546,7 @@
         .tier-deadly .danger-tier-header h3 { color: #dc2626; }
         .tier-very-dangerous .danger-tier-header h3 { color: #f97316; }
         .tier-toxic .danger-tier-header h3 { color: #eab308; }
-        .tier-harmful .danger-tier-header h3 { color: #a855f7; }
+        .tier-harmful .danger-tier-header h3 { color: #0ea5e9; }
         .tier-info .danger-tier-header h3 { color: #3b82f6; }
 
         .danger-grid {
@@ -4723,7 +4723,7 @@
                     labels: ['Protein', 'Fat', 'Carbs'],
                     datasets: [{
                         data: [macros.protein_g, macros.fat_g, macros.carbs_g],
-                        backgroundColor: ['#8b5cf6', '#f59e0b', '#10b981'],
+                        backgroundColor: ['#0ea5e9', '#f59e0b', '#10b981'],
                         borderWidth: 0
                     }]
                 },
