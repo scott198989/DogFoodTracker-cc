@@ -567,26 +567,23 @@
             font-size: 0.8rem;
         }
 
-        .ingredient-checkbox-grams {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
+        .category-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 8px;
         }
 
-        .ingredient-checkbox-grams input {
-            width: 70px;
-            padding: 8px 10px;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .ingredient-checkbox-grams span {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-            font-weight: 600;
-        }
+        .category-protein { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .category-carbs { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .category-veggies { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .category-fruits { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .category-fats { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .category-supplements { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .category-other { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
 
         .nutrient-bars {
             display: flex;
@@ -1754,25 +1751,25 @@
                         </div>
 
                         <div class="builder-section glass-dark">
-                            <h3>✅ Select Ingredients for Recipe</h3>
+                            <h3>✅ Select Ingredients You Have</h3>
+                            <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px; font-size: 0.9rem;">
+                                Just check the ingredients you have on hand. The app will automatically calculate optimal portions based on your dog's needs!
+                            </p>
                             <div class="form-group">
-                                <label>Select Recipe</label>
+                                <label>Select Recipe to Add To</label>
                                 <select id="recipe-select" onchange="loadRecipeIngredientCheckboxes()"></select>
                             </div>
-                            <div class="checkbox-actions" style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
+                            <div class="checkbox-actions" style="display: flex; gap: 10px; margin: 15px 0;">
                                 <button class="btn btn-sm" onclick="selectAllIngredients()">Select All</button>
                                 <button class="btn btn-sm" onclick="clearAllIngredients()">Clear All</button>
-                                <span style="color: rgba(255,255,255,0.5); padding: 0 8px;">|</span>
-                                <button class="btn btn-sm" onclick="applyPreset('balanced')" title="50% protein, 25% carbs, 20% veggies, 5% fats">Balanced</button>
-                                <button class="btn btn-sm" onclick="applyPreset('highProtein')" title="60% protein, 20% carbs, 15% veggies, 5% fats">High Protein</button>
-                                <button class="btn btn-sm" onclick="applyPreset('lowFat')" title="50% protein, 30% carbs, 18% veggies, 2% fats">Low Fat</button>
                             </div>
                             <div id="ingredient-checkbox-list" class="ingredient-checkbox-list">
-                                <div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones to include in this recipe</p></div>
+                                <div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones you have available</p></div>
                             </div>
-                            <div class="quick-actions" style="margin-top: 20px;">
+                            <div id="ingredient-count-display" style="padding: 12px; text-align: center; font-weight: 500; color: rgba(255,255,255,0.7); margin-top: 10px;"></div>
+                            <div class="quick-actions" style="margin-top: 15px;">
                                 <button class="btn btn-success" onclick="saveRecipeIngredients()">
-                                    <span>💾</span> Save Ingredients to Recipe
+                                    <span>💾</span> Save Selected Ingredients
                                 </button>
                             </div>
                         </div>
@@ -3038,55 +3035,59 @@
                 console.error('Error loading recipe:', err);
             }
 
-            // Create checkbox list with percentage inputs
+            // Create simple checkbox list - NO percentage inputs!
+            // The app will auto-calculate optimal portions
             list.innerHTML = allIngredientsCache.map(ing => {
                 const existing = existingIngredients.find(ri => ri.ingredient_id === ing.id);
                 const isChecked = existing ? 'checked' : '';
-                const percentage = existing ? existing.percentage : 10; // Default 10%
+                const category = categorizeIngredient(ing.name);
                 return `
-                    <div class="ingredient-checkbox-item ${isChecked ? 'checked' : ''}" data-id="${ing.id}" data-kcal="${ing.kcal_per_100g || 0}">
+                    <div class="ingredient-checkbox-item ${isChecked ? 'checked' : ''}" data-id="${ing.id}" data-category="${category}">
                         <input type="checkbox" id="ing-check-${ing.id}" ${isChecked}
                                onchange="toggleIngredientCheck(this, ${ing.id})">
                         <div class="ingredient-checkbox-info">
                             <div class="ingredient-checkbox-name">${ing.name}</div>
-                            <div class="ingredient-checkbox-macros">${ing.kcal_per_100g?.toFixed(0) || 0} kcal/100g | ${ing.protein_g_per_100g?.toFixed(0) || 0}g P | ${ing.fat_g_per_100g?.toFixed(0) || 0}g F</div>
-                        </div>
-                        <div class="ingredient-checkbox-grams">
-                            <input type="number" id="ing-pct-${ing.id}" value="${percentage}" min="0.1" max="100" step="0.5"
-                                   onchange="updatePercentageTotal()" oninput="updatePercentageTotal()">
-                            <span>%</span>
+                            <div class="ingredient-checkbox-macros">
+                                <span class="category-badge category-${category}">${category}</span>
+                                ${ing.kcal_per_100g?.toFixed(0) || 0} kcal/100g
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
 
-            updatePercentageTotal();
+            updateIngredientCount();
         }
 
-        function updatePercentageTotal() {
-            const checkedItems = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item');
-            let total = 0;
-            checkedItems.forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (checkbox && checkbox.checked) {
-                    const pctInput = item.querySelector('input[type="number"]');
-                    total += parseFloat(pctInput?.value) || 0;
+        // Categorize ingredient by name for auto-portioning
+        function categorizeIngredient(name) {
+            const nameLower = name.toLowerCase();
+            const categories = {
+                protein: ['beef', 'chicken', 'turkey', 'lamb', 'pork', 'venison', 'bison', 'duck', 'rabbit', 'salmon', 'fish', 'sardine', 'mackerel', 'cod', 'tilapia', 'tuna', 'egg', 'liver', 'heart', 'kidney', 'gizzard', 'meat'],
+                carbs: ['rice', 'oatmeal', 'oat', 'quinoa', 'barley', 'millet', 'pasta', 'noodle', 'lentil', 'bean', 'potato', 'sweet potato'],
+                veggies: ['broccoli', 'carrot', 'green bean', 'pea', 'pumpkin', 'spinach', 'kale', 'zucchini', 'celery', 'cucumber', 'squash', 'brussels', 'cabbage', 'cauliflower', 'asparagus', 'beet', 'vegetable', 'lettuce', 'greens'],
+                fruits: ['blueberr', 'cranberr', 'apple', 'banana', 'watermelon', 'cantaloupe', 'strawberr', 'raspberr', 'blackberr', 'mango', 'pear', 'peach', 'fruit'],
+                fats: ['oil', 'coconut', 'flax', 'olive', 'salmon oil', 'fish oil'],
+                supplements: ['chia', 'hemp', 'seed', 'turmeric', 'ginger', 'parsley', 'kelp', 'spirulina', 'powder', 'supplement', 'vitamin', 'mineral']
+            };
+
+            for (const [category, keywords] of Object.entries(categories)) {
+                if (keywords.some(kw => nameLower.includes(kw))) {
+                    return category;
                 }
-            });
-
-            // Update or create total display
-            let totalDisplay = document.getElementById('percentage-total-display');
-            if (!totalDisplay) {
-                totalDisplay = document.createElement('div');
-                totalDisplay.id = 'percentage-total-display';
-                totalDisplay.style.cssText = 'padding: 12px; text-align: center; font-weight: 600; border-radius: 8px; margin-top: 10px;';
-                document.getElementById('ingredient-checkbox-list')?.after(totalDisplay);
             }
+            return 'other';
+        }
 
-            const isValid = total >= 99 && total <= 101;
-            totalDisplay.style.background = isValid ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)';
-            totalDisplay.style.color = isValid ? '#10b981' : '#ef4444';
-            totalDisplay.innerHTML = `Total: ${total.toFixed(1)}% ${isValid ? '✓' : '(must equal 100%)'}`;
+        function updateIngredientCount() {
+            const checkedItems = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item input[type="checkbox"]:checked');
+            const countDisplay = document.getElementById('ingredient-count-display');
+            if (countDisplay) {
+                const count = checkedItems.length;
+                countDisplay.innerHTML = count > 0
+                    ? `<span style="color: #10b981;">✓ ${count} ingredient${count > 1 ? 's' : ''} selected</span>`
+                    : '<span style="color: rgba(255,255,255,0.5);">No ingredients selected</span>';
+            }
         }
 
         function toggleIngredientCheck(checkbox, ingredientId) {
@@ -3096,7 +3097,7 @@
             } else {
                 item.classList.remove('checked');
             }
-            updatePercentageTotal();
+            updateIngredientCount();
         }
 
         function selectAllIngredients() {
@@ -3104,7 +3105,7 @@
                 cb.checked = true;
                 cb.closest('.ingredient-checkbox-item')?.classList.add('checked');
             });
-            updatePercentageTotal();
+            updateIngredientCount();
         }
 
         function clearAllIngredients() {
@@ -3112,64 +3113,83 @@
                 cb.checked = false;
                 cb.closest('.ingredient-checkbox-item')?.classList.remove('checked');
             });
-            updatePercentageTotal();
+            updateIngredientCount();
         }
 
-        function applyPreset(presetName) {
-            // Presets define percentage distributions by ingredient category
-            const presets = {
-                balanced: { protein: 50, carbs: 25, veggies: 20, fats: 5 },
-                highProtein: { protein: 60, carbs: 20, veggies: 15, fats: 5 },
-                lowFat: { protein: 50, carbs: 30, veggies: 18, fats: 2 }
+        // Auto-calculate optimal percentages based on ingredient categories
+        function calculateOptimalPercentages(selectedItems) {
+            // Standard balanced recipe ratios
+            const categoryTargets = {
+                protein: 50,      // 50% of recipe should be protein
+                carbs: 20,        // 20% carbs/starches
+                veggies: 20,      // 20% vegetables
+                fruits: 5,        // 5% fruits
+                fats: 3,          // 3% oils/fats
+                supplements: 2,   // 2% supplements
+                other: 0          // will absorb remainder
             };
 
-            const preset = presets[presetName];
-            if (!preset) return;
+            // Group selected ingredients by category
+            const categorized = {};
+            for (const cat of Object.keys(categoryTargets)) {
+                categorized[cat] = [];
+            }
 
-            // Keywords to categorize ingredients
-            const categories = {
-                protein: ['beef', 'chicken', 'turkey', 'lamb', 'pork', 'venison', 'bison', 'duck', 'rabbit', 'salmon', 'fish', 'sardine', 'mackerel', 'cod', 'egg', 'liver', 'heart', 'kidney', 'gizzard'],
-                carbs: ['rice', 'oatmeal', 'quinoa', 'barley', 'millet', 'potato', 'lentil', 'pasta'],
-                veggies: ['broccoli', 'carrot', 'green bean', 'pea', 'sweet potato', 'pumpkin', 'spinach', 'kale', 'zucchini', 'celery', 'cucumber', 'squash', 'brussels', 'cabbage', 'cauliflower', 'asparagus', 'beet', 'blueberr', 'cranberr', 'apple', 'banana', 'watermelon', 'cantaloupe', 'strawberr', 'raspberr', 'blackberr', 'mango', 'pear', 'peach'],
-                fats: ['oil', 'coconut', 'flax', 'olive', 'salmon oil', 'fish oil', 'chia', 'hemp', 'seed']
-            };
-
-            // Get all checked items and categorize them
-            const items = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item');
-            const categorizedItems = { protein: [], carbs: [], veggies: [], fats: [] };
-
-            items.forEach(item => {
-                const checkbox = item.querySelector('input[type="checkbox"]');
-                if (!checkbox?.checked) return;
-
-                const name = item.querySelector('.ingredient-checkbox-name')?.textContent?.toLowerCase() || '';
-
-                // Determine category
-                let assigned = false;
-                for (const [category, keywords] of Object.entries(categories)) {
-                    if (keywords.some(kw => name.includes(kw))) {
-                        categorizedItems[category].push(item);
-                        assigned = true;
-                        break;
-                    }
+            selectedItems.forEach(item => {
+                const category = item.dataset.category || 'other';
+                if (categorized[category]) {
+                    categorized[category].push(item);
+                } else {
+                    categorized.other.push(item);
                 }
-                // Default uncategorized to veggies
-                if (!assigned) categorizedItems.veggies.push(item);
             });
 
-            // Distribute percentages within each category
-            for (const [category, items] of Object.entries(categorizedItems)) {
-                const totalPct = preset[category];
-                const perItem = items.length > 0 ? totalPct / items.length : 0;
+            // Calculate actual percentages based on what's selected
+            const result = [];
+            let usedPercentage = 0;
+
+            // First pass: distribute percentages to categories that have items
+            const activeCategoryTargets = {};
+            for (const [cat, items] of Object.entries(categorized)) {
+                if (items.length > 0 && categoryTargets[cat] > 0) {
+                    activeCategoryTargets[cat] = categoryTargets[cat];
+                }
+            }
+
+            // Normalize to 100% based on selected categories
+            const totalTarget = Object.values(activeCategoryTargets).reduce((a, b) => a + b, 0);
+            const scaleFactor = totalTarget > 0 ? 100 / totalTarget : 1;
+
+            for (const [cat, items] of Object.entries(categorized)) {
+                if (items.length === 0) continue;
+
+                let categoryPct = (activeCategoryTargets[cat] || 5) * scaleFactor;
+
+                // Special handling for supplements - cap at 2% each
+                if (cat === 'supplements') {
+                    categoryPct = Math.min(categoryPct, items.length * 2);
+                }
+
+                const perItemPct = categoryPct / items.length;
 
                 items.forEach(item => {
-                    const input = item.querySelector('input[type="number"]');
-                    if (input) input.value = perItem.toFixed(1);
+                    result.push({
+                        ingredient_id: parseInt(item.dataset.id),
+                        percentage: Math.round(perItemPct * 10) / 10 // Round to 1 decimal
+                    });
+                    usedPercentage += perItemPct;
                 });
             }
 
-            updatePercentageTotal();
-            showToast(`Applied "${presetName}" preset - adjust percentages as needed`, 'success');
+            // Normalize to exactly 100%
+            if (result.length > 0 && Math.abs(usedPercentage - 100) > 0.1) {
+                const adjustment = 100 / usedPercentage;
+                result.forEach(r => {
+                    r.percentage = Math.round(r.percentage * adjustment * 10) / 10;
+                });
+            }
+
+            return result;
         }
 
         async function saveRecipeIngredients() {
@@ -3179,32 +3199,24 @@
                 return;
             }
 
-            // Get all checked ingredients with their percentages
-            const checkedItems = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item');
-            const ingredientsToAdd = [];
-            let totalPercentage = 0;
+            // Get all checked ingredients
+            const allItems = document.querySelectorAll('#ingredient-checkbox-list .ingredient-checkbox-item');
+            const selectedItems = [];
 
-            checkedItems.forEach(item => {
+            allItems.forEach(item => {
                 const checkbox = item.querySelector('input[type="checkbox"]');
                 if (checkbox && checkbox.checked) {
-                    const ingredientId = parseInt(item.dataset.id);
-                    const pctInput = item.querySelector('input[type="number"]');
-                    const percentage = parseFloat(pctInput?.value) || 10;
-                    totalPercentage += percentage;
-                    ingredientsToAdd.push({ ingredient_id: ingredientId, percentage: percentage });
+                    selectedItems.push(item);
                 }
             });
 
-            if (ingredientsToAdd.length === 0) {
+            if (selectedItems.length === 0) {
                 showToast('Please check at least one ingredient', 'error');
                 return;
             }
 
-            // Validate percentages sum to ~100%
-            if (totalPercentage < 99 || totalPercentage > 101) {
-                showToast(`Percentages must sum to 100% (currently ${totalPercentage.toFixed(1)}%)`, 'error');
-                return;
-            }
+            // Auto-calculate optimal percentages based on ingredient categories
+            const ingredientsToAdd = calculateOptimalPercentages(selectedItems);
 
             // First, remove all existing ingredients from recipe
             try {
@@ -3216,7 +3228,7 @@
                     await fetch(`${API_BASE}/recipe/${recipeId}/ingredient/${ing.id}`, { method: 'DELETE' });
                 }
 
-                // Add all checked ingredients
+                // Add all ingredients with auto-calculated percentages
                 for (const ing of ingredientsToAdd) {
                     await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
                         method: 'POST',
@@ -3226,7 +3238,7 @@
                 }
 
                 loadRecipes();
-                showToast(`Recipe updated with ${ingredientsToAdd.length} ingredients!`, 'success');
+                showToast(`Recipe created with ${ingredientsToAdd.length} ingredients! Portions auto-calculated.`, 'success');
             } catch (err) {
                 showToast('Error updating recipe ingredients', 'error');
                 console.error(err);
