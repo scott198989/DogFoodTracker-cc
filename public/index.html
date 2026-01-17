@@ -1129,6 +1129,217 @@
             margin-top: 24px;
             justify-content: flex-end;
         }
+
+        /* Ingredient Guide Styles */
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            color: white;
+        }
+
+        .ingredient-category {
+            margin-bottom: 15px;
+        }
+
+        .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .category-header:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .category-header h3 {
+            color: white;
+            font-size: 1.1rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .expand-icon {
+            color: white;
+            font-size: 1.5rem;
+            transition: transform 0.3s;
+        }
+
+        .category-header.expanded .expand-icon {
+            transform: rotate(45deg);
+        }
+
+        .category-content {
+            display: none;
+            padding: 15px;
+            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+
+        .category-content.show {
+            display: grid;
+        }
+
+        .ingredient-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            gap: 15px;
+        }
+
+        .ingredient-info h4 {
+            color: white;
+            font-size: 1rem;
+            margin: 0 0 5px 0;
+        }
+
+        .ingredient-info p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .ingredient-info .warning-text {
+            color: #fbbf24;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        /* Simulator Styles */
+        .adjustment-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .adjustment-row label {
+            flex: 1;
+            color: white;
+            font-weight: 500;
+        }
+
+        .adjustment-row .current-value {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .adjustment-row input {
+            width: 100px;
+        }
+
+        /* Nutrient Bar Styles */
+        .nutrient-bar-container {
+            margin-bottom: 15px;
+        }
+
+        .nutrient-bar-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .nutrient-bar-track {
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .nutrient-bar-fill {
+            height: 100%;
+            border-radius: 12px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 0.75rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .nutrient-bar-fill.excellent { background: linear-gradient(90deg, #10b981, #059669); }
+        .nutrient-bar-fill.good { background: linear-gradient(90deg, #22c55e, #16a34a); }
+        .nutrient-bar-fill.caution { background: linear-gradient(90deg, #eab308, #ca8a04); }
+        .nutrient-bar-fill.bad { background: linear-gradient(90deg, #f97316, #ea580c); }
+        .nutrient-bar-fill.dangerous { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+        .nutrient-bar-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: white;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.excellent { background: #10b981; color: white; }
+        .status-badge.good { background: #22c55e; color: white; }
+        .status-badge.caution { background: #eab308; color: black; }
+        .status-badge.bad { background: #f97316; color: white; }
+        .status-badge.dangerous { background: #ef4444; color: white; }
+
+        /* Overall Status Card */
+        .status-card-large {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .status-card-large .status-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .status-card-large h3 {
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .status-card-large p {
+            color: rgba(255, 255, 255, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -1165,6 +1376,8 @@
                 <button class="nav-tab" data-tab="ingredients"><span>🥩</span> Ingredients</button>
                 <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
                 <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
+                <button class="nav-tab" data-tab="guide"><span>📚</span> Ingredient Guide</button>
+                <button class="nav-tab" data-tab="simulator"><span>🔬</span> What If</button>
             </nav>
 
             <!-- Main Content -->
@@ -1519,7 +1732,512 @@
 
                     <div id="plan-result"></div>
                 </div>
+
+                <!-- Ingredient Guide Tab -->
+                <div id="guide" class="tab-panel">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>📚</span> Ingredient Guide</h2>
+                        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Learn about dog-friendly ingredients and their health benefits</p>
+                    </div>
+
+                    <!-- Category Filter -->
+                    <div class="category-filter" style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+                        <button class="filter-btn active" data-category="all">All</button>
+                        <button class="filter-btn" data-category="proteins">Proteins</button>
+                        <button class="filter-btn" data-category="vegetables">Vegetables</button>
+                        <button class="filter-btn" data-category="fruits">Fruits</button>
+                        <button class="filter-btn" data-category="grains">Grains</button>
+                        <button class="filter-btn" data-category="oils">Fats & Oils</button>
+                        <button class="filter-btn" data-category="supplements">Supplements</button>
+                    </div>
+
+                    <!-- Proteins Section -->
+                    <div class="ingredient-category" data-category="proteins">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>🥩</span> Proteins (Meats, Fish, Eggs, Organs)</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Beef (lean)</h4>
+                                    <p>Muscle building, iron, B12, zinc for immune health</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Beef, ground, lean')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Chicken</h4>
+                                    <p>Lean protein, glucosamine for joints, B vitamins</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Chicken, breast')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Turkey</h4>
+                                    <p>Low-fat protein, selenium, tryptophan for calm</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Turkey, ground')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Lamb</h4>
+                                    <p>Iron-rich, good for dogs with chicken allergies</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Lamb, ground')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Salmon</h4>
+                                    <p>Omega-3 for coat/skin, brain health, anti-inflammatory</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Salmon, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Sardines</h4>
+                                    <p>Omega-3, calcium (with bones), CoQ10 for heart</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Sardines, canned')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Eggs</h4>
+                                    <p>Complete protein, biotin for coat, choline for brain</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Egg, whole, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Beef Liver</h4>
+                                    <p class="warning-text">Vitamin A powerhouse, iron, B12 - feed sparingly (max 5% of diet)</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Beef liver, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Beef Heart</h4>
+                                    <p>Taurine for heart health, CoQ10, B vitamins</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Beef heart, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Duck</h4>
+                                    <p>Novel protein for allergies, rich in iron and amino acids</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Duck, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Venison</h4>
+                                    <p>Novel protein for allergies, very lean</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Venison, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Cod</h4>
+                                    <p>Lean white fish, iodine for thyroid</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Cod, cooked')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Vegetables Section -->
+                    <div class="ingredient-category" data-category="vegetables">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>🥦</span> Vegetables</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Broccoli</h4>
+                                    <p>Fiber, vitamin C, cancer-fighting sulforaphane</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Broccoli, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Carrots</h4>
+                                    <p>Beta-carotene for eyes, fiber, dental health</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Carrots, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Green Beans</h4>
+                                    <p>Low-cal fiber, vitamins K & C, weight management</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Green beans, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Peas</h4>
+                                    <p>Protein, fiber, vitamins A/K, lutein for eyes</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Peas, green, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Sweet Potato</h4>
+                                    <p>Fiber, beta-carotene, vitamin B6, digestive health</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Sweet potato, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Pumpkin</h4>
+                                    <p>Digestive aid, fiber for diarrhea/constipation</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Pumpkin, canned')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Spinach</h4>
+                                    <p class="warning-text">Iron, antioxidants - limit due to oxalates</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Spinach, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Zucchini</h4>
+                                    <p>Low-cal, potassium, vitamin C</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Zucchini, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Butternut Squash</h4>
+                                    <p>Beta-carotene, fiber, potassium</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Butternut squash, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Celery</h4>
+                                    <p>Fresh breath, vitamins A/C/K, low calorie</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Celery, raw')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fruits Section -->
+                    <div class="ingredient-category" data-category="fruits">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>🫐</span> Fruits</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Blueberries</h4>
+                                    <p>Antioxidant superfood, brain health, UTI prevention</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Blueberries, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Cranberries</h4>
+                                    <p>Urinary tract health, prevents bacteria adhesion</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Cranberries, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Apples (no seeds)</h4>
+                                    <p>Fiber, vitamins A/C, dental cleaning</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Apples, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Bananas</h4>
+                                    <p class="warning-text">Potassium, B6, fiber - high sugar, use sparingly</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Bananas, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Watermelon (no seeds)</h4>
+                                    <p>Hydration, vitamins A/B6/C, lycopene</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Watermelon, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Strawberries</h4>
+                                    <p>Vitamin C, fiber, teeth-whitening enzymes</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Strawberries, raw')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Cantaloupe</h4>
+                                    <p>Beta-carotene, fiber, hydration</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Cantaloupe, raw')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grains Section -->
+                    <div class="ingredient-category" data-category="grains">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>🌾</span> Grains & Starches</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>White Rice</h4>
+                                    <p>Easy to digest, good for upset stomach</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Rice, white, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Brown Rice</h4>
+                                    <p>Fiber, B vitamins, manganese</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Rice, brown, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Oatmeal</h4>
+                                    <p>Fiber, soothes skin allergies, B vitamins</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Oatmeal, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Quinoa</h4>
+                                    <p>Complete protein, fiber, magnesium</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Quinoa, cooked')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Potato (cooked only)</h4>
+                                    <p class="warning-text">Vitamin C, B6, potassium - NEVER feed raw!</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Potatoes, boiled')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Lentils</h4>
+                                    <p>Protein, fiber, iron, folate</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Lentils, cooked')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fats & Oils Section -->
+                    <div class="ingredient-category" data-category="oils">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>🫒</span> Healthy Fats & Oils</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Salmon Oil</h4>
+                                    <p>Omega-3 EPA/DHA, coat shine, joint health</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Fish oil, salmon')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Coconut Oil</h4>
+                                    <p>MCTs for energy, skin health, antibacterial</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Coconut oil')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Flaxseed Oil</h4>
+                                    <p>Plant omega-3 (ALA), fiber, coat health</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Flaxseed oil')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Olive Oil</h4>
+                                    <p>Healthy fats, vitamin E, antioxidants</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Olive oil')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Supplements Section -->
+                    <div class="ingredient-category" data-category="supplements">
+                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                            <h3><span>✨</span> Supplements & Superfoods</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div class="category-content">
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Chia Seeds</h4>
+                                    <p>Omega-3, fiber, calcium, protein</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Chia seeds')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Hemp Seeds</h4>
+                                    <p>Complete protein, omega-3/6, GLA</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Hemp seeds')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Flax Seeds (ground)</h4>
+                                    <p>Omega-3, fiber, lignans - must be ground to absorb</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Flaxseed, ground')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Turmeric</h4>
+                                    <p>Anti-inflammatory curcumin, joint support</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Turmeric, ground')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Local Honey</h4>
+                                    <p class="warning-text">Allergy relief, antibacterial - use sparingly (high sugar)</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Honey')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Parsley</h4>
+                                    <p>Fresh breath, vitamins A/C/K, antioxidants</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Parsley, fresh')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Eggshell Powder</h4>
+                                    <p>Calcium supplement - 1,800mg calcium per teaspoon</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Eggshell powder')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Pumpkin Seeds</h4>
+                                    <p>Zinc, natural anti-parasitic properties</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Pumpkin seeds')">+ Add</button>
+                            </div>
+                            <div class="ingredient-card glass-dark">
+                                <div class="ingredient-info">
+                                    <h4>Bone Broth</h4>
+                                    <p>Joint support, gut healing, hydration</p>
+                                </div>
+                                <button class="btn btn-small" onclick="openAddToRecipeModal('Bone broth')">+ Add</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What If Simulator Tab -->
+                <div id="simulator" class="tab-panel">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>🔬</span> What If Simulator</h2>
+                        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">See how ingredient changes affect your dog's nutrition</p>
+                    </div>
+
+                    <div class="form-card glass-dark">
+                        <h3 style="color: white; margin-bottom: 20px;">Select Dog & Recipe</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Select Dog</label>
+                                <select id="sim-dog" required onchange="loadSimulatorRecipe()"></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Recipe</label>
+                                <select id="sim-recipe" required onchange="loadSimulatorRecipe()"></select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="simulator-content" style="display: none;">
+                        <!-- Current Nutrition Overview -->
+                        <div class="form-card glass-dark" style="margin-top: 20px;">
+                            <h3 style="color: white; margin-bottom: 15px;">📊 Current Nutritional Profile</h3>
+                            <div id="current-nutrition-display"></div>
+                        </div>
+
+                        <!-- Ingredient Adjustments -->
+                        <div class="form-card glass-dark" style="margin-top: 20px;">
+                            <h3 style="color: white; margin-bottom: 15px;">🔧 Adjust Ingredients</h3>
+                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 15px;">Change amounts below and click "Simulate" to see the impact</p>
+                            <div id="ingredient-adjustments"></div>
+                            <div class="quick-actions" style="margin-top: 20px;">
+                                <button type="button" class="btn btn-primary" onclick="runSimulation()">
+                                    <span>🔬</span> Simulate Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetSimulator()">
+                                    <span>↺</span> Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Simulation Results -->
+                        <div id="simulation-results" style="display: none;">
+                            <!-- Overall Status -->
+                            <div id="overall-status-card" class="form-card glass-dark" style="margin-top: 20px;"></div>
+
+                            <!-- Macro Pie Chart -->
+                            <div class="form-card glass-dark" style="margin-top: 20px;">
+                                <h3 style="color: white; margin-bottom: 15px;">🥧 Macro Distribution</h3>
+                                <div style="max-width: 400px; margin: 0 auto;">
+                                    <canvas id="macro-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Nutrient Bars -->
+                            <div class="form-card glass-dark" style="margin-top: 20px;">
+                                <h3 style="color: white; margin-bottom: 15px;">📈 Nutrient Levels vs AAFCO Requirements</h3>
+                                <div id="nutrient-bars"></div>
+                            </div>
+
+                            <!-- What Changed Summary -->
+                            <div id="change-summary" class="form-card glass-dark" style="margin-top: 20px;"></div>
+                        </div>
+                    </div>
+                </div>
             </main>
+        </div>
+    </div>
+
+    <!-- Add to Recipe Modal -->
+    <div class="modal-overlay" id="add-to-recipe-modal">
+        <div class="modal">
+            <h3>Add to Recipe</h3>
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">
+                Adding: <strong id="add-ingredient-name"></strong>
+            </p>
+            <div class="form-group">
+                <label>Select Recipe</label>
+                <select id="modal-recipe-select" required></select>
+            </div>
+            <div class="form-group">
+                <label>Amount (grams)</label>
+                <input type="number" id="modal-ingredient-grams" value="100" min="1" required>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeAddToRecipeModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addIngredientToRecipe()">Add to Recipe</button>
+            </div>
         </div>
     </div>
 
@@ -2703,6 +3421,417 @@
                 showToast('Connection error', 'error');
             }
         }
+
+        // ==================== Ingredient Guide Functions ====================
+
+        function toggleCategory(header) {
+            header.classList.toggle('expanded');
+            const content = header.nextElementSibling;
+            content.classList.toggle('show');
+        }
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                const category = btn.dataset.category;
+                document.querySelectorAll('.ingredient-category').forEach(cat => {
+                    if (category === 'all' || cat.dataset.category === category) {
+                        cat.style.display = 'block';
+                    } else {
+                        cat.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Add to recipe modal
+        let selectedIngredientName = '';
+
+        function openAddToRecipeModal(ingredientName) {
+            selectedIngredientName = ingredientName;
+            document.getElementById('add-ingredient-name').textContent = ingredientName;
+            document.getElementById('add-to-recipe-modal').classList.add('active');
+            loadRecipesForModal();
+        }
+
+        function closeAddToRecipeModal() {
+            document.getElementById('add-to-recipe-modal').classList.remove('active');
+        }
+
+        async function loadRecipesForModal() {
+            try {
+                const res = await fetch(`${API_BASE}/recipe`);
+                const recipes = await res.json();
+                const select = document.getElementById('modal-recipe-select');
+                select.innerHTML = recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            } catch (err) {
+                console.error('Error loading recipes:', err);
+            }
+        }
+
+        async function addIngredientToRecipe() {
+            const recipeId = document.getElementById('modal-recipe-select').value;
+            const grams = parseFloat(document.getElementById('modal-ingredient-grams').value);
+
+            if (!recipeId || !grams) {
+                showToast('Please select a recipe and enter amount', 'error');
+                return;
+            }
+
+            // First search for the ingredient in USDA
+            try {
+                showToast('Searching for ingredient...', 'info');
+                const searchRes = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(selectedIngredientName)}`);
+                const searchResults = await searchRes.json();
+
+                if (searchResults.length > 0) {
+                    // Import from USDA
+                    const importRes = await fetch(`${API_BASE}/ingredient/from-usda`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ fdc_id: searchResults[0].fdc_id })
+                    });
+
+                    if (importRes.ok) {
+                        const ingredient = await importRes.json();
+                        // Add to recipe
+                        const addRes = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ingredient_id: ingredient.id, grams: grams })
+                        });
+
+                        if (addRes.ok) {
+                            showToast(`Added ${selectedIngredientName} to recipe!`, 'success');
+                            closeAddToRecipeModal();
+                            loadRecipes();
+                        } else {
+                            const err = await addRes.json();
+                            showToast(err.detail || 'Error adding to recipe', 'error');
+                        }
+                    } else {
+                        showToast('Error importing ingredient', 'error');
+                    }
+                } else {
+                    showToast('Ingredient not found in USDA database', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // ==================== What If Simulator Functions ====================
+
+        let simulatorData = {
+            dog: null,
+            recipe: null,
+            originalAmounts: {},
+            currentAmounts: {}
+        };
+
+        let macroChart = null;
+
+        // Populate simulator dropdowns
+        async function populateSimulatorDropdowns() {
+            try {
+                const [dogsRes, recipesRes] = await Promise.all([
+                    fetch(`${API_BASE}/dog`),
+                    fetch(`${API_BASE}/recipe`)
+                ]);
+                const dogs = await dogsRes.json();
+                const recipes = await recipesRes.json();
+
+                const dogSelect = document.getElementById('sim-dog');
+                const recipeSelect = document.getElementById('sim-recipe');
+
+                dogSelect.innerHTML = '<option value="">Select a dog...</option>' +
+                    dogs.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+
+                recipeSelect.innerHTML = '<option value="">Select a recipe...</option>' +
+                    recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+            } catch (err) {
+                console.error('Error loading simulator data:', err);
+            }
+        }
+
+        async function loadSimulatorRecipe() {
+            const dogId = document.getElementById('sim-dog').value;
+            const recipeId = document.getElementById('sim-recipe').value;
+
+            if (!dogId || !recipeId) {
+                document.getElementById('simulator-content').style.display = 'none';
+                return;
+            }
+
+            try {
+                const [dogRes, recipeRes] = await Promise.all([
+                    fetch(`${API_BASE}/dog/${dogId}`),
+                    fetch(`${API_BASE}/recipe/${recipeId}`)
+                ]);
+
+                simulatorData.dog = await dogRes.json();
+                simulatorData.recipe = await recipeRes.json();
+
+                // Build adjustment inputs
+                const adjustmentsDiv = document.getElementById('ingredient-adjustments');
+                simulatorData.originalAmounts = {};
+                simulatorData.currentAmounts = {};
+
+                if (simulatorData.recipe.ingredients.length === 0) {
+                    adjustmentsDiv.innerHTML = '<p style="color: rgba(255,255,255,0.7);">This recipe has no ingredients. Add some first!</p>';
+                    document.getElementById('simulator-content').style.display = 'block';
+                    return;
+                }
+
+                adjustmentsDiv.innerHTML = simulatorData.recipe.ingredients.map(ing => {
+                    simulatorData.originalAmounts[ing.ingredient_id] = ing.grams;
+                    simulatorData.currentAmounts[ing.ingredient_id] = ing.grams;
+                    return `
+                        <div class="adjustment-row">
+                            <label>${ing.ingredient_name}</label>
+                            <span class="current-value">Current: ${ing.grams}g</span>
+                            <input type="number" id="adj-${ing.ingredient_id}" value="${ing.grams}" min="0" step="1">
+                            <span>g</span>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('simulator-content').style.display = 'block';
+                document.getElementById('simulation-results').style.display = 'none';
+
+                // Show current nutrition
+                await showCurrentNutrition();
+
+            } catch (err) {
+                console.error('Error loading recipe:', err);
+                showToast('Error loading data', 'error');
+            }
+        }
+
+        async function showCurrentNutrition() {
+            // Calculate a simple meal plan to get current nutrition
+            try {
+                const res = await fetch(`${API_BASE}/plan/compute`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dog_id: simulatorData.dog.id,
+                        recipe_id: simulatorData.recipe.id,
+                        kibble_kcal: 0,
+                        treats_kcal: 0,
+                        num_days: 1
+                    })
+                });
+
+                if (res.ok) {
+                    const plan = await res.json();
+                    const display = document.getElementById('current-nutrition-display');
+                    display.innerHTML = `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.target_kcal?.toFixed(0)}</div>
+                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Target kcal</div>
+                            </div>
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Protein</div>
+                            </div>
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Fat</div>
+                            </div>
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Carbs</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error('Error showing current nutrition:', err);
+            }
+        }
+
+        async function runSimulation() {
+            // Collect current amounts
+            const adjustments = [];
+            simulatorData.recipe.ingredients.forEach(ing => {
+                const input = document.getElementById(`adj-${ing.ingredient_id}`);
+                const newGrams = parseFloat(input.value) || 0;
+                simulatorData.currentAmounts[ing.ingredient_id] = newGrams;
+                adjustments.push({
+                    ingredient_id: ing.ingredient_id,
+                    new_grams: newGrams
+                });
+            });
+
+            try {
+                const res = await fetch(`${API_BASE}/plan/simulate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dog_id: simulatorData.dog.id,
+                        recipe_id: simulatorData.recipe.id,
+                        ingredient_adjustments: adjustments
+                    })
+                });
+
+                if (res.ok) {
+                    const result = await res.json();
+                    displaySimulationResults(result);
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || 'Simulation failed', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        function displaySimulationResults(result) {
+            document.getElementById('simulation-results').style.display = 'block';
+
+            // Overall status card
+            const statusIcons = {
+                excellent: '🌟',
+                good: '✅',
+                caution: '⚠️',
+                bad: '⚠️',
+                dangerous: '🚨'
+            };
+            const statusMessages = {
+                excellent: 'Excellent! This meal is well-balanced and meets all nutritional requirements.',
+                good: 'Good! This meal meets minimum requirements.',
+                caution: 'Caution: Some nutrients are approaching limits.',
+                bad: 'Warning: Some nutrients are deficient.',
+                dangerous: 'DANGER: Some nutrients exceed safe limits!'
+            };
+
+            document.getElementById('overall-status-card').innerHTML = `
+                <div class="status-card-large">
+                    <div class="status-icon">${statusIcons[result.overall_status]}</div>
+                    <h3>Overall Status: <span class="status-badge ${result.overall_status}">${result.overall_status.toUpperCase()}</span></h3>
+                    <p>${statusMessages[result.overall_status]}</p>
+                </div>
+            `;
+
+            // Macro pie chart
+            const ctx = document.getElementById('macro-chart').getContext('2d');
+            if (macroChart) macroChart.destroy();
+
+            const macros = result.after;
+            const totalMacroG = macros.protein_g + macros.fat_g + macros.carbs_g;
+
+            macroChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Protein', 'Fat', 'Carbs'],
+                    datasets: [{
+                        data: [macros.protein_g, macros.fat_g, macros.carbs_g],
+                        backgroundColor: ['#8b5cf6', '#f59e0b', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    const value = context.raw;
+                                    const pct = ((value / totalMacroG) * 100).toFixed(1);
+                                    return `${context.label}: ${value.toFixed(1)}g (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Nutrient bars
+            const barsHtml = result.nutrient_status.map(ns => {
+                const pct = Math.min(ns.percent_of_min, 200);
+                const displayPct = ns.percent_of_min > 100 ? Math.min(ns.percent_of_min, 150) : ns.percent_of_min;
+                return `
+                    <div class="nutrient-bar-container">
+                        <div class="nutrient-bar-label">
+                            <span>${ns.nutrient}</span>
+                            <span class="status-badge ${ns.status}">${ns.status}</span>
+                        </div>
+                        <div class="nutrient-bar-track">
+                            <div class="nutrient-bar-fill ${ns.status}" style="width: ${Math.min(displayPct, 100)}%">
+                                ${ns.percent_of_min.toFixed(0)}%
+                            </div>
+                            <div class="nutrient-bar-marker" style="left: 100%;" title="100% of minimum"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('nutrient-bars').innerHTML = barsHtml;
+
+            // Change summary
+            const changes = [];
+            const before = result.before;
+            const after = result.after;
+
+            if (Math.abs(after.kcal - before.kcal) > 1) {
+                const diff = after.kcal - before.kcal;
+                changes.push(`Calories: ${diff > 0 ? '+' : ''}${diff.toFixed(0)} kcal (now ${after.kcal.toFixed(0)} kcal)`);
+            }
+            if (Math.abs(after.protein_g - before.protein_g) > 0.5) {
+                const diff = after.protein_g - before.protein_g;
+                changes.push(`Protein: ${diff > 0 ? '+' : ''}${diff.toFixed(1)}g (now ${after.protein_g.toFixed(1)}g)`);
+            }
+            if (Math.abs(after.fat_g - before.fat_g) > 0.5) {
+                const diff = after.fat_g - before.fat_g;
+                changes.push(`Fat: ${diff > 0 ? '+' : ''}${diff.toFixed(1)}g (now ${after.fat_g.toFixed(1)}g)`);
+            }
+
+            document.getElementById('change-summary').innerHTML = `
+                <h3 style="color: white; margin-bottom: 15px;">📊 What Changed</h3>
+                ${changes.length > 0 ? `
+                    <ul style="color: rgba(255,255,255,0.9); margin: 0; padding-left: 20px;">
+                        ${changes.map(c => `<li style="margin-bottom: 8px;">${c}</li>`).join('')}
+                    </ul>
+                ` : '<p style="color: rgba(255,255,255,0.7);">No significant changes detected.</p>'}
+                ${result.warnings.length > 0 ? `
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(239, 68, 68, 0.2); border-radius: 8px;">
+                        <strong style="color: #ef4444;">Warnings:</strong>
+                        <ul style="color: #fca5a5; margin: 5px 0 0 0; padding-left: 20px;">
+                            ${result.warnings.map(w => `<li>${w}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                ${result.recommendations.length > 0 ? `
+                    <div style="margin-top: 15px; padding: 10px; background: rgba(16, 185, 129, 0.2); border-radius: 8px;">
+                        <strong style="color: #10b981;">Recommendations:</strong>
+                        <ul style="color: #6ee7b7; margin: 5px 0 0 0; padding-left: 20px;">
+                            ${result.recommendations.map(r => `<li>${r}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function resetSimulator() {
+            simulatorData.recipe.ingredients.forEach(ing => {
+                const input = document.getElementById(`adj-${ing.ingredient_id}`);
+                input.value = simulatorData.originalAmounts[ing.ingredient_id];
+            });
+            document.getElementById('simulation-results').style.display = 'none';
+            showToast('Reset to original amounts', 'info');
+        }
+
+        // Initialize simulator dropdowns when tab is shown
+        document.querySelector('[data-tab="simulator"]').addEventListener('click', populateSimulatorDropdowns);
     </script>
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

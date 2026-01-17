@@ -317,3 +317,33 @@ class DailySummary(BaseModel):
     remaining_kcal: float
     meals_logged: int
     on_track: bool
+
+
+# Simulation schemas
+class IngredientAdjustment(BaseModel):
+    ingredient_id: int
+    new_grams: float = Field(..., ge=0)
+
+
+class SimulateRequest(BaseModel):
+    dog_id: int
+    recipe_id: int
+    ingredient_adjustments: list[IngredientAdjustment]
+
+
+class NutrientStatusResponse(BaseModel):
+    nutrient: str
+    amount: float
+    percent_of_min: float
+    percent_of_max: Optional[float] = None
+    status: str  # "excellent", "good", "caution", "bad", "dangerous"
+    color: str  # For UI display
+
+
+class SimulateResponse(BaseModel):
+    before: NutrientTotalsResponse
+    after: NutrientTotalsResponse
+    nutrient_status: list[NutrientStatusResponse]
+    overall_status: str  # "excellent", "good", "caution", "bad", "dangerous"
+    warnings: list[str]
+    recommendations: list[str]

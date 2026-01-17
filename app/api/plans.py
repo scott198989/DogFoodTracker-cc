@@ -23,6 +23,9 @@ from app.schemas.schemas import (
     NutrientTotalsResponse,
     AAFCOCheckResponse,
     IngredientPortionResponse,
+    SimulateRequest,
+    SimulateResponse,
+    NutrientStatusResponse,
 )
 
 router = APIRouter(prefix="/plan", tags=["feeding plans"])
@@ -312,4 +315,187 @@ def _plan_to_response(plan: FeedingPlan) -> FeedingPlanResponse:
         treats_kcal=plan.treats_kcal,
         homemade_kcal=plan.homemade_kcal,
         target_kcal=plan.target_kcal,
+    )
+
+
+@router.post("/simulate", response_model=SimulateResponse)
+def simulate_nutrition(
+    request: SimulateRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Simulate nutritional impact of ingredient changes without saving.
+
+    Allows users to see what happens if they adjust ingredient amounts
+    in a recipe before committing changes.
+    """
+    # Get dog
+    dog = db.query(Dog).filter(Dog.id == request.dog_id).first()
+    if not dog:
+        raise HTTPException(status_code=404, detail="Dog not found")
+
+    # Get recipe with ingredients
+    recipe = db.query(Recipe).filter(Recipe.id == request.recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+
+    # Build adjustment map
+    adjustment_map = {adj.ingredient_id: adj.new_grams for adj in request.ingredient_adjustments}
+
+    # Calculate BEFORE nutrients (original recipe)
+    before_ingredients = []
+    for ri in recipe.ingredients:
+        ing = ri.ingredient
+        before_ingredients.append({
+            "grams": ri.grams,
+            "kcal_per_100g": ing.kcal_per_100g,
+            "protein_g_per_100g": ing.protein_g_per_100g,
+            "fat_g_per_100g": ing.fat_g_per_100g,
+            "carbs_g_per_100g": ing.carbs_g_per_100g,
+            "calcium_mg_per_100g": ing.calcium_mg_per_100g,
+            "phosphorus_mg_per_100g": ing.phosphorus_mg_per_100g,
+            "iron_mg_per_100g": ing.iron_mg_per_100g,
+            "zinc_mg_per_100g": ing.zinc_mg_per_100g,
+            "vitamin_a_mcg_per_100g": ing.vitamin_a_mcg_per_100g,
+            "vitamin_d_mcg_per_100g": ing.vitamin_d_mcg_per_100g,
+            "vitamin_e_mg_per_100g": ing.vitamin_e_mg_per_100g,
+        })
+
+    before_totals = aggregate_nutrients(before_ingredients)
+
+    # Calculate AFTER nutrients (with adjustments)
+    after_ingredients = []
+    for ri in recipe.ingredients:
+        ing = ri.ingredient
+        new_grams = adjustment_map.get(ing.id, ri.grams)
+        after_ingredients.append({
+            "grams": new_grams,
+            "kcal_per_100g": ing.kcal_per_100g,
+            "protein_g_per_100g": ing.protein_g_per_100g,
+            "fat_g_per_100g": ing.fat_g_per_100g,
+            "carbs_g_per_100g": ing.carbs_g_per_100g,
+            "calcium_mg_per_100g": ing.calcium_mg_per_100g,
+            "phosphorus_mg_per_100g": ing.phosphorus_mg_per_100g,
+            "iron_mg_per_100g": ing.iron_mg_per_100g,
+            "zinc_mg_per_100g": ing.zinc_mg_per_100g,
+            "vitamin_a_mcg_per_100g": ing.vitamin_a_mcg_per_100g,
+            "vitamin_d_mcg_per_100g": ing.vitamin_d_mcg_per_100g,
+            "vitamin_e_mg_per_100g": ing.vitamin_e_mg_per_100g,
+        })
+
+    after_totals = aggregate_nutrients(after_ingredients)
+
+    # Get AAFCO requirements
+    aafco_requirements = db.query(AAFCORequirement).all()
+
+    # Calculate nutrient status
+    nutrient_status = []
+    warnings = []
+    recommendations = []
+    overall_worst = "excellent"
+
+    status_order = {"excellent": 0, "good": 1, "caution": 2, "bad": 3, "dangerous": 4}
+    color_map = {
+        "excellent": "#10b981",
+        "good": "#22c55e",
+        "caution": "#eab308",
+        "bad": "#f97316",
+        "dangerous": "#ef4444"
+    }
+
+    if after_totals.kcal > 0:
+        nutrient_mapping = {
+            "protein": (after_totals.protein_g * 1000, "Protein"),
+            "fat": (after_totals.fat_g * 1000, "Fat"),
+            "calcium": (after_totals.calcium_mg, "Calcium"),
+            "phosphorus": (after_totals.phosphorus_mg, "Phosphorus"),
+            "iron": (after_totals.iron_mg, "Iron"),
+            "zinc": (after_totals.zinc_mg, "Zinc"),
+            "vitamin_a": (after_totals.vitamin_a_mcg, "Vitamin A"),
+            "vitamin_d": (after_totals.vitamin_d_mcg, "Vitamin D"),
+            "vitamin_e": (after_totals.vitamin_e_mg, "Vitamin E"),
+        }
+
+        for req in aafco_requirements:
+            if req.nutrient not in nutrient_mapping:
+                continue
+
+            amount, display_name = nutrient_mapping[req.nutrient]
+            per_1000 = nutrient_per_1000kcal(amount, after_totals.kcal)
+
+            # Calculate percent of minimum
+            pct_of_min = (per_1000 / req.min_per_1000kcal * 100) if req.min_per_1000kcal > 0 else 100
+            pct_of_max = None
+            if req.max_per_1000kcal:
+                pct_of_max = (per_1000 / req.max_per_1000kcal * 100)
+
+            # Determine status
+            if per_1000 < req.min_per_1000kcal * 0.5:
+                status = "bad"
+                warnings.append(f"{display_name} is severely deficient ({pct_of_min:.0f}% of minimum)")
+            elif per_1000 < req.min_per_1000kcal:
+                status = "caution"
+                warnings.append(f"{display_name} is below minimum ({pct_of_min:.0f}% of minimum)")
+            elif req.max_per_1000kcal and per_1000 > req.max_per_1000kcal:
+                status = "dangerous"
+                warnings.append(f"{display_name} EXCEEDS SAFE LIMIT ({pct_of_max:.0f}% of maximum)")
+            elif req.max_per_1000kcal and per_1000 > req.max_per_1000kcal * 0.8:
+                status = "caution"
+                warnings.append(f"{display_name} is approaching maximum limit")
+            elif pct_of_min >= 100 and pct_of_min <= 150:
+                status = "excellent"
+            else:
+                status = "good"
+
+            # Track worst status
+            if status_order[status] > status_order[overall_worst]:
+                overall_worst = status
+
+            nutrient_status.append(NutrientStatusResponse(
+                nutrient=display_name,
+                amount=round(per_1000, 2),
+                percent_of_min=round(pct_of_min, 1),
+                percent_of_max=round(pct_of_max, 1) if pct_of_max else None,
+                status=status,
+                color=color_map[status]
+            ))
+
+    # Generate recommendations
+    for ns in nutrient_status:
+        if ns.status == "bad":
+            recommendations.append(f"Add more foods rich in {ns.nutrient.lower()}")
+        elif ns.status == "dangerous":
+            recommendations.append(f"REDUCE foods high in {ns.nutrient.lower()} immediately")
+
+    return SimulateResponse(
+        before=NutrientTotalsResponse(
+            kcal=round(before_totals.kcal, 2),
+            protein_g=round(before_totals.protein_g, 2),
+            fat_g=round(before_totals.fat_g, 2),
+            carbs_g=round(before_totals.carbs_g, 2),
+            calcium_mg=round(before_totals.calcium_mg, 2),
+            phosphorus_mg=round(before_totals.phosphorus_mg, 2),
+            iron_mg=round(before_totals.iron_mg, 2),
+            zinc_mg=round(before_totals.zinc_mg, 2),
+            vitamin_a_mcg=round(before_totals.vitamin_a_mcg, 2),
+            vitamin_d_mcg=round(before_totals.vitamin_d_mcg, 2),
+            vitamin_e_mg=round(before_totals.vitamin_e_mg, 2),
+        ),
+        after=NutrientTotalsResponse(
+            kcal=round(after_totals.kcal, 2),
+            protein_g=round(after_totals.protein_g, 2),
+            fat_g=round(after_totals.fat_g, 2),
+            carbs_g=round(after_totals.carbs_g, 2),
+            calcium_mg=round(after_totals.calcium_mg, 2),
+            phosphorus_mg=round(after_totals.phosphorus_mg, 2),
+            iron_mg=round(after_totals.iron_mg, 2),
+            zinc_mg=round(after_totals.zinc_mg, 2),
+            vitamin_a_mcg=round(after_totals.vitamin_a_mcg, 2),
+            vitamin_d_mcg=round(after_totals.vitamin_d_mcg, 2),
+            vitamin_e_mg=round(after_totals.vitamin_e_mg, 2),
+        ),
+        nutrient_status=nutrient_status,
+        overall_status=overall_worst,
+        warnings=warnings,
+        recommendations=recommendations,
     )
