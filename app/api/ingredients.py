@@ -25,9 +25,14 @@ async def search_ingredients(
 
     Returns matching foods that can be imported using /ingredient/from-usda.
     """
+    import httpx
     try:
         results = await usda_service.search_foods(q)
         return usda_service.format_search_results(results)
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="USDA API timeout - try again")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=502, detail=f"USDA API returned {e.response.status_code}")
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"USDA API error: {str(e)}")
 

@@ -48,12 +48,12 @@ class USDAService:
         params = {
             "query": query,
             "pageSize": page_size,
-            "dataType": ["Foundation", "SR Legacy"],
+            "dataType": "Foundation,SR Legacy",  # Comma-separated string, not list
         }
         if self.api_key:
             params["api_key"] = self.api_key
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
             return response.json()
@@ -73,7 +73,7 @@ class USDAService:
         if self.api_key:
             params["api_key"] = self.api_key
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(url, params=params)
             response.raise_for_status()
             return response.json()
