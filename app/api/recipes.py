@@ -60,13 +60,13 @@ def add_ingredient_to_recipe(
     ).first()
 
     if existing:
-        # Update grams instead of adding duplicate
-        existing.grams = data.grams
+        # Update percentage instead of adding duplicate
+        existing.percentage = data.percentage
     else:
         recipe_ingredient = RecipeIngredient(
             recipe_id=recipe_id,
             ingredient_id=data.ingredient_id,
-            grams=data.grams,
+            percentage=data.percentage,
         )
         db.add(recipe_ingredient)
 
@@ -150,7 +150,8 @@ def _recipe_to_response(recipe: Recipe) -> RecipeResponse:
             id=ri.id,
             ingredient_id=ri.ingredient_id,
             ingredient_name=ri.ingredient.name,
-            grams=ri.grams,
+            percentage=ri.percentage,
+            kcal_per_100g=ri.ingredient.kcal_per_100g,
         ))
     return RecipeResponse(
         id=recipe.id,

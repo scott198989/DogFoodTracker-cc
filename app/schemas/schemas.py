@@ -158,14 +158,15 @@ class RecipeUpdate(BaseModel):
 
 class RecipeIngredientAdd(BaseModel):
     ingredient_id: int
-    grams: float = Field(..., gt=0)
+    percentage: float = Field(..., gt=0, le=100, description="Percentage of recipe by weight (0-100)")
 
 
 class RecipeIngredientResponse(BaseModel):
     id: int
     ingredient_id: int
     ingredient_name: str
-    grams: float
+    percentage: float
+    kcal_per_100g: float = 0  # Include for UI display
 
     class Config:
         from_attributes = True
@@ -322,7 +323,7 @@ class DailySummary(BaseModel):
 # Simulation schemas
 class IngredientAdjustment(BaseModel):
     ingredient_id: int
-    new_grams: float = Field(..., ge=0)
+    new_percentage: float = Field(..., ge=0, le=100, description="New percentage for this ingredient")
 
 
 class SimulateRequest(BaseModel):

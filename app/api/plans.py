@@ -59,6 +59,14 @@ def compute_feeding_plan(
     if not recipe.ingredients:
         raise HTTPException(status_code=400, detail="Recipe has no ingredients")
 
+    # Validate percentages sum to ~100%
+    total_percentage = sum(ri.percentage for ri in recipe.ingredients)
+    if total_percentage < 99 or total_percentage > 101:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Recipe percentages must sum to 100% (currently {total_percentage:.1f}%)"
+        )
+
     # Calculate target calories - use custom target if set, otherwise calculate MER
     factor = get_activity_factor(
         neutered=dog.neutered,
@@ -77,18 +85,14 @@ def compute_feeding_plan(
         request.treats_kcal
     )
 
-    # Calculate recipe total calories
-    recipe_total_kcal = 0
+    # Collect ingredient data with percentages
     ingredient_data = []
     for ri in recipe.ingredients:
         ing = ri.ingredient
-        kcal = grams_to_kcal(ri.grams, ing.kcal_per_100g)
-        recipe_total_kcal += kcal
         ingredient_data.append({
             "ingredient_id": ing.id,
             "ingredient_name": ing.name,
-            "base_grams": ri.grams,
-            "base_kcal": kcal,
+            "percentage": ri.percentage,
             "kcal_per_100g": ing.kcal_per_100g,
             "protein_g_per_100g": ing.protein_g_per_100g,
             "fat_g_per_100g": ing.fat_g_per_100g,
@@ -102,28 +106,62 @@ def compute_feeding_plan(
             "vitamin_e_mg_per_100g": ing.vitamin_e_mg_per_100g,
         })
 
-    # Scale recipe to match homemade kcal needs
-    if recipe_total_kcal > 0:
-        scale_factor = homemade_kcal / recipe_total_kcal
+    # Calculate weighted average kcal per 100g of the mixed recipe
+    # Formula: sum(percentage/100 * kcal_per_100g) for all ingredients
+    weighted_avg_kcal_per_100g = sum(
+        (ing["percentage"] / 100) * ing["kcal_per_100g"]
+        for ing in ingredient_data
+    )
+
+    # Calculate total grams needed per day to hit calorie target
+    # Formula: homemade_kcal / (weighted_avg_kcal_per_100g / 100)
+    if weighted_avg_kcal_per_100g > 0:
+        total_grams_per_day = (homemade_kcal / weighted_avg_kcal_per_100g) * 100
     else:
-        scale_factor = 0
+        total_grams_per_day = 0
 
     # Calculate batch totals
     num_days = request.num_days
     total_meals = recipe.meals_per_day * num_days
     total_batch_kcal = homemade_kcal * num_days
+    total_batch_grams = total_grams_per_day * num_days
 
-    # Calculate scaled portions
+    # Calculate per-ingredient portions based on percentages
     ingredient_portions = []
     scaled_ingredients = []
-    total_batch_grams = 0
+    warnings = []
+
+    # Safety limits for specific ingredients (grams per day)
+    safety_limits = {
+        "turmeric": 2,  # max 1-2g per day
+        "liver": None,  # 5% of diet - calculated dynamically
+        "coconut oil": None,  # 1 tbsp per 30 lbs - calculated based on dog weight
+    }
 
     for ing_data in ingredient_data:
-        grams_per_day = ing_data["base_grams"] * scale_factor
+        # Calculate grams based on percentage
+        grams_per_day = total_grams_per_day * (ing_data["percentage"] / 100)
         grams_per_meal = grams_per_day / recipe.meals_per_day
-        kcal_per_day = ing_data["base_kcal"] * scale_factor
+        kcal_per_day = grams_to_kcal(grams_per_day, ing_data["kcal_per_100g"])
         total_grams_batch = grams_per_day * num_days
-        total_batch_grams += total_grams_batch
+
+        # Check safety limits
+        ing_name_lower = ing_data["ingredient_name"].lower()
+
+        # Turmeric limit
+        if "turmeric" in ing_name_lower and grams_per_day > 2:
+            warnings.append(f"⚠️ Turmeric exceeds safe limit: {grams_per_day:.1f}g/day (max 2g recommended)")
+
+        # Liver limit (5% of diet)
+        if "liver" in ing_name_lower and ing_data["percentage"] > 5:
+            warnings.append(f"⚠️ Liver exceeds 5% of diet: {ing_data['percentage']:.1f}% (max 5% recommended)")
+
+        # Coconut oil limit (1 tbsp = ~14g per 30 lbs body weight)
+        if "coconut" in ing_name_lower and "oil" in ing_name_lower:
+            dog_weight_lbs = dog.weight_kg * 2.205
+            max_coconut_g = (dog_weight_lbs / 30) * 14
+            if grams_per_day > max_coconut_g:
+                warnings.append(f"⚠️ Coconut oil exceeds safe limit: {grams_per_day:.1f}g/day (max {max_coconut_g:.0f}g for {dog_weight_lbs:.0f} lb dog)")
 
         ingredient_portions.append(IngredientPortionResponse(
             ingredient_id=ing_data["ingredient_id"],
@@ -172,7 +210,6 @@ def compute_feeding_plan(
 
     # Check AAFCO compliance
     aafco_checks = []
-    warnings = []
     aafco_requirements = db.query(AAFCORequirement).all()
 
     if totals.kcal > 0:
@@ -339,15 +376,20 @@ def simulate_nutrition(
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
-    # Build adjustment map
-    adjustment_map = {adj.ingredient_id: adj.new_grams for adj in request.ingredient_adjustments}
+    # Build adjustment map (percentage adjustments)
+    adjustment_map = {adj.ingredient_id: adj.new_percentage for adj in request.ingredient_adjustments}
 
-    # Calculate BEFORE nutrients (original recipe)
+    # Use 1000g as reference for nutrient calculations (makes percentages = grams × 10)
+    reference_grams = 1000
+
+    # Calculate BEFORE nutrients (original recipe percentages)
     before_ingredients = []
     for ri in recipe.ingredients:
         ing = ri.ingredient
+        # Convert percentage to grams using reference
+        grams = (ri.percentage / 100) * reference_grams
         before_ingredients.append({
-            "grams": ri.grams,
+            "grams": grams,
             "kcal_per_100g": ing.kcal_per_100g,
             "protein_g_per_100g": ing.protein_g_per_100g,
             "fat_g_per_100g": ing.fat_g_per_100g,
@@ -363,11 +405,12 @@ def simulate_nutrition(
 
     before_totals = aggregate_nutrients(before_ingredients)
 
-    # Calculate AFTER nutrients (with adjustments)
+    # Calculate AFTER nutrients (with percentage adjustments)
     after_ingredients = []
     for ri in recipe.ingredients:
         ing = ri.ingredient
-        new_grams = adjustment_map.get(ing.id, ri.grams)
+        new_percentage = adjustment_map.get(ing.id, ri.percentage)
+        new_grams = (new_percentage / 100) * reference_grams
         after_ingredients.append({
             "grams": new_grams,
             "kcal_per_100g": ing.kcal_per_100g,

@@ -90,7 +90,7 @@ class RecipeIngredient(Base):
     id = Column(Integer, primary_key=True, index=True)
     recipe_id = Column(Integer, ForeignKey("recipes.id"), nullable=False)
     ingredient_id = Column(Integer, ForeignKey("ingredients.id"), nullable=False)
-    grams = Column(Float, nullable=False)
+    percentage = Column(Float, nullable=False)  # Percentage of recipe by weight (0-100)
 
     recipe = relationship("Recipe", back_populates="ingredients")
     ingredient = relationship("Ingredient", back_populates="recipe_ingredients")
