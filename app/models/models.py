@@ -1,7 +1,9 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, Enum, ForeignKey, DateTime, Text
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
 import enum
+import uuid
 
 from app.core.database import Base
 
@@ -51,6 +53,7 @@ class Dog(Base):
     __tablename__ = "dogs"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=True, index=True)  # Supabase auth.users UUID
     name = Column(String, nullable=False)
     breed = Column(String, nullable=True)
     age_years = Column(Float, nullable=False)
@@ -73,6 +76,7 @@ class Ingredient(Base):
     __tablename__ = "ingredients"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=True, index=True)  # Null for shared USDA ingredients
     name = Column(String, nullable=False, index=True)
     source_type = Column(Enum(SourceType), nullable=False)
     source_id = Column(String, nullable=True)
@@ -109,6 +113,7 @@ class Recipe(Base):
     __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String, nullable=True, index=True)  # Supabase auth.users UUID
     name = Column(String, nullable=False)
     meals_per_day = Column(Integer, default=2)
 

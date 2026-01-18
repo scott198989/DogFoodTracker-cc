@@ -1,9 +1,11 @@
 """Dog API endpoints."""
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth import AuthUser, optional_auth
 from app.core.calculations import calculate_rer, calculate_mer, get_activity_factor
 from app.models.models import Dog, WeightLog
 from app.schemas.schemas import DogCreate, DogUpdate, DogResponse, DogWithCalculations
@@ -25,9 +27,14 @@ def get_weight_status(current_kg: float, target_kg: float | None) -> str:
 
 
 @router.post("", response_model=DogResponse, status_code=201)
-def create_dog(dog: DogCreate, db: Session = Depends(get_db)):
+def create_dog(
+    dog: DogCreate,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Create a new dog profile."""
     db_dog = Dog(
+        user_id=user.id if user else None,
         name=dog.name,
         breed=dog.breed,
         age_years=dog.age_years,
@@ -57,9 +64,17 @@ def create_dog(dog: DogCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{dog_id}", response_model=DogWithCalculations)
-def get_dog(dog_id: int, db: Session = Depends(get_db)):
+def get_dog(
+    dog_id: int,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Get a dog profile with calculated RER and MER."""
-    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    query = db.query(Dog).filter(Dog.id == dog_id)
+    # Filter by user if authenticated, or allow access to unowned dogs
+    if user:
+        query = query.filter((Dog.user_id == user.id) | (Dog.user_id.is_(None)))
+    dog = query.first()
     if not dog:
         raise HTTPException(status_code=404, detail="Dog not found")
 
@@ -101,16 +116,34 @@ def get_dog(dog_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("", response_model=list[DogResponse])
-def list_dogs(db: Session = Depends(get_db)):
-    """List all dogs."""
-    dogs = db.query(Dog).all()
+def list_dogs(
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
+    """List all dogs for the current user."""
+    query = db.query(Dog)
+    if user:
+        # Show user's dogs and any unassigned dogs (legacy/local data)
+        query = query.filter((Dog.user_id == user.id) | (Dog.user_id.is_(None)))
+    else:
+        # No auth: only show unassigned dogs (local mode)
+        query = query.filter(Dog.user_id.is_(None))
+    dogs = query.all()
     return dogs
 
 
 @router.put("/{dog_id}", response_model=DogResponse)
-def update_dog(dog_id: int, dog_update: DogUpdate, db: Session = Depends(get_db)):
+def update_dog(
+    dog_id: int,
+    dog_update: DogUpdate,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Update a dog profile."""
-    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    query = db.query(Dog).filter(Dog.id == dog_id)
+    if user:
+        query = query.filter((Dog.user_id == user.id) | (Dog.user_id.is_(None)))
+    dog = query.first()
     if not dog:
         raise HTTPException(status_code=404, detail="Dog not found")
 
@@ -141,9 +174,16 @@ def update_dog(dog_id: int, dog_update: DogUpdate, db: Session = Depends(get_db)
 
 
 @router.delete("/{dog_id}", status_code=204)
-def delete_dog(dog_id: int, db: Session = Depends(get_db)):
+def delete_dog(
+    dog_id: int,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Delete a dog profile."""
-    dog = db.query(Dog).filter(Dog.id == dog_id).first()
+    query = db.query(Dog).filter(Dog.id == dog_id)
+    if user:
+        query = query.filter((Dog.user_id == user.id) | (Dog.user_id.is_(None)))
+    dog = query.first()
     if not dog:
         raise HTTPException(status_code=404, detail="Dog not found")
 

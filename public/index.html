@@ -1985,8 +1985,26 @@
         <div class="container">
             <!-- Header -->
             <header>
-                <div class="logo">
-                    <img src="images/Logo.png" alt="Fresh Pup" class="app-logo">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+                    <div class="logo">
+                        <img src="images/Logo.png" alt="Fresh Pup" class="app-logo">
+                    </div>
+                    <!-- Auth Button -->
+                    <div id="auth-container">
+                        <button id="auth-btn" class="btn btn-secondary" onclick="showAuthModal()" style="display: flex; align-items: center; gap: 8px;">
+                            <span>👤</span> <span id="auth-btn-text">Sign In</span>
+                        </button>
+                        <div id="user-menu" style="display: none; position: relative;">
+                            <button class="btn btn-secondary" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 8px;">
+                                <span>👤</span> <span id="user-email-display">User</span> <span>▼</span>
+                            </button>
+                            <div id="user-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--bg-card); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000;">
+                                <button onclick="signOut()" style="width: 100%; padding: 12px 16px; border: none; background: none; text-align: left; cursor: pointer; color: var(--text-primary); font-size: 0.95rem;">
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <p>Precision nutrition for your best friend</p>
                 <div class="unit-toggle" style="margin-top: 16px;">
@@ -1996,13 +2014,14 @@
                 </div>
             </header>
 
-            <!-- Navigation - 4 Main Tabs -->
+            <!-- Navigation - 5 Main Tabs -->
             <div class="nav-container">
                 <nav class="nav-tabs glass" id="nav-tabs">
                     <button class="nav-tab active" data-tab="home"><span>🏠</span> Home</button>
                     <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
                     <button class="nav-tab" data-tab="history"><span>📊</span> History <span class="pro-badge-small">PRO</span></button>
                     <button class="nav-tab" data-tab="settings"><span>⚙️</span> Settings</button>
+                    <button class="nav-tab" data-tab="about"><span>🐕</span> About</button>
                 </nav>
             </div>
 
@@ -3536,11 +3555,46 @@
                                 <h2 class="about-heading" style="font-size: 2rem;">Meet Gunner</h2>
                                 <div class="about-text">
                                     <p>I rescued Gunner in 2021. From the moment I met him, I knew this was not just a dog. <span class="emphasis">This was family.</span></p>
-                                    <p>This app is our story turned into a tool. It is not a substitute for veterinary advice, but if you are trying to do better and tired of guessing, this is what helped me stay on track.</p>
+
+                                    <p>Like a lot of people who love their dog, I told myself I wanted to give him "the best." But between work, school, and life, "the best" slowly turned into convenience. Table scraps. Extra treats. A little too much, a little too often.</p>
+
+                                    <p class="emotional">And one day I realized he was not just getting older.</p>
+
+                                    <p class="emotional">He was getting heavier. Slower.</p>
+
+                                    <p><span class="emphasis">That one hurt.</span> Because that was not on time. That was on me.</p>
+
+                                    <p>I am not a veterinarian. I am just a guy who did not want to keep guessing and hoping I was doing the right thing. So I started learning. I researched. I tried things. I messed up. I adjusted. I tracked everything. Ingredients. Portions. What worked. What did not.</p>
+
+                                    <p>And I will be honest. It was intimidating at first. There is a lot of noise out there. A lot of opinions. A lot of ways to feel like you are doing it wrong.</p>
+
+                                    <p>What I needed was not perfection. <span class="emphasis">I needed consistency.</span> I needed a simple way to stay intentional instead of winging it.</p>
+
+                                    <p>So I built this app for myself.</p>
+
+                                    <p>Something to take the guesswork out of meal planning. Something to keep me honest. Something that turns good intentions into actual habits.</p>
+
+                                    <p><span class="emphasis">And it worked.</span></p>
+
+                                    <p>Gunner is healthier. He is more energetic. He is excited for every meal in a way he never was before. More importantly, I know what is in his bowl and why.</p>
+
+                                    <p>This app is our story turned into a tool.</p>
+
+                                    <p>It is not a substitute for veterinary advice. You should always work with your vet when changing your dog's diet. But if you are like I was, trying to do better and tired of guessing, this is what helped me stay on track.</p>
+
                                     <div class="about-quote" style="margin: 20px 0;">
                                         Your dog is not just a dog. They are family.
                                     </div>
+
+                                    <p class="emotional">And one day, sooner than you want, you are going to look back and wish you had one more year. One more month. One more walk.</p>
+
+                                    <p>The least we can do is make sure the time they have is healthy, intentional, and full of love.</p>
+
+                                    <div class="about-cta" style="margin-top: 20px;">
+                                        <p>If you have ever looked at your dog and thought, "I could be doing better," this is where you start.</p>
+                                    </div>
                                 </div>
+                                <img src="images/gunner-2.webp" class="about-closing-img" alt="Gunner" style="margin-top: 24px; border-radius: 16px; max-width: 100%;">
                             </div>
                         </div>
                     </div>
@@ -3855,8 +3909,226 @@
         </div>
     </div>
 
+    <!-- Auth Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal" style="max-width: 400px;">
+            <h3 id="auth-modal-title">Sign In</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;" id="auth-modal-subtitle">
+                Sign in to sync your data across devices
+            </p>
+
+            <!-- Auth Form -->
+            <form id="auth-form" onsubmit="handleAuth(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="auth-email" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="auth-password" required placeholder="••••••••" minlength="6">
+                </div>
+                <div id="auth-error" style="display: none; color: var(--danger); margin-bottom: 16px; padding: 12px; background: rgba(217, 137, 108, 0.1); border-radius: 8px;"></div>
+                <div class="modal-actions" style="flex-direction: column; gap: 12px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="auth-submit-btn">
+                        Sign In
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="closeAuthModal()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <!-- Toggle between Sign In / Sign Up -->
+            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-divider);">
+                <span id="auth-toggle-text" style="color: var(--text-secondary);">Don't have an account?</span>
+                <button type="button" onclick="toggleAuthMode()" style="color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600; margin-left: 4px;" id="auth-toggle-btn">
+                    Sign Up
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
+
+        // ==================== Supabase Auth Configuration ====================
+        // TODO: Replace with your Supabase project credentials
+        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || '';
+        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+
+        // Initialize Supabase client (if configured)
+        let supabase = null;
+        let currentUser = null;
+
+        if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            // Check for existing session on load
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    currentUser = session.user;
+                    updateAuthUI(session.user);
+                }
+            });
+
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange((event, session) => {
+                currentUser = session?.user || null;
+                updateAuthUI(session?.user);
+
+                if (event === 'SIGNED_IN') {
+                    showToast('Signed in successfully!', 'success');
+                    closeAuthModal();
+                    loadAllData(); // Reload data for signed-in user
+                } else if (event === 'SIGNED_OUT') {
+                    showToast('Signed out', 'info');
+                    loadAllData(); // Reload data for anonymous user
+                }
+            });
+        }
+
+        // Auth UI State
+        let authMode = 'signin'; // 'signin' or 'signup'
+
+        function updateAuthUI(user) {
+            const authBtn = document.getElementById('auth-btn');
+            const userMenu = document.getElementById('user-menu');
+            const userEmailDisplay = document.getElementById('user-email-display');
+
+            if (user) {
+                authBtn.style.display = 'none';
+                userMenu.style.display = 'block';
+                userEmailDisplay.textContent = user.email?.split('@')[0] || 'User';
+            } else {
+                authBtn.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+        }
+
+        function showAuthModal() {
+            if (!supabase) {
+                showToast('Auth not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in localStorage for testing.', 'error');
+                return;
+            }
+            document.getElementById('auth-modal').classList.add('active');
+            document.getElementById('auth-email').focus();
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-modal').classList.remove('active');
+            document.getElementById('auth-form').reset();
+            document.getElementById('auth-error').style.display = 'none';
+        }
+
+        function toggleAuthMode() {
+            authMode = authMode === 'signin' ? 'signup' : 'signin';
+
+            const title = document.getElementById('auth-modal-title');
+            const subtitle = document.getElementById('auth-modal-subtitle');
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const toggleText = document.getElementById('auth-toggle-text');
+            const toggleBtn = document.getElementById('auth-toggle-btn');
+
+            if (authMode === 'signup') {
+                title.textContent = 'Create Account';
+                subtitle.textContent = 'Sign up to save your data to the cloud';
+                submitBtn.textContent = 'Create Account';
+                toggleText.textContent = 'Already have an account?';
+                toggleBtn.textContent = 'Sign In';
+            } else {
+                title.textContent = 'Sign In';
+                subtitle.textContent = 'Sign in to sync your data across devices';
+                submitBtn.textContent = 'Sign In';
+                toggleText.textContent = "Don't have an account?";
+                toggleBtn.textContent = 'Sign Up';
+            }
+
+            document.getElementById('auth-error').style.display = 'none';
+        }
+
+        async function handleAuth(event) {
+            event.preventDefault();
+
+            if (!supabase) {
+                showToast('Auth not configured', 'error');
+                return;
+            }
+
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+            const errorDiv = document.getElementById('auth-error');
+            const submitBtn = document.getElementById('auth-submit-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = authMode === 'signin' ? 'Signing in...' : 'Creating account...';
+
+            try {
+                let result;
+                if (authMode === 'signin') {
+                    result = await supabase.auth.signInWithPassword({ email, password });
+                } else {
+                    result = await supabase.auth.signUp({ email, password });
+                }
+
+                if (result.error) {
+                    errorDiv.textContent = result.error.message;
+                    errorDiv.style.display = 'block';
+                } else if (authMode === 'signup' && !result.data.session) {
+                    // Email confirmation required
+                    errorDiv.textContent = 'Check your email for a confirmation link!';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.color = 'var(--success)';
+                    errorDiv.style.background = 'rgba(123, 174, 142, 0.1)';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = authMode === 'signin' ? 'Sign In' : 'Create Account';
+            }
+        }
+
+        async function signOut() {
+            if (!supabase) return;
+            await supabase.auth.signOut();
+            document.getElementById('user-dropdown').style.display = 'none';
+        }
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const userMenu = document.getElementById('user-menu');
+            if (userMenu && !userMenu.contains(e.target)) {
+                document.getElementById('user-dropdown').style.display = 'none';
+            }
+        });
+
+        // Get auth token for API requests
+        async function getAuthToken() {
+            if (!supabase || !currentUser) return null;
+            const { data: { session } } = await supabase.auth.getSession();
+            return session?.access_token || null;
+        }
+
+        // Helper to make authenticated API requests
+        async function fetchWithAuth(url, options = {}) {
+            const token = await getAuthToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                ...options.headers,
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            return fetch(url, { ...options, headers });
+        }
 
         // Weight unit state
         let currentWeightUnit = localStorage.getItem('weightUnit') || 'kg';
@@ -3987,7 +4259,7 @@
         async function updateOnboardingDisplay() {
             if (onboardingDogId) {
                 try {
-                    const res = await fetch(`${API_BASE}/dog/${onboardingDogId}`);
+                    const res = await fetchWithAuth(`${API_BASE}/dog/${onboardingDogId}`);
                     const dog = await res.json();
                     document.getElementById('onboard-dog-display').textContent = dog.name;
                     document.getElementById('onboard-target-kcal').textContent = `${Math.round(dog.mer || 0)} kcal`;
@@ -4024,7 +4296,7 @@
                     };
 
                     try {
-                        const res = await fetch(`${API_BASE}/dog`, {
+                        const res = await fetchWithAuth(`${API_BASE}/dog`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(dogData)
@@ -4055,7 +4327,7 @@
                     };
 
                     try {
-                        const res = await fetch(`${API_BASE}/recipe`, {
+                        const res = await fetchWithAuth(`${API_BASE}/recipe`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(recipeData)
@@ -4195,7 +4467,7 @@
         async function loadHomeDashboard() {
             try {
                 // Fetch all dogs
-                const res = await fetch(`${API_BASE}/dog`);
+                const res = await fetchWithAuth(`${API_BASE}/dog`);
                 allDogs = await res.json();
                 updateTierUI(); // Update UI based on current limits
 
@@ -4239,7 +4511,7 @@
         async function loadHomeDogData(dogId) {
             try {
                 // Get dog details
-                const dogRes = await fetch(`${API_BASE}/dog/${dogId}`);
+                const dogRes = await fetchWithAuth(`${API_BASE}/dog/${dogId}`);
                 const dog = await dogRes.json();
 
                 // Update profile card
@@ -4248,7 +4520,7 @@
                     `${displayWeight(dog.weight_kg)} • ${dog.age_years} years • ${dog.activity_level} activity`;
 
                 // Get today's summary
-                const summaryRes = await fetch(`${API_BASE}/log/feeding/dog/${dogId}/summary`);
+                const summaryRes = await fetchWithAuth(`${API_BASE}/log/feeding/dog/${dogId}/summary`);
                 const summary = await summaryRes.json();
 
                 const targetKcal = dog.target_daily_kcal || dog.mer || 0;
@@ -4295,7 +4567,7 @@
 
         async function loadHomeMeals(dogId) {
             try {
-                const res = await fetch(`${API_BASE}/log/feeding/dog/${dogId}/today`);
+                const res = await fetchWithAuth(`${API_BASE}/log/feeding/dog/${dogId}/today`);
                 const meals = await res.json();
 
                 const container = document.getElementById('home-meals-list');
@@ -4338,7 +4610,7 @@
         // ===== SETTINGS DOGS =====
         async function loadSettingsDogs() {
             try {
-                const res = await fetch(`${API_BASE}/dog`);
+                const res = await fetchWithAuth(`${API_BASE}/dog`);
                 allDogs = await res.json();
                 updateTierUI(); // Centralized tier UI updates
 
@@ -4392,7 +4664,7 @@
                     };
 
                     try {
-                        const res = await fetch(`${API_BASE}/dog`, {
+                        const res = await fetchWithAuth(`${API_BASE}/dog`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(dogData)
@@ -4532,7 +4804,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/dog`, {
+                const res = await fetchWithAuth(`${API_BASE}/dog`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -4553,7 +4825,7 @@
 
         async function loadDogs() {
             try {
-                const res = await fetch(`${API_BASE}/dog`);
+                const res = await fetchWithAuth(`${API_BASE}/dog`);
                 const dogs = await res.json();
                 const list = document.getElementById('dogs-list');
                 const planSelect = document.getElementById('plan-dog');
@@ -4615,7 +4887,7 @@
         // Edit dog
         async function editDog(dogId) {
             try {
-                const res = await fetch(`${API_BASE}/dog/${dogId}`);
+                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`);
                 const dog = await res.json();
 
                 document.getElementById('edit-dog-id').value = dog.id;
@@ -4660,7 +4932,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/dog/${dogId}`, {
+                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -4687,7 +4959,7 @@
 
         async function deleteDog(dogId) {
             try {
-                const res = await fetch(`${API_BASE}/dog/${dogId}`, { method: 'DELETE' });
+                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`, { method: 'DELETE' });
                 if (res.ok) {
                     closeModal('confirm-delete-modal');
                     loadDogs();
@@ -4710,7 +4982,7 @@
             results.innerHTML = `<div class="loading"><div class="spinner"></div> Searching USDA database...</div>`;
 
             try {
-                const res = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
                 const data = await res.json();
 
                 // Check for API error response
@@ -4741,7 +5013,7 @@
         async function importFromUSDA(fdcId, name) {
             showToast('Importing ingredient...', 'info');
             try {
-                const res = await fetch(`${API_BASE}/ingredient/from-usda`, {
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/from-usda`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ fdc_id: fdcId })
@@ -4791,7 +5063,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/ingredient/manual`, {
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/manual`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -4810,7 +5082,7 @@
 
         async function loadIngredients() {
             try {
-                const res = await fetch(`${API_BASE}/ingredient`);
+                const res = await fetchWithAuth(`${API_BASE}/ingredient`);
                 const ingredients = await res.json();
                 const list = document.getElementById('ingredients-list');
 
@@ -4864,7 +5136,7 @@
         // Edit ingredient
         async function editIngredient(ingredientId) {
             try {
-                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`);
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`);
                 const ing = await res.json();
 
                 document.getElementById('edit-ingredient-id').value = ing.id;
@@ -4894,7 +5166,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`, {
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -4921,7 +5193,7 @@
 
         async function deleteIngredient(ingredientId) {
             try {
-                const res = await fetch(`${API_BASE}/ingredient/${ingredientId}`, { method: 'DELETE' });
+                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`, { method: 'DELETE' });
                 if (res.ok) {
                     closeModal('confirm-delete-modal');
                     loadIngredients();
@@ -4952,7 +5224,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/recipe`, {
+                const res = await fetchWithAuth(`${API_BASE}/recipe`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -4982,7 +5254,7 @@
             // Get current recipe ingredients to pre-check
             let existingIngredients = [];
             try {
-                const recipeRes = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const recipeRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
                 const recipe = await recipeRes.json();
                 existingIngredients = recipe.ingredients || [];
             } catch (err) {
@@ -5174,17 +5446,17 @@
 
             // First, remove all existing ingredients from recipe
             try {
-                const recipeRes = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const recipeRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
                 const recipe = await recipeRes.json();
 
                 // Delete existing ingredients
                 for (const ing of recipe.ingredients || []) {
-                    await fetch(`${API_BASE}/recipe/${recipeId}/ingredient/${ing.id}`, { method: 'DELETE' });
+                    await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient/${ing.id}`, { method: 'DELETE' });
                 }
 
                 // Add all ingredients with auto-calculated percentages
                 for (const ing of ingredientsToAdd) {
-                    await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
+                    await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(ing)
@@ -5201,7 +5473,7 @@
 
         async function loadRecipes() {
             try {
-                const res = await fetch(`${API_BASE}/recipe`);
+                const res = await fetchWithAuth(`${API_BASE}/recipe`);
                 const recipes = await res.json();
                 allRecipes = recipes; // Update global array for tier checking
                 updateTierUI(); // Update UI based on current limits
@@ -5218,7 +5490,7 @@
                 }
 
                 const fullRecipes = await Promise.all(
-                    recipes.map(r => fetch(`${API_BASE}/recipe/${r.id}`).then(res => res.json()))
+                    recipes.map(r => fetchWithAuth(`${API_BASE}/recipe/${r.id}`).then(res => res.json()))
                 );
 
                 list.innerHTML = fullRecipes.map(recipe => `
@@ -5261,7 +5533,7 @@
         // Remove ingredient from recipe
         async function removeIngredientFromRecipe(recipeId, ingredientId) {
             try {
-                const res = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient/${ingredientId}`, { method: 'DELETE' });
+                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient/${ingredientId}`, { method: 'DELETE' });
                 if (res.ok) {
                     loadRecipes();
                     showToast('Ingredient removed from recipe!', 'success');
@@ -5276,7 +5548,7 @@
         // Edit recipe
         async function editRecipe(recipeId) {
             try {
-                const res = await fetch(`${API_BASE}/recipe/${recipeId}`);
+                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
                 const recipe = await res.json();
 
                 document.getElementById('edit-recipe-id').value = recipe.id;
@@ -5300,7 +5572,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/recipe/${recipeId}`, {
+                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -5327,7 +5599,7 @@
 
         async function deleteRecipe(recipeId) {
             try {
-                const res = await fetch(`${API_BASE}/recipe/${recipeId}`, { method: 'DELETE' });
+                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`, { method: 'DELETE' });
                 if (res.ok) {
                     closeModal('confirm-delete-modal');
                     loadRecipes();
@@ -5356,7 +5628,7 @@
             resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div> Calculating optimal feeding plan...</div>`;
 
             try {
-                const res = await fetch(`${API_BASE}/plan/compute`, {
+                const res = await fetchWithAuth(`${API_BASE}/plan/compute`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -5746,7 +6018,7 @@
 
             // Load daily summary
             try {
-                const summaryRes = await fetch(`${API_BASE}/log/summary/today/${dogId}`);
+                const summaryRes = await fetchWithAuth(`${API_BASE}/log/summary/today/${dogId}`);
                 if (summaryRes.ok) {
                     const summary = await summaryRes.json();
                     document.getElementById('daily-summary').style.display = 'block';
@@ -5771,7 +6043,7 @@
 
             // Load today's meals
             try {
-                const mealsRes = await fetch(`${API_BASE}/log/feeding/today/${dogId}`);
+                const mealsRes = await fetchWithAuth(`${API_BASE}/log/feeding/today/${dogId}`);
                 if (mealsRes.ok) {
                     const meals = await mealsRes.json();
                     const mealsList = document.getElementById('todays-meals-list');
@@ -5796,7 +6068,7 @@
 
             // Load weight history
             try {
-                const weightRes = await fetch(`${API_BASE}/log/weight/dog/${dogId}?limit=10`);
+                const weightRes = await fetchWithAuth(`${API_BASE}/log/weight/dog/${dogId}?limit=10`);
                 if (weightRes.ok) {
                     const weights = await weightRes.json();
                     const weightList = document.getElementById('weight-history-list');
@@ -5822,7 +6094,7 @@
 
             // Populate recipe select for logging
             try {
-                const recipesRes = await fetch(`${API_BASE}/recipe`);
+                const recipesRes = await fetchWithAuth(`${API_BASE}/recipe`);
                 if (recipesRes.ok) {
                     const recipes = await recipesRes.json();
                     document.getElementById('log-recipe').innerHTML = '<option value="">No recipe</option>' +
@@ -5852,7 +6124,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/log/feeding`, {
+                const res = await fetchWithAuth(`${API_BASE}/log/feeding`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -5888,7 +6160,7 @@
             };
 
             try {
-                const res = await fetch(`${API_BASE}/log/weight`, {
+                const res = await fetchWithAuth(`${API_BASE}/log/weight`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -5910,7 +6182,7 @@
 
         async function deleteFeedingLog(logId) {
             try {
-                const res = await fetch(`${API_BASE}/log/feeding/${logId}`, { method: 'DELETE' });
+                const res = await fetchWithAuth(`${API_BASE}/log/feeding/${logId}`, { method: 'DELETE' });
                 if (res.ok) {
                     loadTrackingData();
                     showToast('Meal log deleted', 'success');
@@ -5962,7 +6234,7 @@
 
         async function loadRecipesForModal() {
             try {
-                const res = await fetch(`${API_BASE}/recipe`);
+                const res = await fetchWithAuth(`${API_BASE}/recipe`);
                 const recipes = await res.json();
                 const select = document.getElementById('modal-recipe-select');
                 select.innerHTML = recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
@@ -5983,12 +6255,12 @@
             // First search for the ingredient in USDA
             try {
                 showToast('Searching for ingredient...', 'info');
-                const searchRes = await fetch(`${API_BASE}/ingredient/search?q=${encodeURIComponent(selectedIngredientName)}`);
+                const searchRes = await fetchWithAuth(`${API_BASE}/ingredient/search?q=${encodeURIComponent(selectedIngredientName)}`);
                 const searchResults = await searchRes.json();
 
                 if (searchResults.length > 0) {
                     // Import from USDA
-                    const importRes = await fetch(`${API_BASE}/ingredient/from-usda`, {
+                    const importRes = await fetchWithAuth(`${API_BASE}/ingredient/from-usda`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ fdc_id: searchResults[0].fdc_id })
@@ -5997,7 +6269,7 @@
                     if (importRes.ok) {
                         const ingredient = await importRes.json();
                         // Add to recipe
-                        const addRes = await fetch(`${API_BASE}/recipe/${recipeId}/ingredient`, {
+                        const addRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ ingredient_id: ingredient.id, grams: grams })
@@ -6037,8 +6309,8 @@
         async function populateSimulatorDropdowns() {
             try {
                 const [dogsRes, recipesRes] = await Promise.all([
-                    fetch(`${API_BASE}/dog`),
-                    fetch(`${API_BASE}/recipe`)
+                    fetchWithAuth(`${API_BASE}/dog`),
+                    fetchWithAuth(`${API_BASE}/recipe`)
                 ]);
                 const dogs = await dogsRes.json();
                 const recipes = await recipesRes.json();
@@ -6067,8 +6339,8 @@
 
             try {
                 const [dogRes, recipeRes] = await Promise.all([
-                    fetch(`${API_BASE}/dog/${dogId}`),
-                    fetch(`${API_BASE}/recipe/${recipeId}`)
+                    fetchWithAuth(`${API_BASE}/dog/${dogId}`),
+                    fetchWithAuth(`${API_BASE}/recipe/${recipeId}`)
                 ]);
 
                 simulatorData.dog = await dogRes.json();
@@ -6113,7 +6385,7 @@
         async function showCurrentNutrition() {
             // Calculate a simple meal plan to get current nutrition
             try {
-                const res = await fetch(`${API_BASE}/plan/compute`, {
+                const res = await fetchWithAuth(`${API_BASE}/plan/compute`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -6233,7 +6505,7 @@
             }
 
             try {
-                const res = await fetch(`${API_BASE}/plan/simulate`, {
+                const res = await fetchWithAuth(`${API_BASE}/plan/simulate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
@@ -6476,6 +6748,8 @@
     </script>
     <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS Client for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Sticky Disclaimer -->
     <div class="sticky-disclaimer">

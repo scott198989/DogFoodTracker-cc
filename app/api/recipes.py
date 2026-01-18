@@ -1,9 +1,11 @@
 """Recipe API endpoints."""
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.auth import AuthUser, optional_auth
 from app.models.models import Recipe, RecipeIngredient, Ingredient, IngredientType, FoodCategory
 from app.schemas.schemas import (
     RecipeCreate,
@@ -19,9 +21,14 @@ router = APIRouter(prefix="/recipe", tags=["recipes"])
 
 
 @router.post("", response_model=RecipeResponse, status_code=201)
-def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db)):
+def create_recipe(
+    recipe: RecipeCreate,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Create a new recipe."""
     db_recipe = Recipe(
+        user_id=user.id if user else None,
         name=recipe.name,
         meals_per_day=recipe.meals_per_day,
     )
@@ -32,9 +39,16 @@ def create_recipe(recipe: RecipeCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{recipe_id}", response_model=RecipeResponse)
-def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
+def get_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Get a recipe by ID with all ingredients."""
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    query = db.query(Recipe).filter(Recipe.id == recipe_id)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    recipe = query.first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
     return _recipe_to_response(recipe)
@@ -44,10 +58,14 @@ def get_recipe(recipe_id: int, db: Session = Depends(get_db)):
 def add_ingredient_to_recipe(
     recipe_id: int,
     data: RecipeIngredientAdd,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
 ):
     """Add an ingredient to a recipe."""
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    query = db.query(Recipe).filter(Recipe.id == recipe_id)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    recipe = query.first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -81,10 +99,14 @@ def add_ingredient_to_recipe(
 def remove_ingredient_from_recipe(
     recipe_id: int,
     ingredient_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
 ):
     """Remove an ingredient from a recipe."""
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    query = db.query(Recipe).filter(Recipe.id == recipe_id)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    recipe = query.first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -102,9 +124,17 @@ def remove_ingredient_from_recipe(
 
 
 @router.get("", response_model=list[RecipeResponse])
-def list_recipes(db: Session = Depends(get_db)):
-    """List all recipes."""
-    recipes = db.query(Recipe).all()
+def list_recipes(
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
+    """List all recipes for the current user."""
+    query = db.query(Recipe)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    else:
+        query = query.filter(Recipe.user_id.is_(None))
+    recipes = query.all()
     return [_recipe_to_response(r) for r in recipes]
 
 
@@ -112,10 +142,14 @@ def list_recipes(db: Session = Depends(get_db)):
 def update_recipe(
     recipe_id: int,
     recipe_update: RecipeUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
 ):
     """Update a recipe."""
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    query = db.query(Recipe).filter(Recipe.id == recipe_id)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    recipe = query.first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -129,9 +163,16 @@ def update_recipe(
 
 
 @router.delete("/{recipe_id}", status_code=204)
-def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
+def delete_recipe(
+    recipe_id: int,
+    db: Session = Depends(get_db),
+    user: Optional[AuthUser] = Depends(optional_auth)
+):
     """Delete a recipe."""
-    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    query = db.query(Recipe).filter(Recipe.id == recipe_id)
+    if user:
+        query = query.filter((Recipe.user_id == user.id) | (Recipe.user_id.is_(None)))
+    recipe = query.first()
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
 

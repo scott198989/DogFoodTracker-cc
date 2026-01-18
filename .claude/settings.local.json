@@ -10,7 +10,8 @@
       "Bash(wc:*)",
       "Bash(grep:*)",
       "Bash(xargs ls:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(pip install:*)"
     ]
   }
 }
