@@ -1729,6 +1729,147 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* Pro Badge & Upgrade Modal Styles */
+        .pro-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+        }
+
+        .pro-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+        }
+
+        .pro-badge-inline {
+            vertical-align: middle;
+        }
+
+        #upgrade-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #upgrade-modal.active {
+            display: flex;
+        }
+
+        .upgrade-modal-content {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .upgrade-modal-content h2 {
+            color: white;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, var(--accent-3), var(--accent-4));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .upgrade-modal-content > p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 25px;
+        }
+
+        .pro-benefits {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px 0;
+            text-align: left;
+        }
+
+        .pro-benefits li {
+            color: rgba(255, 255, 255, 0.9);
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pro-benefits li:last-child {
+            border-bottom: none;
+        }
+
+        .pro-benefits li::before {
+            content: "✓";
+            color: var(--success);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .btn-upgrade {
+            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-upgrade:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .upgrade-modal-content .btn-secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.7);
+            width: 100%;
+        }
+
+        .upgrade-modal-content .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -1775,6 +1916,7 @@
                 <div id="dogs" class="tab-panel active">
                     <div class="section-header">
                         <h2 class="section-title"><span>🐕</span> Your Dogs</h2>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Free: 1 dog <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited dogs</p>
                     </div>
 
                     <div class="form-card glass-dark">
@@ -1859,6 +2001,7 @@
                 <div id="tracking" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>📊</span> Daily Tracking</h2>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Daily logging is free <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> History charts & progress</p>
                     </div>
 
                     <!-- Dog Selector for Tracking -->
@@ -1958,7 +2101,8 @@
 
                     <!-- Weight History -->
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 16px;">Weight History</h3>
+                        <h3 style="color: white; margin-bottom: 16px;">Weight History <span class="pro-badge" onclick="showUpgradeModal()">PRO</span></h3>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 16px;">Track weight over time with Pro</p>
                         <div id="weight-history-list"></div>
                     </div>
                 </div>
@@ -2052,6 +2196,7 @@
                 <div id="recipes" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>📋</span> Recipes</h2>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Free: 1 recipe <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited recipes</p>
                     </div>
 
                     <div class="recipe-builder">
@@ -3070,6 +3215,23 @@
         </div>
     </div>
 
+    <!-- Upgrade to Pro Modal -->
+    <div id="upgrade-modal">
+        <div class="upgrade-modal-content glass">
+            <h2>Unlock Fresh Pup Pro</h2>
+            <p>Get more out of meal planning for your pups</p>
+            <ul class="pro-benefits">
+                <li>Unlimited dog profiles</li>
+                <li>Unlimited recipes</li>
+                <li>Weight tracking history</li>
+                <li>Progress charts & insights</li>
+                <li>Advanced goal settings</li>
+            </ul>
+            <button class="btn btn-upgrade">Coming Soon</button>
+            <button class="btn btn-secondary" onclick="closeUpgradeModal()">Maybe Later</button>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
 
@@ -3130,6 +3292,15 @@
         }
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Upgrade modal functions
+        function showUpgradeModal() {
+            document.getElementById('upgrade-modal').classList.add('active');
+        }
+
+        function closeUpgradeModal() {
+            document.getElementById('upgrade-modal').classList.remove('active');
         }
 
         // Close modals on overlay click
@@ -3631,7 +3802,6 @@
 
             if (!recipeId || allIngredientsCache.length === 0) {
                 list.innerHTML = `<div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones to include in this recipe</p></div>`;
-                updatePercentageTotal();
                 return;
             }
 
