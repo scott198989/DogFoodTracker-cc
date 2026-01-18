@@ -6469,7 +6469,10 @@
         }
 
         // Initialize simulator dropdowns when tab is shown
-        document.querySelector('[data-tab="simulator"]').addEventListener('click', populateSimulatorDropdowns);
+        const simulatorTab = document.querySelector('[data-tab="simulator"]');
+        if (simulatorTab) {
+            simulatorTab.addEventListener('click', populateSimulatorDropdowns);
+        }
     </script>
     <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
