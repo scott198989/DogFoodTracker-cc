@@ -263,6 +263,58 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* Recipe Sub-Navigation */
+        .sub-nav-btn {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+        }
+
+        .sub-nav-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .recipe-subsection {
+            display: none;
+        }
+
+        .recipe-subsection.active {
+            display: block;
+        }
+
+        /* PRO Gate Overlay */
+        .pro-gate-overlay {
+            padding: 40px 20px;
+        }
+
+        /* Onboarding Wizard */
+        .onboard-step {
+            display: none;
+        }
+
+        .onboard-step.active {
+            display: block;
+        }
+
+        .onboard-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border-divider);
+            transition: all 0.3s;
+        }
+
+        .onboard-dot.active {
+            background: var(--primary);
+            width: 24px;
+            border-radius: 5px;
+        }
+
+        .onboard-dot.completed {
+            background: var(--primary-soft);
+        }
+
         /* Section Headers */
         .section-header {
             display: flex;
@@ -1795,6 +1847,19 @@
             vertical-align: middle;
         }
 
+        .pro-badge-small {
+            background: var(--accent);
+            color: #5D4A1F;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+
         #upgrade-modal {
             display: none;
             position: fixed;
@@ -1931,25 +1996,100 @@
                 </div>
             </header>
 
-            <!-- Navigation -->
+            <!-- Navigation - 4 Main Tabs -->
             <div class="nav-container">
                 <nav class="nav-tabs glass" id="nav-tabs">
-                    <button class="nav-tab active" data-tab="dogs"><span>🐕</span> Dogs</button>
-                    <button class="nav-tab" data-tab="tracking"><span>📊</span> Tracking</button>
-                    <button class="nav-tab" data-tab="ingredients"><span>🥩</span> Ingredients</button>
+                    <button class="nav-tab active" data-tab="home"><span>🏠</span> Home</button>
                     <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
-                    <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
-                    <button class="nav-tab" data-tab="guide"><span>📚</span> Ingredient Guide</button>
-                    <button class="nav-tab" data-tab="simulator"><span>🔬</span> What If</button>
-                    <button class="nav-tab" data-tab="about"><span>❤️</span> About</button>
+                    <button class="nav-tab" data-tab="history"><span>📊</span> History <span class="pro-badge-small">PRO</span></button>
+                    <button class="nav-tab" data-tab="settings"><span>⚙️</span> Settings</button>
                 </nav>
-                <div class="nav-scroll-indicator" id="nav-scroll-indicator"></div>
             </div>
 
             <!-- Main Content -->
             <main class="main-content glass">
-                <!-- Dogs Tab -->
-                <div id="dogs" class="tab-panel active">
+                <!-- HOME Tab -->
+                <div id="home" class="tab-panel active">
+                    <!-- No Dog State -->
+                    <div id="home-no-dog" class="empty-state" style="display: none;">
+                        <span>🐕</span>
+                        <p>Welcome to Fresh Pup!</p>
+                        <p style="margin-top: 8px; color: var(--text-secondary);">Add your dog in Settings to get started.</p>
+                        <button class="btn btn-primary" style="margin-top: 16px;" onclick="switchTab('settings')">
+                            <span>⚙️</span> Go to Settings
+                        </button>
+                    </div>
+
+                    <!-- Dog Dashboard (shown when dog exists) -->
+                    <div id="home-dashboard" style="display: none;">
+                        <!-- Dog Profile Card -->
+                        <div class="home-profile-card glass-dark" style="padding: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px;">
+                            <div class="dog-avatar" style="width: 80px; height: 80px; border-radius: 50%; background: var(--primary-tint); display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                                🐕
+                            </div>
+                            <div class="dog-info" style="flex: 1;">
+                                <h2 id="home-dog-name" style="color: var(--text-primary); font-size: 1.5rem; margin-bottom: 4px;">Dog Name</h2>
+                                <p id="home-dog-details" style="color: var(--text-secondary); font-size: 0.9rem;">Weight • Age • Activity</p>
+                            </div>
+                            <select id="home-dog-selector" class="form-control" style="width: auto; min-width: 150px;" onchange="selectHomeDog(this.value)">
+                            </select>
+                        </div>
+
+                        <!-- Daily Calories Dashboard -->
+                        <div class="home-calories-card glass-dark" style="padding: 24px; margin-bottom: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="color: var(--text-primary); font-size: 1.1rem;">Today's Calories</h3>
+                                <span id="home-calorie-status" class="status-badge excellent">On Track</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 12px;">
+                                <span id="home-calories-fed" style="font-size: 2.5rem; font-weight: 700; color: var(--primary);">0</span>
+                                <span style="color: var(--text-secondary); font-size: 1.1rem;">/ <span id="home-calories-target">0</span> kcal</span>
+                            </div>
+                            <div class="nutrient-bar-track" style="height: 12px; margin-bottom: 8px;">
+                                <div id="home-calorie-bar" class="nutrient-bar-fill excellent" style="width: 0%;"></div>
+                            </div>
+                            <p id="home-calories-remaining" style="color: var(--text-secondary); font-size: 0.9rem;">0 kcal remaining</p>
+                        </div>
+
+                        <!-- Macro Overview -->
+                        <div class="home-macros-card glass-dark" style="padding: 24px; margin-bottom: 24px;">
+                            <h3 style="color: var(--text-primary); font-size: 1.1rem; margin-bottom: 16px;">Today's Macros</h3>
+                            <div class="macro-display">
+                                <div class="macro-item">
+                                    <div class="macro-circle protein"><span id="home-protein">0</span>g</div>
+                                    <div class="macro-label">Protein</div>
+                                </div>
+                                <div class="macro-item">
+                                    <div class="macro-circle fat"><span id="home-fat">0</span>g</div>
+                                    <div class="macro-label">Fat</div>
+                                </div>
+                                <div class="macro-item">
+                                    <div class="macro-circle carbs"><span id="home-carbs">0</span>g</div>
+                                    <div class="macro-label">Carbs</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Today's Meals -->
+                        <div class="home-meals-card glass-dark" style="padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                <h3 style="color: var(--text-primary); font-size: 1.1rem;">Today's Meals</h3>
+                                <button class="btn btn-primary btn-sm" onclick="openLogMealModal()">
+                                    <span>➕</span> Log Meal
+                                </button>
+                            </div>
+                            <div id="home-meals-list">
+                                <div class="empty-state" style="padding: 20px;">
+                                    <span>🍽️</span>
+                                    <p>No meals logged today</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HIDDEN: Old Dogs Tab (moved to Settings) -->
+                <div id="dogs" class="tab-panel" style="display: none;">
                     <div class="section-header">
                         <h2 class="section-title"><span>🐕</span> Your Dogs</h2>
                         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Free: 1 dog <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited dogs</p>
@@ -2230,12 +2370,30 @@
 
                 <!-- Recipes Tab -->
                 <div id="recipes" class="tab-panel">
-                    <div class="section-header">
-                        <h2 class="section-title"><span>📋</span> Recipes</h2>
-                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Free: 1 recipe <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited recipes</p>
+                    <!-- Recipes Sub-Navigation -->
+                    <div class="sub-nav" style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary sub-nav-btn active" data-subsection="my-recipes" onclick="switchRecipeSection('my-recipes')">
+                            <span>📋</span> My Recipes
+                        </button>
+                        <button class="btn btn-secondary sub-nav-btn" data-subsection="ingredients-lib" onclick="switchRecipeSection('ingredients-lib')">
+                            <span>🥩</span> Ingredients
+                        </button>
+                        <button class="btn btn-secondary sub-nav-btn" data-subsection="ingredient-guide" onclick="switchRecipeSection('ingredient-guide')">
+                            <span>📚</span> Guide
+                        </button>
+                        <button class="btn btn-secondary sub-nav-btn" data-subsection="what-if" onclick="switchRecipeSection('what-if')">
+                            <span>🔬</span> What If <span class="pro-badge-small">PRO</span>
+                        </button>
                     </div>
 
-                    <div class="recipe-builder">
+                    <!-- My Recipes Sub-Section -->
+                    <div id="sub-my-recipes" class="recipe-subsection active">
+                        <div class="section-header">
+                            <h2 class="section-title"><span>📋</span> My Recipes</h2>
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Free: 1 recipe <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited recipes</p>
+                        </div>
+
+                        <div class="recipe-builder">
                         <div class="builder-section glass-dark">
                             <h3>🆕 Create New Recipe</h3>
                             <form id="recipe-form">
@@ -2253,7 +2411,7 @@
                                     </select>
                                 </div>
                                 <div class="quick-actions">
-                                    <button type="submit" class="btn btn-primary">Create Recipe</button>
+                                    <button type="submit" class="btn btn-primary" id="create-recipe-btn">Create Recipe</button>
                                 </div>
                             </form>
                         </div>
@@ -2283,16 +2441,49 @@
                         </div>
                     </div>
 
-                    <h3 class="section-title" style="margin: 32px 0 20px;"><span>📚</span> Your Recipes</h3>
-                    <div id="recipes-list" class="cards-grid">
-                        <div class="empty-state">
-                            <span>📋</span>
-                            <p>No recipes created yet. Create your first recipe above!</p>
+                        <h3 class="section-title" style="margin: 32px 0 20px;"><span>📚</span> Your Recipes</h3>
+                        <div id="recipes-list" class="cards-grid">
+                            <div class="empty-state">
+                                <span>📋</span>
+                                <p>No recipes created yet. Create your first recipe above!</p>
+                            </div>
+                        </div>
+                    </div><!-- End My Recipes Sub-Section -->
+
+                    <!-- Ingredients Library Sub-Section (content pulled from old ingredients tab) -->
+                    <div id="sub-ingredients-lib" class="recipe-subsection" style="display: none;">
+                        <!-- This will show the ingredients content -->
+                    </div>
+
+                    <!-- Ingredient Guide Sub-Section (content pulled from old guide tab) -->
+                    <div id="sub-ingredient-guide" class="recipe-subsection" style="display: none;">
+                        <!-- This will show the guide content -->
+                    </div>
+
+                    <!-- What If Sub-Section (PRO gated) -->
+                    <div id="sub-what-if" class="recipe-subsection" style="display: none;">
+                        <!-- PRO Gate for What If -->
+                        <div id="whatif-pro-gate" class="pro-gate-overlay">
+                            <div class="pro-gate-content glass-dark" style="text-align: center; padding: 48px 32px; max-width: 500px; margin: 0 auto;">
+                                <div style="font-size: 4rem; margin-bottom: 16px;">🔬</div>
+                                <h2 style="color: var(--text-primary); margin-bottom: 12px;">What-If Simulator</h2>
+                                <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;">
+                                    Test recipe changes and see how they affect nutrition before making them.
+                                </p>
+                                <button class="btn btn-primary" onclick="showUpgradeModal()" style="width: 100%;">
+                                    <span>⭐</span> Upgrade to Pro
+                                </button>
+                                <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">Coming Soon</p>
+                            </div>
+                        </div>
+                        <!-- PRO What If Content (shown for PRO users) -->
+                        <div id="whatif-content" style="display: none;">
+                            <!-- Simulator content will be here -->
                         </div>
                     </div>
-                </div>
+                </div><!-- End Recipes Tab -->
 
-                <!-- Meal Planner Tab -->
+                <!-- Meal Planner Tab (HIDDEN - merged into Recipes) -->
                 <div id="planner" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>🍽️</span> Meal Planner</h2>
@@ -3080,6 +3271,217 @@
                         <img src="images/gunner-2.webp" class="about-closing-img" alt="Gunner">
                     </div>
                 </div>
+
+                <!-- HISTORY Tab (PRO Gated) -->
+                <div id="history" class="tab-panel">
+                    <!-- PRO Gate Overlay (shown for FREE users) -->
+                    <div id="history-pro-gate" class="pro-gate-overlay">
+                        <div class="pro-gate-content glass-dark" style="text-align: center; padding: 48px 32px; max-width: 500px; margin: 0 auto;">
+                            <div style="font-size: 4rem; margin-bottom: 16px;">📊</div>
+                            <h2 style="color: var(--text-primary); margin-bottom: 12px;">Unlock History with Pro</h2>
+                            <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;">
+                                Track your dog's progress over time with Fresh Pup Pro. See past meals, weight trends, and nutrition charts.
+                            </p>
+                            <ul style="text-align: left; color: var(--text-secondary); margin-bottom: 24px; padding-left: 20px;">
+                                <li style="margin-bottom: 8px;">📅 Full meal history by day</li>
+                                <li style="margin-bottom: 8px;">📈 Weight trend charts</li>
+                                <li style="margin-bottom: 8px;">🎯 Goal tracking over time</li>
+                                <li style="margin-bottom: 8px;">📊 Nutrition analysis</li>
+                            </ul>
+                            <button class="btn btn-primary" onclick="showUpgradeModal()" style="width: 100%;">
+                                <span>⭐</span> Upgrade to Pro
+                            </button>
+                            <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 12px;">Coming Soon</p>
+                        </div>
+                    </div>
+
+                    <!-- PRO History Content (hidden for FREE users) -->
+                    <div id="history-content" style="display: none;">
+                        <div class="section-header">
+                            <h2 class="section-title"><span>📊</span> History & Progress</h2>
+                        </div>
+
+                        <!-- Dog Selector -->
+                        <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                            <div class="form-group">
+                                <label>Select Dog</label>
+                                <select id="history-dog-select" onchange="loadHistoryData()">
+                                    <option value="">Select a dog...</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Date Range Picker -->
+                        <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                                <button class="btn btn-secondary filter-btn active" data-range="7">Last 7 Days</button>
+                                <button class="btn btn-secondary filter-btn" data-range="30">Last 30 Days</button>
+                                <button class="btn btn-secondary filter-btn" data-range="90">Last 90 Days</button>
+                            </div>
+                        </div>
+
+                        <!-- Weight Chart -->
+                        <div class="form-card glass-dark" style="margin-bottom: 24px;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 16px;">Weight Trend</h3>
+                            <div id="history-weight-chart" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                                <p style="color: var(--text-muted);">Select a dog to see weight history</p>
+                            </div>
+                        </div>
+
+                        <!-- Meal History -->
+                        <div class="form-card glass-dark">
+                            <h3 style="color: var(--text-primary); margin-bottom: 16px;">Meal History</h3>
+                            <div id="history-meals-list">
+                                <p style="color: var(--text-muted); text-align: center; padding: 20px;">Select a dog to see meal history</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS Tab -->
+                <div id="settings" class="tab-panel">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>⚙️</span> Settings</h2>
+                    </div>
+
+                    <!-- Dog Management Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('dogs-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>🐕</span> Dog Management</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="dogs-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">
+                                Free: 1 dog <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited dogs
+                            </p>
+
+                            <!-- Add Dog Form -->
+                            <form id="settings-dog-form" style="margin-bottom: 24px;">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Name</label>
+                                        <input type="text" id="settings-dog-name" required placeholder="e.g., Buddy">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Breed (optional)</label>
+                                        <input type="text" id="settings-dog-breed" placeholder="e.g., Golden Retriever">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Current Weight (<span class="weight-unit-label">kg</span>)</label>
+                                        <input type="number" id="settings-dog-weight" step="0.1" required placeholder="e.g., 25">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Age (years)</label>
+                                        <input type="number" id="settings-dog-age" step="0.1" required placeholder="e.g., 3">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Activity Level</label>
+                                        <select id="settings-dog-activity">
+                                            <option value="low">Low - Senior or sedentary</option>
+                                            <option value="moderate" selected>Moderate - Regular walks</option>
+                                            <option value="high">High - Very active</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Life Stage</label>
+                                        <select id="settings-dog-life-stage">
+                                            <option value="puppy">Puppy (under 1 year)</option>
+                                            <option value="adult" selected>Adult (1-7 years)</option>
+                                            <option value="senior">Senior (7+ years)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="settings-add-dog-btn">
+                                    <span>➕</span> Add Dog
+                                </button>
+                            </form>
+
+                            <!-- Dogs List -->
+                            <div id="settings-dogs-list" class="cards-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('subscription-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>⭐</span> Subscription</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="subscription-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                                <span style="color: var(--text-primary); font-weight: 600;">Current Plan:</span>
+                                <span id="current-tier-badge" class="status-badge caution">FREE</span>
+                            </div>
+                            <div style="background: var(--primary-tint); padding: 20px; border-radius: 12px; margin-bottom: 16px;">
+                                <h4 style="color: var(--primary); margin-bottom: 12px;">Pro Benefits:</h4>
+                                <ul style="color: var(--text-secondary); padding-left: 20px; margin: 0;">
+                                    <li>Unlimited dogs</li>
+                                    <li>Unlimited recipes</li>
+                                    <li>Full history & progress tracking</li>
+                                    <li>Weight trend charts</li>
+                                    <li>What-If nutrition simulator</li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-primary" onclick="showUpgradeModal()" style="width: 100%;">
+                                <span>⭐</span> Upgrade to Pro
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Preferences Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('preferences-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>🎛️</span> Preferences</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="preferences-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div class="form-group">
+                                <label>Weight Unit</label>
+                                <div class="unit-toggle" style="margin-top: 8px;">
+                                    <button class="btn btn-secondary unit-btn active" data-unit="kg" onclick="setWeightUnit('kg')">kg</button>
+                                    <button class="btn btn-secondary unit-btn" data-unit="lbs" onclick="setWeightUnit('lbs')">lbs</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('about-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>❤️</span> About Fresh Pup</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="about-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div class="about-content" style="max-width: 100%;">
+                                <img src="images/gunner-1.jpg" class="about-hero-img" alt="Gunner" style="max-height: 300px;">
+                                <h2 class="about-heading" style="font-size: 2rem;">Meet Gunner</h2>
+                                <div class="about-text">
+                                    <p>I rescued Gunner in 2021. From the moment I met him, I knew this was not just a dog. <span class="emphasis">This was family.</span></p>
+                                    <p>This app is our story turned into a tool. It is not a substitute for veterinary advice, but if you are trying to do better and tired of guessing, this is what helped me stay on track.</p>
+                                    <div class="about-quote" style="margin: 20px 0;">
+                                        Your dog is not just a dog. They are family.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Disclaimer Section -->
+                    <div class="settings-section glass-dark">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('disclaimer-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>📋</span> Disclaimer</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="disclaimer-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div style="color: var(--text-secondary); line-height: 1.6;">
+                                <p style="margin-bottom: 12px;"><strong>Not a substitute for veterinary advice.</strong></p>
+                                <p style="margin-bottom: 12px;">Fresh Pup is designed to help you track and plan your dog's nutrition, but it is not a replacement for professional veterinary care.</p>
+                                <p style="margin-bottom: 12px;">Always consult with your veterinarian before making significant changes to your dog's diet, especially if your dog has health conditions, allergies, or special dietary needs.</p>
+                                <p>The calculations provided are estimates based on general formulas and may not be appropriate for every dog.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </main>
         </div>
     </div>
@@ -3268,6 +3670,112 @@
         </div>
     </div>
 
+    <!-- Onboarding Wizard Modal -->
+    <div id="onboarding-modal" class="modal-overlay">
+        <div class="modal" style="max-width: 550px;">
+            <!-- Step 1: Welcome -->
+            <div id="onboard-step-1" class="onboard-step active">
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; margin-bottom: 16px;">🐕</div>
+                    <h2 style="color: var(--text-primary); margin-bottom: 12px;">Welcome to Fresh Pup!</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.6;">
+                        Let's set up your dog's nutrition plan in just a few steps.
+                    </p>
+                    <button class="btn btn-primary" onclick="nextOnboardStep(2)" style="width: 100%;">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Add Your Dog -->
+            <div id="onboard-step-2" class="onboard-step" style="display: none;">
+                <h2 style="color: var(--text-primary); margin-bottom: 8px;">Add Your Dog</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Who are we feeding today?</p>
+                <form id="onboard-dog-form">
+                    <div class="form-group">
+                        <label>Dog's Name</label>
+                        <input type="text" id="onboard-dog-name" required placeholder="e.g., Buddy">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="form-group">
+                            <label>Weight (<span class="weight-unit-label">kg</span>)</label>
+                            <input type="number" id="onboard-dog-weight" step="0.1" required placeholder="e.g., 25">
+                        </div>
+                        <div class="form-group">
+                            <label>Age (years)</label>
+                            <input type="number" id="onboard-dog-age" step="0.1" required placeholder="e.g., 3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Activity Level</label>
+                        <select id="onboard-dog-activity">
+                            <option value="low">Low - Senior or sedentary</option>
+                            <option value="moderate" selected>Moderate - Regular walks</option>
+                            <option value="high">High - Very active</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="prevOnboardStep(1)" style="flex: 1;">Back</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">Continue</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 3: First Recipe (Optional) -->
+            <div id="onboard-step-3" class="onboard-step" style="display: none;">
+                <h2 style="color: var(--text-primary); margin-bottom: 8px;">Create Your First Recipe</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">Give your homemade meal a name (you can add ingredients later)</p>
+                <form id="onboard-recipe-form">
+                    <div class="form-group">
+                        <label>Recipe Name</label>
+                        <input type="text" id="onboard-recipe-name" required placeholder="e.g., Chicken & Rice Bowl">
+                    </div>
+                    <div class="form-group">
+                        <label>Meals per Day</label>
+                        <select id="onboard-recipe-meals">
+                            <option value="1">1 meal</option>
+                            <option value="2" selected>2 meals</option>
+                            <option value="3">3 meals</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 20px;">
+                        <button type="button" class="btn btn-secondary" onclick="prevOnboardStep(2)" style="flex: 1;">Back</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 2;">Continue</button>
+                    </div>
+                </form>
+                <button type="button" class="btn" style="width: 100%; margin-top: 12px; background: transparent; color: var(--text-muted);" onclick="skipToStep4()">
+                    Skip for now
+                </button>
+            </div>
+
+            <!-- Step 4: All Done -->
+            <div id="onboard-step-4" class="onboard-step" style="display: none;">
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; margin-bottom: 16px;">🎉</div>
+                    <h2 style="color: var(--text-primary); margin-bottom: 12px;">You're All Set!</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 8px;">
+                        <strong id="onboard-dog-display">Your dog</strong> is ready to start eating better.
+                    </p>
+                    <div id="onboard-calories-display" style="background: var(--primary-tint); padding: 16px; border-radius: 12px; margin: 20px 0;">
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 4px;">Daily Calorie Target</p>
+                        <p style="color: var(--primary); font-size: 2rem; font-weight: 700;" id="onboard-target-kcal">-- kcal</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="finishOnboarding()" style="width: 100%;">
+                        Start Using Fresh Pup
+                    </button>
+                </div>
+            </div>
+
+            <!-- Progress Dots -->
+            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;">
+                <div class="onboard-dot active" data-step="1"></div>
+                <div class="onboard-dot" data-step="2"></div>
+                <div class="onboard-dot" data-step="3"></div>
+                <div class="onboard-dot" data-step="4"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '/api';
 
@@ -3339,6 +3847,159 @@
             document.getElementById('upgrade-modal').classList.remove('active');
         }
 
+        // ===== ONBOARDING WIZARD =====
+        let onboardingDogId = null;
+        let onboardingRecipeId = null;
+
+        function checkOnboarding() {
+            const completed = localStorage.getItem('onboardingComplete');
+            if (!completed) {
+                showOnboarding();
+            }
+        }
+
+        function showOnboarding() {
+            document.getElementById('onboarding-modal').classList.add('active');
+        }
+
+        function hideOnboarding() {
+            document.getElementById('onboarding-modal').classList.remove('active');
+        }
+
+        function nextOnboardStep(step) {
+            updateOnboardStep(step);
+        }
+
+        function prevOnboardStep(step) {
+            updateOnboardStep(step);
+        }
+
+        function updateOnboardStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.onboard-step').forEach(s => {
+                s.style.display = 'none';
+                s.classList.remove('active');
+            });
+
+            // Show target step
+            const targetStep = document.getElementById(`onboard-step-${step}`);
+            if (targetStep) {
+                targetStep.style.display = 'block';
+                targetStep.classList.add('active');
+            }
+
+            // Update dots
+            document.querySelectorAll('.onboard-dot').forEach(dot => {
+                const dotStep = parseInt(dot.dataset.step);
+                dot.classList.remove('active', 'completed');
+                if (dotStep === step) {
+                    dot.classList.add('active');
+                } else if (dotStep < step) {
+                    dot.classList.add('completed');
+                }
+            });
+        }
+
+        function skipToStep4() {
+            updateOnboardStep(4);
+            updateOnboardingDisplay();
+        }
+
+        async function updateOnboardingDisplay() {
+            if (onboardingDogId) {
+                try {
+                    const res = await fetch(`${API_BASE}/dog/${onboardingDogId}`);
+                    const dog = await res.json();
+                    document.getElementById('onboard-dog-display').textContent = dog.name;
+                    document.getElementById('onboard-target-kcal').textContent = `${Math.round(dog.mer || 0)} kcal`;
+                } catch (err) {
+                    console.error('Error fetching dog for display:', err);
+                }
+            }
+        }
+
+        function finishOnboarding() {
+            localStorage.setItem('onboardingComplete', 'true');
+            if (onboardingDogId) {
+                localStorage.setItem('selectedDogId', onboardingDogId);
+                selectedHomeDogId = onboardingDogId;
+            }
+            hideOnboarding();
+            loadHomeDashboard();
+            showToast('Welcome to Fresh Pup!', 'success');
+        }
+
+        // Onboarding dog form
+        document.addEventListener('DOMContentLoaded', function() {
+            const onboardDogForm = document.getElementById('onboard-dog-form');
+            if (onboardDogForm) {
+                onboardDogForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const dogData = {
+                        name: document.getElementById('onboard-dog-name').value,
+                        weight_kg: inputToKg(parseFloat(document.getElementById('onboard-dog-weight').value)),
+                        age_years: parseFloat(document.getElementById('onboard-dog-age').value),
+                        activity_level: document.getElementById('onboard-dog-activity').value,
+                        life_stage: 'adult'
+                    };
+
+                    try {
+                        const res = await fetch(`${API_BASE}/dog`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dogData)
+                        });
+
+                        if (res.ok) {
+                            const dog = await res.json();
+                            onboardingDogId = dog.id;
+                            nextOnboardStep(3);
+                        } else {
+                            showToast('Failed to add dog', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Error adding dog', 'error');
+                    }
+                });
+            }
+
+            // Onboarding recipe form
+            const onboardRecipeForm = document.getElementById('onboard-recipe-form');
+            if (onboardRecipeForm) {
+                onboardRecipeForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const recipeData = {
+                        name: document.getElementById('onboard-recipe-name').value,
+                        meals_per_day: parseInt(document.getElementById('onboard-recipe-meals').value)
+                    };
+
+                    try {
+                        const res = await fetch(`${API_BASE}/recipe`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(recipeData)
+                        });
+
+                        if (res.ok) {
+                            const recipe = await res.json();
+                            onboardingRecipeId = recipe.id;
+                            nextOnboardStep(4);
+                            updateOnboardingDisplay();
+                        } else {
+                            showToast('Failed to create recipe', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Error creating recipe', 'error');
+                    }
+                });
+            }
+
+            // Check if onboarding needed
+            setTimeout(checkOnboarding, 500);
+        });
+
         // Close modals on overlay click
         document.querySelectorAll('.modal-overlay').forEach(overlay => {
             overlay.addEventListener('click', (e) => {
@@ -3347,6 +4008,398 @@
                 }
             });
         });
+
+        // ===== TIER MANAGEMENT =====
+        let userTier = localStorage.getItem('userTier') || 'FREE';
+        const isPro = () => userTier === 'PRO';
+        let allDogs = [];
+        let allRecipes = [];
+        let selectedHomeDogId = localStorage.getItem('selectedDogId') || null;
+
+        function canAddDog() {
+            if (isPro()) return true;
+            return allDogs.length < 1;
+        }
+
+        function canAddRecipe() {
+            if (isPro()) return true;
+            return allRecipes.length < 1;
+        }
+
+        function updateTierUI() {
+            // Update tier badge in settings
+            const tierBadge = document.getElementById('current-tier-badge');
+            if (tierBadge) {
+                tierBadge.textContent = userTier;
+                tierBadge.className = 'status-badge ' + (isPro() ? 'excellent' : 'caution');
+            }
+
+            // Show/hide PRO gate on History tab
+            const historyGate = document.getElementById('history-pro-gate');
+            const historyContent = document.getElementById('history-content');
+            if (historyGate && historyContent) {
+                historyGate.style.display = isPro() ? 'none' : 'block';
+                historyContent.style.display = isPro() ? 'block' : 'none';
+            }
+
+            // Update Add Dog button in Settings
+            const addDogBtn = document.getElementById('settings-add-dog-btn');
+            if (addDogBtn) {
+                const canAdd = canAddDog();
+                addDogBtn.disabled = !canAdd;
+                if (!canAdd) {
+                    addDogBtn.innerHTML = '<span>🔒</span> Add Dog <span class="pro-badge-small">PRO</span>';
+                    addDogBtn.title = 'FREE tier limit: 1 dog. Upgrade to PRO for unlimited dogs!';
+                } else {
+                    addDogBtn.innerHTML = '<span>➕</span> Add Dog';
+                    addDogBtn.title = '';
+                }
+            }
+
+            // Update Create Recipe button
+            const createRecipeBtn = document.getElementById('create-recipe-btn');
+            if (createRecipeBtn) {
+                const canAdd = canAddRecipe();
+                createRecipeBtn.disabled = !canAdd;
+                if (!canAdd) {
+                    createRecipeBtn.innerHTML = '🔒 Create Recipe <span class="pro-badge-small">PRO</span>';
+                    createRecipeBtn.title = 'FREE tier limit: 1 recipe. Upgrade to PRO for unlimited recipes!';
+                } else {
+                    createRecipeBtn.innerHTML = 'Create Recipe';
+                    createRecipeBtn.title = '';
+                }
+            }
+        }
+
+        // ===== TAB SWITCHING =====
+        function switchTab(tabId) {
+            // Remove active from all tabs and panels
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+
+            // Activate the selected tab
+            const tab = document.querySelector(`.nav-tab[data-tab="${tabId}"]`);
+            const panel = document.getElementById(tabId);
+
+            if (tab) tab.classList.add('active');
+            if (panel) panel.classList.add('active');
+
+            // Load data for specific tabs
+            if (tabId === 'home') {
+                loadHomeDashboard();
+            } else if (tabId === 'recipes') {
+                loadRecipes();
+                loadIngredients();
+            } else if (tabId === 'history' && isPro()) {
+                loadHistoryData();
+            } else if (tabId === 'settings') {
+                loadSettingsDogs();
+            }
+        }
+
+        // ===== SETTINGS SECTIONS =====
+        function toggleSettingsSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = section.previousElementSibling;
+            const icon = header.querySelector('.expand-icon');
+
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                icon.textContent = '−';
+            } else {
+                section.style.display = 'none';
+                icon.textContent = '+';
+            }
+        }
+
+        // ===== HOME TAB =====
+        async function loadHomeDashboard() {
+            try {
+                // Fetch all dogs
+                const res = await fetch(`${API_BASE}/dog`);
+                allDogs = await res.json();
+                updateTierUI(); // Update UI based on current limits
+
+                const noDogEl = document.getElementById('home-no-dog');
+                const dashboardEl = document.getElementById('home-dashboard');
+
+                if (allDogs.length === 0) {
+                    noDogEl.style.display = 'block';
+                    dashboardEl.style.display = 'none';
+                    return;
+                }
+
+                noDogEl.style.display = 'none';
+                dashboardEl.style.display = 'block';
+
+                // Populate dog selector
+                const selector = document.getElementById('home-dog-selector');
+                selector.innerHTML = allDogs.map(dog =>
+                    `<option value="${dog.id}" ${dog.id == selectedHomeDogId ? 'selected' : ''}>${dog.name}</option>`
+                ).join('');
+
+                // If no dog selected, select first one
+                if (!selectedHomeDogId || !allDogs.find(d => d.id == selectedHomeDogId)) {
+                    selectedHomeDogId = allDogs[0].id;
+                    localStorage.setItem('selectedDogId', selectedHomeDogId);
+                    selector.value = selectedHomeDogId;
+                }
+
+                await loadHomeDogData(selectedHomeDogId);
+            } catch (err) {
+                console.error('Error loading home dashboard:', err);
+            }
+        }
+
+        async function selectHomeDog(dogId) {
+            selectedHomeDogId = dogId;
+            localStorage.setItem('selectedDogId', dogId);
+            await loadHomeDogData(dogId);
+        }
+
+        async function loadHomeDogData(dogId) {
+            try {
+                // Get dog details
+                const dogRes = await fetch(`${API_BASE}/dog/${dogId}`);
+                const dog = await dogRes.json();
+
+                // Update profile card
+                document.getElementById('home-dog-name').textContent = dog.name;
+                document.getElementById('home-dog-details').textContent =
+                    `${displayWeight(dog.weight_kg)} • ${dog.age_years} years • ${dog.activity_level} activity`;
+
+                // Get today's summary
+                const summaryRes = await fetch(`${API_BASE}/log/feeding/dog/${dogId}/summary`);
+                const summary = await summaryRes.json();
+
+                const targetKcal = dog.target_daily_kcal || dog.mer || 0;
+                const fedKcal = summary.total_kcal || 0;
+                const remaining = targetKcal - fedKcal;
+                const percentage = targetKcal > 0 ? Math.min((fedKcal / targetKcal) * 100, 100) : 0;
+
+                document.getElementById('home-calories-fed').textContent = Math.round(fedKcal);
+                document.getElementById('home-calories-target').textContent = Math.round(targetKcal);
+                document.getElementById('home-calories-remaining').textContent =
+                    remaining >= 0 ? `${Math.round(remaining)} kcal remaining` : `${Math.round(Math.abs(remaining))} kcal over target`;
+
+                // Update calorie bar
+                const bar = document.getElementById('home-calorie-bar');
+                bar.style.width = `${percentage}%`;
+
+                // Update status
+                const statusBadge = document.getElementById('home-calorie-status');
+                if (percentage < 80) {
+                    statusBadge.textContent = 'Under';
+                    statusBadge.className = 'status-badge caution';
+                    bar.className = 'nutrient-bar-fill caution';
+                } else if (percentage <= 110) {
+                    statusBadge.textContent = 'On Track';
+                    statusBadge.className = 'status-badge excellent';
+                    bar.className = 'nutrient-bar-fill excellent';
+                } else {
+                    statusBadge.textContent = 'Over';
+                    statusBadge.className = 'status-badge bad';
+                    bar.className = 'nutrient-bar-fill bad';
+                }
+
+                // Update macros
+                document.getElementById('home-protein').textContent = Math.round(summary.total_protein_g || 0);
+                document.getElementById('home-fat').textContent = Math.round(summary.total_fat_g || 0);
+                document.getElementById('home-carbs').textContent = Math.round(summary.total_carbs_g || 0);
+
+                // Load today's meals
+                await loadHomeMeals(dogId);
+            } catch (err) {
+                console.error('Error loading dog data:', err);
+            }
+        }
+
+        async function loadHomeMeals(dogId) {
+            try {
+                const res = await fetch(`${API_BASE}/log/feeding/dog/${dogId}/today`);
+                const meals = await res.json();
+
+                const container = document.getElementById('home-meals-list');
+
+                if (!meals || meals.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 20px;">
+                            <span>🍽️</span>
+                            <p>No meals logged today</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = meals.map(meal => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
+                        <div>
+                            <span style="font-weight: 600; color: var(--text-primary);">${meal.meal_type}</span>
+                            ${meal.notes ? `<span style="color: var(--text-muted); margin-left: 8px;">${meal.notes}</span>` : ''}
+                        </div>
+                        <span style="color: var(--primary); font-weight: 600;">${meal.kcal} kcal</span>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading meals:', err);
+            }
+        }
+
+        function openLogMealModal() {
+            // Use existing tracking form in a modal or switch to tracking
+            // For now, populate the tracking dog selector and show a simple prompt
+            if (selectedHomeDogId) {
+                const trackingSelect = document.getElementById('tracking-dog-select');
+                if (trackingSelect) trackingSelect.value = selectedHomeDogId;
+            }
+            // Could open a modal here - for now use alert
+            showToast('Use the Recipes tab to log meals', 'info');
+        }
+
+        // ===== SETTINGS DOGS =====
+        async function loadSettingsDogs() {
+            try {
+                const res = await fetch(`${API_BASE}/dog`);
+                allDogs = await res.json();
+                updateTierUI(); // Centralized tier UI updates
+
+                const container = document.getElementById('settings-dogs-list');
+
+                if (allDogs.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 20px;">
+                            <span>🐕</span>
+                            <p>No dogs added yet</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = allDogs.map(dog => `
+                    <div class="dog-card glass" style="padding: 16px;">
+                        <h4 style="color: var(--text-primary); margin-bottom: 8px;">${dog.name}</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem;">${displayWeight(dog.weight_kg)} • ${dog.age_years} years</p>
+                        <div class="card-actions" style="margin-top: 12px;">
+                            <button class="btn btn-sm btn-edit" onclick="editDog(${dog.id})">Edit</button>
+                            <button class="btn btn-sm btn-delete" onclick="deleteDog(${dog.id})">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Error loading settings dogs:', err);
+            }
+        }
+
+        // Settings dog form submission
+        document.addEventListener('DOMContentLoaded', function() {
+            const settingsDogForm = document.getElementById('settings-dog-form');
+            if (settingsDogForm) {
+                settingsDogForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    if (!canAddDog()) {
+                        showUpgradeModal();
+                        showToast('FREE tier limit: 1 dog. Upgrade to PRO for unlimited!', 'caution');
+                        return;
+                    }
+
+                    const dogData = {
+                        name: document.getElementById('settings-dog-name').value,
+                        breed: document.getElementById('settings-dog-breed').value || null,
+                        weight_kg: inputToKg(parseFloat(document.getElementById('settings-dog-weight').value)),
+                        age_years: parseFloat(document.getElementById('settings-dog-age').value),
+                        activity_level: document.getElementById('settings-dog-activity').value,
+                        life_stage: document.getElementById('settings-dog-life-stage').value
+                    };
+
+                    try {
+                        const res = await fetch(`${API_BASE}/dog`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dogData)
+                        });
+
+                        if (res.ok) {
+                            showToast('Dog added successfully!', 'success');
+                            settingsDogForm.reset();
+                            loadSettingsDogs();
+                            loadHomeDashboard();
+                        } else {
+                            showToast('Failed to add dog', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Error adding dog', 'error');
+                    }
+                });
+            }
+        });
+
+        // ===== RECIPES SUB-SECTIONS =====
+        function switchRecipeSection(sectionId) {
+            // Update sub-nav buttons
+            document.querySelectorAll('.sub-nav-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.subsection === sectionId);
+            });
+
+            // Hide all subsections
+            document.querySelectorAll('.recipe-subsection').forEach(sec => {
+                sec.style.display = 'none';
+                sec.classList.remove('active');
+            });
+
+            // Show selected subsection
+            const section = document.getElementById(`sub-${sectionId}`);
+            if (section) {
+                section.style.display = 'block';
+                section.classList.add('active');
+            }
+
+            // Check PRO gate for What If
+            if (sectionId === 'what-if') {
+                const gate = document.getElementById('whatif-pro-gate');
+                const content = document.getElementById('whatif-content');
+                if (gate && content) {
+                    gate.style.display = isPro() ? 'none' : 'block';
+                    content.style.display = isPro() ? 'block' : 'none';
+                }
+            }
+
+            // Load data for specific sections
+            if (sectionId === 'ingredients-lib') {
+                loadIngredientsForSubsection();
+            } else if (sectionId === 'ingredient-guide') {
+                loadGuideForSubsection();
+            }
+        }
+
+        function loadIngredientsForSubsection() {
+            // Copy ingredients content to subsection if needed
+            const oldIngredients = document.getElementById('ingredients');
+            const subIngredients = document.getElementById('sub-ingredients-lib');
+            if (oldIngredients && subIngredients && subIngredients.innerHTML.trim() === '') {
+                subIngredients.innerHTML = oldIngredients.innerHTML;
+            }
+        }
+
+        function loadGuideForSubsection() {
+            // Copy guide content to subsection if needed
+            const oldGuide = document.getElementById('guide');
+            const subGuide = document.getElementById('sub-ingredient-guide');
+            if (oldGuide && subGuide && subGuide.innerHTML.trim() === '') {
+                subGuide.innerHTML = oldGuide.innerHTML;
+            }
+        }
+
+        // ===== HISTORY TAB =====
+        async function loadHistoryData() {
+            if (!isPro()) return;
+
+            const dogId = document.getElementById('history-dog-select')?.value;
+            if (!dogId) return;
+
+            // Load weight history and meal history
+            // This would be similar to existing tracking functions
+        }
 
         // Toast notifications
         function showToast(message, type = 'info') {
@@ -3361,43 +4414,19 @@
             }, 3000);
         }
 
-        // Tab switching
+        // Tab switching - use new switchTab function
         document.querySelectorAll('.nav-tab').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-panel').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.tab).classList.add('active');
+                switchTab(btn.dataset.tab);
             });
         });
 
-        // Nav scroll indicator - hide when scrolled to end
-        const navTabs = document.getElementById('nav-tabs');
-        const scrollIndicator = document.getElementById('nav-scroll-indicator');
-
-        function updateScrollIndicator() {
-            if (!navTabs || !scrollIndicator) return;
-            const isScrollable = navTabs.scrollWidth > navTabs.clientWidth;
-            const isAtEnd = navTabs.scrollLeft + navTabs.clientWidth >= navTabs.scrollWidth - 10;
-
-            if (!isScrollable || isAtEnd) {
-                scrollIndicator.classList.add('hidden');
-            } else {
-                scrollIndicator.classList.remove('hidden');
-            }
-        }
-
-        if (navTabs) {
-            navTabs.addEventListener('scroll', updateScrollIndicator);
-            window.addEventListener('resize', updateScrollIndicator);
-            updateScrollIndicator(); // Initial check
-        }
-
         // Initial load
         initWeightUnit();
-        loadDogs();
-        loadIngredients();
+        updateTierUI();
+        loadHomeDashboard(); // Start on Home tab
         loadRecipes();
+        loadIngredients();
 
         // Dog form
         document.getElementById('dog-form').addEventListener('submit', async (e) => {
@@ -3830,6 +4859,14 @@
         // Recipe form
         document.getElementById('recipe-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Check tier limit
+            if (!canAddRecipe()) {
+                showUpgradeModal();
+                showToast('FREE tier limit: 1 recipe. Upgrade to PRO for unlimited!', 'caution');
+                return;
+            }
+
             const data = {
                 name: document.getElementById('recipe-name').value,
                 meals_per_day: parseInt(document.getElementById('recipe-meals').value)
@@ -4087,6 +5124,9 @@
             try {
                 const res = await fetch(`${API_BASE}/recipe`);
                 const recipes = await res.json();
+                allRecipes = recipes; // Update global array for tier checking
+                updateTierUI(); // Update UI based on current limits
+
                 const list = document.getElementById('recipes-list');
                 const recipeSelect = document.getElementById('recipe-select');
                 const planRecipeSelect = document.getElementById('plan-recipe');

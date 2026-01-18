@@ -6,7 +6,9 @@
       "Bash(copy \"C:\\\\Users\\\\Scott\\\\OneDrive\\\\Pictures\\\\DogFood App\\\\Fruits\\\\Cantaloupe.png\" \"c:\\\\Users\\\\Scott\\\\Desktop\\\\DogFoodTracker-cc\\\\public\\\\images\\\\ingredients\"\")",
       "Bash(copy:*)",
       "Bash(cmd /c copy:*)",
-      "Bash(powershell -Command:*)"
+      "Bash(powershell -Command:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ]
   }
 }
