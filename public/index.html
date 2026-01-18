@@ -7,18 +7,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --accent-1: #0ea5e9;
-            --accent-2: #06b6d4;
-            --accent-3: #38bdf8;
-            --accent-4: #22d3ee;
-            --text-primary: #1e293b;
-            --text-secondary: #64748b;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            /* Base Surfaces */
+            --bg-app: #F8F6F2;
+            --bg-secondary: #FAF9F6;
+            --bg-card: #FFFFFF;
+            --border-divider: #E8E6E1;
+
+            /* Text Colors */
+            --text-primary: #2E2E2E;
+            --text-secondary: #6B6B6B;
+            --text-muted: #9A9A9A;
+
+            /* Primary Brand (Sage Green) */
+            --primary: #7BAE8E;
+            --primary-pressed: #6A9C7D;
+            --primary-soft: #A9C8B7;
+            --primary-tint: #E6F0EB;
+
+            /* Accent (Warm Amber) */
+            --accent: #F2C57C;
+            --accent-pressed: #E0B366;
+            --accent-soft: #FBF1DD;
+
+            /* UI Neutrals */
+            --progress-track: #EDEDED;
+            --disabled: #DADADA;
+            --icon-inactive: #A8A8A8;
+
+            /* Status Colors */
+            --success: #7BAE8E;
+            --warning: #F2C57C;
+            --danger: #D9896C;
+            --status-excellent: #7BAE8E;
+            --status-good: #A9C8B7;
+            --status-caution: #F2C57C;
+            --status-bad: #E8A87C;
+            --status-dangerous: #D9896C;
+
+            /* Legacy support - map old variables */
+            --accent-1: #7BAE8E;
+            --accent-2: #6A9C7D;
+            --accent-3: #A9C8B7;
+            --accent-4: #E6F0EB;
         }
 
         * {
@@ -30,78 +60,28 @@
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
-            background: linear-gradient(135deg, #0f172a 0%, #0c4a6e 50%, #0f172a 100%);
+            background: var(--bg-app);
             overflow-x: hidden;
+            color: var(--text-primary);
         }
 
-        /* Aurora Background */
+        /* Aurora Background - hidden for light theme */
         .aurora {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+            display: none;
         }
 
-        .aurora-blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.6;
-            animation: float 20s ease-in-out infinite;
-        }
-
-        .aurora-blob:nth-child(1) {
-            width: 600px;
-            height: 600px;
-            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
-            top: -200px;
-            left: -100px;
-            animation-delay: 0s;
-        }
-
-        .aurora-blob:nth-child(2) {
-            width: 500px;
-            height: 500px;
-            background: linear-gradient(135deg, #38bdf8, #22d3ee);
-            top: 50%;
-            right: -150px;
-            animation-delay: -5s;
-        }
-
-        .aurora-blob:nth-child(3) {
-            width: 400px;
-            height: 400px;
-            background: linear-gradient(135deg, #0284c7, #0891b2);
-            bottom: -100px;
-            left: 30%;
-            animation-delay: -10s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(50px, 50px) rotate(5deg); }
-            50% { transform: translate(0, 100px) rotate(0deg); }
-            75% { transform: translate(-50px, 50px) rotate(-5deg); }
-        }
-
-        /* Glass Cards */
+        /* Cards - Clean white style */
         .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: var(--glass-shadow);
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .glass-dark {
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-divider);
+            border-radius: 16px;
         }
 
         /* Layout */
@@ -121,7 +101,7 @@
         header {
             text-align: center;
             padding: 40px 20px;
-            color: white;
+            color: var(--text-primary);
         }
 
         .logo {
@@ -134,38 +114,29 @@
         .logo-icon {
             width: 64px;
             height: 64px;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+            background: var(--primary);
             border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 32px;
-            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.4);
-            animation: pulse 2s ease-in-out infinite;
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.3);
         }
 
         .app-logo {
             max-width: 350px;
             height: auto;
-            filter: drop-shadow(0 10px 40px rgba(99, 102, 241, 0.3));
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
         }
 
         header h1 {
             font-size: 3rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #fff 0%, #bae6fd 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--text-primary);
         }
 
         header p {
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             font-size: 1.1rem;
             margin-top: 8px;
         }
@@ -194,7 +165,7 @@
             top: 0;
             bottom: 0;
             width: 60px;
-            background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.95));
+            background: linear-gradient(to right, transparent, var(--bg-app));
             pointer-events: none;
             display: flex;
             align-items: center;
@@ -202,7 +173,7 @@
             padding-right: 12px;
             opacity: 1;
             transition: opacity 0.3s;
-            border-radius: 0 24px 24px 0;
+            border-radius: 0 16px 16px 0;
         }
 
         .nav-scroll-indicator.hidden {
@@ -211,7 +182,7 @@
 
         .nav-scroll-indicator::after {
             content: "›";
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             font-size: 1.8rem;
             font-weight: 300;
             animation: scrollHint 1.5s ease-in-out infinite;
@@ -225,29 +196,30 @@
         .nav-tab {
             padding: 14px 28px;
             border: none;
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.7);
-            border-radius: 16px;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border-radius: 12px;
             cursor: pointer;
             font-size: 0.95rem;
             font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             white-space: nowrap;
             display: flex;
             align-items: center;
             gap: 8px;
+            border: 1px solid var(--border-divider);
         }
 
         .nav-tab:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            transform: translateY(-2px);
+            background: var(--primary-tint);
+            color: var(--text-primary);
         }
 
         .nav-tab.active {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            background: var(--primary);
             color: white;
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(123, 174, 142, 0.3);
         }
 
         .nav-tab span {
@@ -257,6 +229,7 @@
         /* Main Content */
         .main-content {
             padding: 32px;
+            background: var(--bg-card);
         }
 
         .tab-panel {
@@ -284,7 +257,7 @@
         }
 
         .section-title {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.5rem;
             font-weight: 700;
             display: flex;
@@ -300,6 +273,9 @@
         .form-card {
             padding: 28px;
             margin-bottom: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
+            border-radius: 16px;
         }
 
         .form-grid {
@@ -319,31 +295,31 @@
         }
 
         label {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
             font-size: 0.9rem;
             font-weight: 500;
         }
 
         input, select {
             padding: 14px 18px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
             border-radius: 12px;
-            color: white;
+            color: var(--text-primary);
             font-size: 1rem;
             font-family: inherit;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
         input::placeholder {
-            color: rgba(255, 255, 255, 0.4);
+            color: var(--text-muted);
         }
 
         input:focus, select:focus {
             outline: none;
-            border-color: var(--accent-1);
-            background: rgba(99, 102, 241, 0.1);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 3px rgba(123, 174, 142, 0.2);
         }
 
         select {
@@ -351,8 +327,8 @@
         }
 
         select option {
-            background: #1e293b;
-            color: white;
+            background: var(--bg-card);
+            color: var(--text-primary);
         }
 
         /* Buttons */
@@ -363,7 +339,7 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -371,40 +347,41 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            background: var(--primary);
             color: white;
-            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 2px 8px rgba(123, 174, 142, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+            background: var(--primary-pressed);
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.4);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-divider);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--border-divider);
+            color: var(--text-primary);
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: var(--primary);
             color: white;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+            background: var(--danger);
             color: white;
         }
 
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none !important;
+            background: var(--disabled);
         }
 
         .btn-icon {
@@ -424,14 +401,16 @@
         /* Dog Card */
         .dog-card {
             padding: 24px;
-            transition: all 0.3s;
+            transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
         }
 
         .dog-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--accent-1);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.15);
         }
 
         .dog-card::before {
@@ -441,7 +420,7 @@
             left: 0;
             right: 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--accent-1), var(--accent-3));
+            background: var(--primary);
         }
 
         .dog-header {
@@ -454,7 +433,7 @@
         .dog-avatar {
             width: 60px;
             height: 60px;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+            background: var(--primary-tint);
             border-radius: 16px;
             display: flex;
             align-items: center;
@@ -463,14 +442,14 @@
         }
 
         .dog-info h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 4px;
         }
 
         .dog-info p {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
@@ -481,23 +460,21 @@
         }
 
         .stat-box {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-secondary);
             padding: 16px;
             border-radius: 12px;
             text-align: center;
+            border: 1px solid var(--border-divider);
         }
 
         .stat-value {
             font-size: 1.75rem;
             font-weight: 800;
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--primary);
         }
 
         .stat-label {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-size: 0.8rem;
             font-weight: 500;
             margin-top: 4px;
@@ -506,15 +483,17 @@
         /* Ingredient Card */
         .ingredient-card {
             padding: 20px;
-            transition: all 0.3s;
+            transition: all 0.2s;
             display: flex;
             flex-direction: column;
             min-height: 280px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
         }
 
         .ingredient-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent-2);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.15);
         }
 
         .ingredient-header {
@@ -526,7 +505,7 @@
         }
 
         .ingredient-header h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1rem;
             font-weight: 600;
             line-height: 1.3;
@@ -544,13 +523,13 @@
         }
 
         .badge-usda {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
+            background: var(--primary-tint);
+            color: var(--primary);
         }
 
         .badge-user {
-            background: rgba(139, 92, 246, 0.2);
-            color: #7dd3fc;
+            background: var(--accent-soft);
+            color: var(--accent-pressed);
         }
 
         /* Checkbox Ingredient List */
@@ -558,8 +537,9 @@
             max-height: 400px;
             overflow-y: auto;
             border-radius: 12px;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--bg-secondary);
             padding: 10px;
+            border: 1px solid var(--border-divider);
         }
 
         .ingredient-checkbox-item {
@@ -567,26 +547,26 @@
             align-items: center;
             gap: 12px;
             padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-card);
             border-radius: 10px;
             margin-bottom: 8px;
             transition: all 0.2s;
-            border: 2px solid transparent;
+            border: 1px solid var(--border-divider);
         }
 
         .ingredient-checkbox-item:hover {
-            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-soft);
         }
 
         .ingredient-checkbox-item.checked {
-            background: rgba(99, 102, 241, 0.15);
-            border-color: var(--accent-1);
+            background: var(--primary-tint);
+            border-color: var(--primary);
         }
 
         .ingredient-checkbox-item input[type="checkbox"] {
             width: 22px;
             height: 22px;
-            accent-color: var(--accent-1);
+            accent-color: var(--primary);
             cursor: pointer;
             flex-shrink: 0;
         }
@@ -597,7 +577,7 @@
         }
 
         .ingredient-checkbox-name {
-            color: white;
+            color: var(--text-primary);
             font-weight: 500;
             font-size: 0.95rem;
             margin-bottom: 2px;
@@ -607,7 +587,7 @@
         }
 
         .ingredient-checkbox-macros {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-size: 0.8rem;
         }
 
@@ -621,15 +601,16 @@
             margin-right: 8px;
         }
 
-        .category-protein { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .category-carbs { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
-        .category-veggies { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .category-vegetables { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-        .category-fruits { background: rgba(6, 182, 212, 0.2); color: #22d3ee; }
-        .category-fats { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .category-seeds { background: rgba(234, 179, 8, 0.2); color: #facc15; }
-        .category-supplements { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
-        .category-other { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+        /* Softer category colors for light theme */
+        .category-protein { background: #FDEAEA; color: #B85450; }
+        .category-carbs { background: #FEF6E6; color: #B8860B; }
+        .category-veggies { background: #E8F5E9; color: #4A7C4E; }
+        .category-vegetables { background: #E8F5E9; color: #4A7C4E; }
+        .category-fruits { background: #E0F7FA; color: #00838F; }
+        .category-fats { background: #E3F2FD; color: #1565C0; }
+        .category-seeds { background: #FFF8E1; color: #F9A825; }
+        .category-supplements { background: var(--primary-tint); color: var(--primary-pressed); }
+        .category-other { background: #F5F5F5; color: #757575; }
 
         /* Food Pyramid Visualization */
         .food-pyramid {
@@ -686,13 +667,13 @@
         .nutrient-bar label {
             width: 70px;
             font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
         }
 
         .bar-track {
             flex: 1;
             height: 8px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--progress-track);
             border-radius: 4px;
             overflow: hidden;
         }
@@ -703,26 +684,29 @@
             transition: width 0.5s ease;
         }
 
-        .bar-fill.protein { background: linear-gradient(90deg, #ef4444, #f97316); }
-        .bar-fill.fat { background: linear-gradient(90deg, #f59e0b, #eab308); }
-        .bar-fill.carbs { background: linear-gradient(90deg, #10b981, #22c55e); }
+        .bar-fill.protein { background: #D9896C; }
+        .bar-fill.fat { background: var(--accent); }
+        .bar-fill.carbs { background: var(--primary); }
 
         .nutrient-bar span {
             width: 50px;
             text-align: right;
             font-size: 0.85rem;
             font-weight: 600;
-            color: white;
+            color: var(--text-primary);
         }
 
         /* Recipe Card */
         .recipe-card {
             padding: 24px;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
         }
 
         .recipe-card:hover {
-            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.15);
         }
 
         .recipe-header {
@@ -733,13 +717,13 @@
         }
 
         .recipe-header h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.2rem;
             font-weight: 700;
         }
 
         .meals-badge {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            background: var(--primary);
             padding: 6px 14px;
             border-radius: 20px;
             color: white;
@@ -756,7 +740,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-divider);
         }
 
         .recipe-ingredient-item:last-child {
@@ -764,7 +748,7 @@
         }
 
         .recipe-ingredient-item span {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
         }
 
         .recipe-ingredient-item strong {
@@ -783,10 +767,10 @@
             flex: 1;
             padding: 16px 20px;
             padding-left: 48px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
+            border: 2px solid var(--border-divider);
             border-radius: 16px;
-            color: white;
+            color: var(--text-primary);
             font-size: 1rem;
             position: relative;
         }
@@ -816,27 +800,27 @@
         .search-result {
             padding: 16px;
             margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-divider);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .search-result:hover {
-            background: rgba(99, 102, 241, 0.1);
-            border-color: var(--accent-1);
+            background: var(--primary-tint);
+            border-color: var(--primary);
             transform: translateX(4px);
         }
 
         .search-result h4 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1rem;
             margin-bottom: 4px;
         }
 
         .search-result p {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-size: 0.85rem;
         }
 
@@ -871,7 +855,7 @@
         }
 
         .plan-dog-info p {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
         }
 
         .calorie-breakdown {
@@ -896,13 +880,13 @@
         }
 
         .calorie-card .label {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-top: 4px;
         }
 
         .calorie-card.highlight {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            background: var(--primary);
         }
 
         .calorie-card.highlight .value {
@@ -921,7 +905,7 @@
         }
 
         .portions-section h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.25rem;
             margin-bottom: 16px;
             display: flex;
@@ -935,13 +919,13 @@
             justify-content: space-between;
             padding: 16px;
             margin-bottom: 8px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-divider);
             border-radius: 12px;
         }
 
         .portion-item .name {
-            color: white;
+            color: var(--text-primary);
             font-weight: 500;
         }
 
@@ -961,7 +945,7 @@
         }
 
         .portion-amount .label {
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
             font-size: 0.75rem;
         }
 
@@ -973,13 +957,13 @@
         }
 
         .warnings-section.has-warnings {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.3);
+            background: var(--accent-soft);
+            border: 1px solid var(--accent);
         }
 
         .warnings-section.success {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
+            background: var(--primary-tint);
+            border: 1px solid var(--primary-soft);
         }
 
         .warnings-section h4 {
@@ -1002,7 +986,7 @@
         }
 
         .warnings-section li {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
             margin-bottom: 8px;
         }
 
@@ -1010,7 +994,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: rgba(255, 255, 255, 0.5);
+            color: var(--text-muted);
         }
 
         .empty-state span {
@@ -1031,14 +1015,14 @@
             justify-content: center;
             gap: 12px;
             padding: 40px;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
         }
 
         .spinner {
             width: 24px;
             height: 24px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--accent-1);
+            border: 3px solid var(--border-divider);
+            border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -1120,11 +1104,11 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-secondary);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--accent-1);
+            background: var(--primary-soft);
             border-radius: 4px;
         }
 
@@ -1147,7 +1131,7 @@
         }
 
         .builder-section h3 {
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 16px;
             font-size: 1.1rem;
         }
@@ -1166,7 +1150,7 @@
             justify-content: space-around;
             margin-top: 15px;
             padding: 15px 10px;
-            background: rgba(255, 255, 255, 0.03);
+            background: var(--bg-secondary);
             border-radius: 12px;
             flex-wrap: wrap;
             gap: 8px;
@@ -1195,7 +1179,7 @@
         .macro-circle.carbs { background: linear-gradient(135deg, #10b981, #22c55e); }
 
         .macro-label {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             font-size: 0.8rem;
         }
 
@@ -1223,7 +1207,7 @@
             gap: 8px;
             margin-top: auto;
             padding-top: 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid var(--border-divider);
         }
 
         .btn-sm {
@@ -1232,23 +1216,23 @@
         }
 
         .btn-edit {
-            background: rgba(99, 102, 241, 0.2);
-            color: #7dd3fc;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: var(--primary-tint);
+            color: var(--primary-pressed);
+            border: 1px solid var(--primary-soft);
         }
 
         .btn-edit:hover {
-            background: rgba(99, 102, 241, 0.3);
+            background: var(--primary-soft);
         }
 
         .btn-delete {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: #FEE2E2;
+            color: #B91C1C;
+            border: 1px solid #FECACA;
         }
 
         .btn-delete:hover {
-            background: rgba(239, 68, 68, 0.3);
+            background: #FECACA;
         }
 
         /* Modal */
@@ -1258,7 +1242,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1274,10 +1258,9 @@
         }
 
         .modal {
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
+            border-radius: 20px;
             padding: 32px;
             max-width: 500px;
             width: 90%;
@@ -1285,6 +1268,7 @@
             overflow-y: auto;
             transform: scale(0.9);
             transition: transform 0.3s;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
 
         .modal-overlay.active .modal {
@@ -1292,7 +1276,7 @@
         }
 
         .modal h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.5rem;
             margin-bottom: 24px;
         }
@@ -1307,23 +1291,24 @@
         /* Ingredient Guide Styles */
         .filter-btn {
             padding: 8px 16px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--border-divider);
+            background: var(--bg-card);
+            color: var(--text-secondary);
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.85rem;
-            transition: all 0.3s;
+            transition: all 0.2s;
         }
 
         .filter-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
+            background: var(--primary-tint);
+            color: var(--text-primary);
         }
 
         .filter-btn.active {
-            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            background: var(--primary);
             color: white;
+            border-color: var(--primary);
         }
 
         .ingredient-category {
@@ -1341,11 +1326,11 @@
         }
 
         .category-header:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: var(--primary-tint);
         }
 
         .category-header h3 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.1rem;
             margin: 0;
             display: flex;
@@ -1354,7 +1339,7 @@
         }
 
         .expand-icon {
-            color: white;
+            color: var(--text-secondary);
             font-size: 1.5rem;
             transition: transform 0.3s;
         }
@@ -1400,7 +1385,7 @@
         }
 
         .ingredient-info h4 {
-            color: white;
+            color: var(--text-primary);
             font-size: 1.1rem;
             font-weight: 600;
             margin: 0 0 8px 0;
@@ -1409,7 +1394,7 @@
         }
 
         .ingredient-info p {
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             font-size: 0.85rem;
             margin: 0;
             line-height: 1.5;
@@ -1431,19 +1416,19 @@
             align-items: center;
             gap: 15px;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-secondary);
             border-radius: 8px;
             margin-bottom: 10px;
         }
 
         .adjustment-row label {
             flex: 1;
-            color: white;
+            color: var(--text-primary);
             font-weight: 500;
         }
 
         .adjustment-row .current-value {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--text-secondary);
             font-size: 0.9rem;
         }
 
@@ -1460,13 +1445,13 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
-            color: white;
+            color: var(--text-primary);
             font-size: 0.9rem;
         }
 
         .nutrient-bar-track {
             height: 24px;
-            background: rgba(255, 255, 255, 0.1);
+            background: var(--progress-track);
             border-radius: 12px;
             overflow: hidden;
             position: relative;
@@ -1507,11 +1492,11 @@
             font-weight: 600;
         }
 
-        .status-badge.excellent { background: #10b981; color: white; }
-        .status-badge.good { background: #22c55e; color: white; }
-        .status-badge.caution { background: #eab308; color: black; }
-        .status-badge.bad { background: #f97316; color: white; }
-        .status-badge.dangerous { background: #ef4444; color: white; }
+        .status-badge.excellent { background: var(--primary-tint); color: var(--primary-pressed); }
+        .status-badge.good { background: #E8F5E9; color: #4A7C4E; }
+        .status-badge.caution { background: var(--accent-soft); color: #8B6914; }
+        .status-badge.bad { background: #FFF3E0; color: #E65100; }
+        .status-badge.dangerous { background: #FFEBEE; color: #C62828; }
 
         /* Overall Status Card */
         .status-card-large {
@@ -1525,12 +1510,12 @@
         }
 
         .status-card-large h3 {
-            color: white;
+            color: var(--text-primary);
             margin-bottom: 10px;
         }
 
         .status-card-large p {
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
         }
 
         /* Dangerous Foods Section */
@@ -1538,8 +1523,8 @@
             margin-top: 30px;
             padding: 25px;
             border-radius: 20px;
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
-            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
         }
 
         .danger-section-header {
@@ -1548,14 +1533,14 @@
         }
 
         .danger-section-header h2 {
-            color: #ef4444;
+            color: #B91C1C;
             font-size: 1.8rem;
             font-weight: 700;
             margin-bottom: 8px;
         }
 
         .danger-section-header p {
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             font-size: 0.95rem;
         }
 
@@ -1563,7 +1548,8 @@
             margin-bottom: 20px;
             padding: 20px;
             border-radius: 16px;
-            background: rgba(0, 0, 0, 0.3);
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
         }
 
         .danger-tier-header {
@@ -1572,7 +1558,7 @@
             gap: 12px;
             margin-bottom: 15px;
             padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-divider);
         }
 
         .danger-tier-header h3 {
@@ -1598,10 +1584,10 @@
             align-items: center;
             gap: 8px;
             padding: 10px 14px;
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--bg-secondary);
             border-radius: 10px;
             font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
         }
 
         .danger-item.skull::before { content: '☠️'; }
@@ -1613,11 +1599,11 @@
         .danger-note {
             margin-top: 12px;
             padding: 12px 15px;
-            background: rgba(239, 68, 68, 0.15);
-            border-left: 3px solid #ef4444;
+            background: #FEF2F2;
+            border-left: 3px solid #DC2626;
             border-radius: 0 10px 10px 0;
             font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
             font-style: italic;
         }
 
@@ -1652,18 +1638,18 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-divider);
             padding: 12px 20px;
             text-align: center;
             z-index: 1000;
             font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .sticky-disclaimer strong {
-            color: #f59e0b;
+            color: var(--accent-pressed);
         }
 
         /* Add padding to body so content isn't hidden behind disclaimer */
@@ -1683,24 +1669,20 @@
             max-height: 500px;
             object-fit: cover;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             margin-bottom: 40px;
         }
 
         .about-heading {
             font-size: 3rem;
             font-weight: 800;
-            color: white;
+            color: var(--primary);
             text-align: center;
             margin-bottom: 40px;
-            background: linear-gradient(135deg, var(--accent-3), var(--accent-4));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .about-text {
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-secondary);
             font-size: 1.1rem;
             line-height: 1.9;
         }
@@ -1710,24 +1692,24 @@
         }
 
         .about-text .emphasis {
-            color: white;
+            color: var(--text-primary);
             font-weight: 600;
         }
 
         .about-text .emotional {
             font-style: italic;
-            color: rgba(255, 255, 255, 0.8);
+            color: var(--text-secondary);
         }
 
         .about-quote {
             font-size: 1.3rem;
             font-weight: 600;
-            color: var(--accent-3);
+            color: var(--primary);
             text-align: center;
             padding: 30px 20px;
             margin: 40px 0;
-            border-left: 4px solid var(--accent-2);
-            background: rgba(14, 165, 233, 0.1);
+            border-left: 4px solid var(--primary);
+            background: var(--primary-tint);
             border-radius: 0 16px 16px 0;
         }
 
@@ -1736,7 +1718,7 @@
             max-height: 600px;
             object-fit: cover;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
             margin-top: 40px;
         }
 
@@ -1744,15 +1726,15 @@
             text-align: center;
             margin-top: 40px;
             padding: 30px;
-            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(6, 182, 212, 0.2));
+            background: var(--primary-tint);
             border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--primary-soft);
         }
 
         .about-cta p {
             font-size: 1.2rem;
             font-weight: 600;
-            color: white;
+            color: var(--text-primary);
             margin: 0;
         }
 
@@ -1773,8 +1755,8 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
-            color: white;
+            background: var(--accent);
+            color: #5D4A1F;
             font-size: 0.65rem;
             font-weight: 700;
             padding: 3px 8px;
@@ -1784,12 +1766,12 @@
             margin-left: 8px;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.3);
+            box-shadow: 0 2px 6px rgba(242, 197, 124, 0.3);
         }
 
         .pro-badge:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.5);
+            box-shadow: 0 4px 10px rgba(242, 197, 124, 0.4);
         }
 
         .pro-badge-inline {
@@ -1803,8 +1785,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.5);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -1815,14 +1796,15 @@
         }
 
         .upgrade-modal-content {
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-divider);
+            border-radius: 20px;
             padding: 40px;
             max-width: 420px;
             width: 90%;
             text-align: center;
             animation: modalSlideIn 0.3s ease-out;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
         }
 
         @keyframes modalSlideIn {
@@ -1837,17 +1819,13 @@
         }
 
         .upgrade-modal-content h2 {
-            color: white;
+            color: var(--primary);
             font-size: 1.8rem;
             margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--accent-3), var(--accent-4));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
 
         .upgrade-modal-content > p {
-            color: rgba(255, 255, 255, 0.7);
+            color: var(--text-secondary);
             margin-bottom: 25px;
         }
 
@@ -1859,9 +1837,9 @@
         }
 
         .pro-benefits li {
-            color: rgba(255, 255, 255, 0.9);
+            color: var(--text-primary);
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--border-divider);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -1873,13 +1851,13 @@
 
         .pro-benefits li::before {
             content: "✓";
-            color: var(--success);
+            color: var(--primary);
             font-weight: bold;
             font-size: 1.1rem;
         }
 
         .btn-upgrade {
-            background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+            background: var(--primary);
             color: white;
             border: none;
             padding: 14px 32px;
@@ -1889,24 +1867,24 @@
             cursor: pointer;
             width: 100%;
             margin-bottom: 12px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s;
         }
 
         .btn-upgrade:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(14, 165, 233, 0.4);
+            background: var(--primary-pressed);
+            box-shadow: 0 4px 12px rgba(123, 174, 142, 0.3);
         }
 
         .upgrade-modal-content .btn-secondary {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: rgba(255, 255, 255, 0.7);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-divider);
+            color: var(--text-secondary);
             width: 100%;
         }
 
         .upgrade-modal-content .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: var(--border-divider);
+            color: var(--text-primary);
         }
     </style>
 </head>
@@ -1930,7 +1908,7 @@
                 </div>
                 <p>Precision nutrition for your best friend</p>
                 <div class="unit-toggle" style="margin-top: 16px;">
-                    <span style="color: rgba(255,255,255,0.7); margin-right: 12px;">Weight Unit:</span>
+                    <span style="color: var(--text-secondary); margin-right: 12px;">Weight Unit:</span>
                     <button class="btn btn-secondary unit-btn active" data-unit="kg" onclick="setWeightUnit('kg')">kg</button>
                     <button class="btn btn-secondary unit-btn" data-unit="lbs" onclick="setWeightUnit('lbs')">lbs</button>
                 </div>
@@ -1957,7 +1935,7 @@
                 <div id="dogs" class="tab-panel active">
                     <div class="section-header">
                         <h2 class="section-title"><span>🐕</span> Your Dogs</h2>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Free: 1 dog <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited dogs</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Free: 1 dog <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited dogs</p>
                     </div>
 
                     <div class="form-card glass-dark">
@@ -2042,7 +2020,7 @@
                 <div id="tracking" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>📊</span> Daily Tracking</h2>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Daily logging is free <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> History charts & progress</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Daily logging is free <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> History charts & progress</p>
                     </div>
 
                     <!-- Dog Selector for Tracking -->
@@ -2057,7 +2035,7 @@
 
                     <!-- Daily Summary Card -->
                     <div id="daily-summary" class="glass-dark" style="padding: 24px; border-radius: 16px; margin-bottom: 24px; display: none;">
-                        <h3 style="color: white; margin-bottom: 16px;">Today's Summary</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">Today's Summary</h3>
                         <div class="dog-stats" style="margin-bottom: 16px;">
                             <div class="stat-box">
                                 <div class="stat-value" id="summary-target">--</div>
@@ -2077,7 +2055,7 @@
 
                     <!-- Log Meal Form -->
                     <div class="form-card glass-dark" style="margin-bottom: 24px;">
-                        <h3 style="color: white; margin-bottom: 16px;">Log a Meal</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">Log a Meal</h3>
                         <form id="feeding-log-form">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -2114,13 +2092,13 @@
 
                     <!-- Today's Meals -->
                     <div class="form-card glass-dark" style="margin-bottom: 24px;">
-                        <h3 style="color: white; margin-bottom: 16px;">Today's Meals</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">Today's Meals</h3>
                         <div id="todays-meals-list"></div>
                     </div>
 
                     <!-- Weight Log Section -->
                     <div class="form-card glass-dark" style="margin-bottom: 24px;">
-                        <h3 style="color: white; margin-bottom: 16px;">Log Weight</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">Log Weight</h3>
                         <form id="weight-log-form">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -2142,8 +2120,8 @@
 
                     <!-- Weight History -->
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 16px;">Weight History <span class="pro-badge" onclick="showUpgradeModal()">PRO</span></h3>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-bottom: 16px;">Track weight over time with Pro</p>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">Weight History <span class="pro-badge" onclick="showUpgradeModal()">PRO</span></h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px;">Track weight over time with Pro</p>
                         <div id="weight-history-list"></div>
                     </div>
                 </div>
@@ -2155,7 +2133,7 @@
                     </div>
 
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 16px;">🔍 Search USDA Database</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">🔍 Search USDA Database</h3>
                         <div class="search-container">
                             <div class="search-wrapper">
                                 <input type="text" id="ingredient-search" class="search-input" placeholder="Search for ingredients (e.g., chicken breast, beef liver)">
@@ -2166,7 +2144,7 @@
                     </div>
 
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 16px;">✏️ Add Custom Ingredient</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">✏️ Add Custom Ingredient</h3>
                         <form id="ingredient-form">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -2178,23 +2156,23 @@
                                     <input type="number" id="ing-kcal" step="0.1" required placeholder="e.g., 500">
                                 </div>
                                 <div class="form-group">
-                                    <label>Total Weight (g) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <label>Total Weight (g) <span style="color: var(--text-muted); font-size: 0.8em;">optional</span></label>
                                     <input type="number" id="ing-weight" step="0.1" placeholder="e.g., 200 (default: 100)">
                                 </div>
                                 <div class="form-group">
-                                    <label>Protein (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <label>Protein (g total) <span style="color: var(--text-muted); font-size: 0.8em;">optional</span></label>
                                     <input type="number" id="ing-protein" step="0.1" placeholder="e.g., 52">
                                 </div>
                                 <div class="form-group">
-                                    <label>Fat (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <label>Fat (g total) <span style="color: var(--text-muted); font-size: 0.8em;">optional</span></label>
                                     <input type="number" id="ing-fat" step="0.1" placeholder="e.g., 30">
                                 </div>
                                 <div class="form-group">
-                                    <label>Carbs (g total) <span style="color: rgba(255,255,255,0.5); font-size: 0.8em;">optional</span></label>
+                                    <label>Carbs (g total) <span style="color: var(--text-muted); font-size: 0.8em;">optional</span></label>
                                     <input type="number" id="ing-carbs" step="0.1" placeholder="e.g., 0">
                                 </div>
                             </div>
-                            <p style="color: rgba(255,255,255,0.6); font-size: 0.85em; margin: 10px 0;">
+                            <p style="color: var(--text-secondary); font-size: 0.85em; margin: 10px 0;">
                                 Enter total values for your ingredient. If you specify weight, values will be converted to per-100g automatically.
                             </p>
                             <div class="quick-actions">
@@ -2207,19 +2185,19 @@
 
                     <!-- Cal to kcal Converter -->
                     <div class="form-card glass-dark" style="margin-top: 20px;">
-                        <h3 style="color: white; margin-bottom: 16px;">🔄 Calorie Converter</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 16px;">🔄 Calorie Converter</h3>
                         <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: end;">
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>Calories (cal)</label>
                                 <input type="number" id="cal-input" step="0.1" placeholder="e.g., 1000" oninput="convertCalToKcal()">
                             </div>
-                            <div style="padding-bottom: 8px; color: rgba(255,255,255,0.7); font-size: 1.5em;">=</div>
+                            <div style="padding-bottom: 8px; color: var(--text-secondary); font-size: 1.5em;">=</div>
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>Kilocalories (kcal)</label>
                                 <input type="number" id="kcal-output" step="0.1" placeholder="Result" readonly style="background: rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.5);">
                             </div>
                         </div>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 0.8em; margin-top: 12px; text-align: center;">
+                        <p style="color: var(--text-muted); font-size: 0.8em; margin-top: 12px; text-align: center;">
                             1 kcal = 1000 cal (small calories) | Food labels typically show kcal (large Calories)
                         </p>
                     </div>
@@ -2237,7 +2215,7 @@
                 <div id="recipes" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>📋</span> Recipes</h2>
-                        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 8px;">Free: 1 recipe <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited recipes</p>
+                        <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 8px;">Free: 1 recipe <span class="pro-badge pro-badge-inline" onclick="showUpgradeModal()">PRO</span> Unlimited recipes</p>
                     </div>
 
                     <div class="recipe-builder">
@@ -2265,7 +2243,7 @@
 
                         <div class="builder-section glass-dark">
                             <h3>✅ Select Ingredients You Have</h3>
-                            <p style="color: rgba(255,255,255,0.6); margin-bottom: 15px; font-size: 0.9rem;">
+                            <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.9rem;">
                                 Just check the ingredients you have on hand. The app will automatically calculate optimal portions based on your dog's needs!
                             </p>
                             <div class="form-group">
@@ -2279,7 +2257,7 @@
                             <div id="ingredient-checkbox-list" class="ingredient-checkbox-list">
                                 <div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones you have available</p></div>
                             </div>
-                            <div id="ingredient-count-display" style="padding: 12px; text-align: center; font-weight: 500; color: rgba(255,255,255,0.7); margin-top: 10px;"></div>
+                            <div id="ingredient-count-display" style="padding: 12px; text-align: center; font-weight: 500; color: var(--text-secondary); margin-top: 10px;"></div>
                             <div class="quick-actions" style="margin-top: 15px;">
                                 <button class="btn btn-success" onclick="saveRecipeIngredients()">
                                     <span>💾</span> Save Selected Ingredients
@@ -2304,7 +2282,7 @@
                     </div>
 
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 20px;">Calculate Feeding Plan</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 20px;">Calculate Feeding Plan</h3>
                         <form id="plan-form">
                             <div class="form-grid">
                                 <div class="form-group">
@@ -2343,7 +2321,7 @@
                 <div id="guide" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>📚</span> Ingredient Guide</h2>
-                        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">Learn about dog-friendly ingredients and their health benefits</p>
+                        <p style="color: var(--text-secondary); margin-top: 8px;">Learn about dog-friendly ingredients and their health benefits</p>
                     </div>
 
                     <!-- Category Filter -->
@@ -2813,7 +2791,7 @@
                             <div class="danger-tier-header">
                                 <h3>🍫 DEADLY — Can Kill Quickly</h3>
                             </div>
-                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 10px;">Human Foods That Kill Dogs</h4>
+                            <h4 style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">Human Foods That Kill Dogs</h4>
                             <div class="danger-grid">
                                 <div class="danger-item skull">Chocolate (dark & baking worst)</div>
                                 <div class="danger-item skull">Cocoa powder</div>
@@ -2826,7 +2804,7 @@
                                 <div class="danger-item skull">Nutmeg (large amounts)</div>
                             </div>
 
-                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 20px 0 10px 0;">🧅 Plants/Veggies That Destroy Organs</h4>
+                            <h4 style="color: var(--text-secondary); font-size: 0.85rem; margin: 20px 0 10px 0;">🧅 Plants/Veggies That Destroy Organs</h4>
                             <div class="danger-grid">
                                 <div class="danger-item skull">Onions (raw, cooked, powdered)</div>
                                 <div class="danger-item skull">Garlic (raw, cooked, powdered)</div>
@@ -2882,7 +2860,7 @@
                             <div class="danger-tier-header">
                                 <h3>🤢 HARMFUL — Not Toxic But Can Wreck Them</h3>
                             </div>
-                            <h4 style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-bottom: 10px;">Dairy & Processed Foods</h4>
+                            <h4 style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 10px;">Dairy & Processed Foods</h4>
                             <div class="danger-grid">
                                 <div class="danger-item no">Milk</div>
                                 <div class="danger-item no">Ice cream</div>
@@ -2945,7 +2923,7 @@
                             <div class="danger-tier-header">
                                 <h3>🧠 Emergency Symptoms — VET NOW!</h3>
                             </div>
-                            <p style="color: rgba(255,255,255,0.8); margin-bottom: 15px;">If your dog shows ANY of these symptoms after eating something suspicious:</p>
+                            <p style="color: var(--text-primary); margin-bottom: 15px;">If your dog shows ANY of these symptoms after eating something suspicious:</p>
                             <div class="symptoms-grid">
                                 <div class="symptom-item">Vomiting</div>
                                 <div class="symptom-item">Lethargy</div>
@@ -2958,7 +2936,7 @@
                                 <div class="symptom-item">Abdominal pain</div>
                                 <div class="symptom-item">Disorientation</div>
                             </div>
-                            <div class="danger-note" style="margin-top: 15px; background: rgba(255,255,255,0.1); border-left-color: #fff;">
+                            <div class="danger-note" style="margin-top: 15px; background: var(--bg-secondary); border-left-color: #fff;">
                                 <strong>ASPCA Animal Poison Control:</strong> (888) 426-4435 (fee applies) — Available 24/7
                             </div>
                         </div>
@@ -2969,11 +2947,11 @@
                 <div id="simulator" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>🔬</span> What If Simulator</h2>
-                        <p style="color: rgba(255,255,255,0.7); margin-top: 8px;">See how ingredient changes affect your dog's nutrition</p>
+                        <p style="color: var(--text-secondary); margin-top: 8px;">See how ingredient changes affect your dog's nutrition</p>
                     </div>
 
                     <div class="form-card glass-dark">
-                        <h3 style="color: white; margin-bottom: 20px;">Select Dog & Recipe</h3>
+                        <h3 style="color: var(--text-primary); margin-bottom: 20px;">Select Dog & Recipe</h3>
                         <div class="form-grid">
                             <div class="form-group">
                                 <label>Select Dog</label>
@@ -2989,14 +2967,14 @@
                     <div id="simulator-content" style="display: none;">
                         <!-- Current Nutrition Overview -->
                         <div class="form-card glass-dark" style="margin-top: 20px;">
-                            <h3 style="color: white; margin-bottom: 15px;">📊 Current Nutritional Profile</h3>
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 Current Nutritional Profile</h3>
                             <div id="current-nutrition-display"></div>
                         </div>
 
                         <!-- Ingredient Adjustments -->
                         <div class="form-card glass-dark" style="margin-top: 20px;">
-                            <h3 style="color: white; margin-bottom: 15px;">🔧 Adjust Ingredients</h3>
-                            <p style="color: rgba(255,255,255,0.7); margin-bottom: 15px;">Change amounts below and click "Simulate" to see the impact</p>
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔧 Adjust Ingredients</h3>
+                            <p style="color: var(--text-secondary); margin-bottom: 15px;">Change amounts below and click "Simulate" to see the impact</p>
                             <div id="ingredient-adjustments"></div>
                             <div class="quick-actions" style="margin-top: 20px;">
                                 <button type="button" class="btn btn-primary" onclick="runSimulation()">
@@ -3015,7 +2993,7 @@
 
                             <!-- Macro Pie Chart -->
                             <div class="form-card glass-dark" style="margin-top: 20px;">
-                                <h3 style="color: white; margin-bottom: 15px;">🥧 Macro Distribution</h3>
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">🥧 Macro Distribution</h3>
                                 <div style="max-width: 400px; margin: 0 auto;">
                                     <canvas id="macro-chart"></canvas>
                                 </div>
@@ -3023,7 +3001,7 @@
 
                             <!-- Nutrient Bars -->
                             <div class="form-card glass-dark" style="margin-top: 20px;">
-                                <h3 style="color: white; margin-bottom: 15px;">📈 Nutrient Levels vs AAFCO Requirements</h3>
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">📈 Nutrient Levels vs AAFCO Requirements</h3>
                                 <div id="nutrient-bars"></div>
                             </div>
 
@@ -3093,7 +3071,7 @@
     <div class="modal-overlay" id="add-to-recipe-modal">
         <div class="modal">
             <h3>Add to Recipe</h3>
-            <p style="color: rgba(255,255,255,0.8); margin-bottom: 20px;">
+            <p style="color: var(--text-primary); margin-bottom: 20px;">
                 Adding: <strong id="add-ingredient-name"></strong>
             </p>
             <div class="form-group">
@@ -3248,7 +3226,7 @@
     <div class="modal-overlay" id="confirm-delete-modal">
         <div class="modal">
             <h3>Confirm Delete</h3>
-            <p id="delete-message" style="color: rgba(255,255,255,0.8); margin-bottom: 24px;">Are you sure you want to delete this item?</p>
+            <p id="delete-message" style="color: var(--text-primary); margin-bottom: 24px;">Are you sure you want to delete this item?</p>
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('confirm-delete-modal')">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirm-delete-btn">Delete</button>
@@ -3493,7 +3471,7 @@
                                 <div class="stat-label">Daily kcal</div>
                             </div>
                         </div>
-                        ${dog.notes ? `<p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);">📝 ${dog.notes}</p>` : ''}
+                        ${dog.notes ? `<p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-divider);">📝 ${dog.notes}</p>` : ''}
                         <div class="card-actions">
                             <button class="btn btn-sm btn-edit" onclick="editDog(${dog.id})">Edit</button>
                             <button class="btn btn-sm btn-delete" onclick="confirmDeleteDog(${dog.id}, '${dog.name}')">Delete</button>
@@ -3929,7 +3907,7 @@
                 const count = checkedItems.length;
                 countDisplay.innerHTML = count > 0
                     ? `<span style="color: #10b981;">✓ ${count} ingredient${count > 1 ? 's' : ''} selected</span>`
-                    : '<span style="color: rgba(255,255,255,0.5);">No ingredients selected</span>';
+                    : '<span style="color: var(--text-muted);">No ingredients selected</span>';
             }
         }
 
@@ -4282,8 +4260,8 @@
                         <!-- Calorie Budget Summary -->
                         ${plan.calorie_budget ? `
                             <div class="form-card glass-dark" style="margin-bottom: 20px; padding: 20px;">
-                                <h3 style="color: white; margin-bottom: 15px;">📊 Daily Calorie Budget</h3>
-                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; color: rgba(255,255,255,0.9);">
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 Daily Calorie Budget</h3>
+                                <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; color: var(--text-primary);">
                                     <span>🍖 Homemade Food:</span>
                                     <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.homemade_food_kcal?.toFixed(0)} kcal</span>
                                     ${plan.calorie_budget.kibble_kcal > 0 ? `
@@ -4302,14 +4280,14 @@
                                         <span>🦴 Treats:</span>
                                         <span style="text-align: right; font-weight: bold;">${plan.calorie_budget.treats_kcal?.toFixed(0)} kcal</span>
                                     ` : ''}
-                                    <div style="grid-column: 1/-1; border-top: 1px solid rgba(255,255,255,0.2); margin: 8px 0;"></div>
+                                    <div style="grid-column: 1/-1; border-top: 1px solid var(--border-divider); margin: 8px 0;"></div>
                                     <span style="font-weight: bold;">Total:</span>
                                     <span style="text-align: right; font-weight: bold; color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : '#10b981'};">${plan.calorie_budget.total_kcal?.toFixed(0)} / ${plan.calorie_budget.target_daily_kcal?.toFixed(0)} kcal</span>
                                     ${plan.calorie_budget.remaining_kcal !== 0 ? `
-                                        <span style="color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'rgba(255,255,255,0.6)'};">
+                                        <span style="color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'var(--text-secondary)'};">
                                             ${plan.calorie_budget.remaining_kcal > 0 ? 'Remaining:' : 'Over by:'}
                                         </span>
-                                        <span style="text-align: right; color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'rgba(255,255,255,0.6)'};">
+                                        <span style="text-align: right; color: ${plan.calorie_budget.remaining_kcal < 0 ? '#ef4444' : 'var(--text-secondary)'};">
                                             ${Math.abs(plan.calorie_budget.remaining_kcal)?.toFixed(0)} kcal
                                         </span>
                                     ` : ''}
@@ -4319,21 +4297,21 @@
 
                         <!-- Container Instructions -->
                         <div class="form-card glass-dark" style="margin-bottom: 20px; padding: 20px;">
-                            <h3 style="color: white; margin-bottom: 15px;">📦 How to Prep</h3>
-                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">📦 How to Prep</h3>
+                            <p style="color: var(--text-primary); font-size: 1.1em; margin-bottom: 10px;">
                                 <strong>1.</strong> Cook/prep all batch ingredients using the amounts below
                             </p>
-                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                            <p style="color: var(--text-primary); font-size: 1.1em; margin-bottom: 10px;">
                                 <strong>2.</strong> Mix everything together thoroughly
                             </p>
-                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-bottom: 10px;">
+                            <p style="color: var(--text-primary); font-size: 1.1em; margin-bottom: 10px;">
                                 <strong>3.</strong> Divide into <strong>${plan.total_meals}</strong> containers of <strong>${plan.grams_per_container?.toFixed(0)}g</strong> each
                             </p>
-                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1em;">
+                            <p style="color: var(--text-primary); font-size: 1.1em;">
                                 <strong>4.</strong> Feed <strong>${plan.meals_per_day}</strong> container(s) per day (${plan.per_meal_kcal?.toFixed(0)} kcal each)
                             </p>
                             ${plan.oils && plan.oils.length > 0 ? `
-                                <p style="color: rgba(255,255,255,0.9); font-size: 1.1em; margin-top: 10px;">
+                                <p style="color: var(--text-primary); font-size: 1.1em; margin-top: 10px;">
                                     <strong>5.</strong> Add oils at mealtime (see "Given Separately" section)
                                 </p>
                             ` : ''}
@@ -4395,7 +4373,7 @@
 
                                 ${plan.oils && plan.oils.length > 0 ? `
                                     <div style="margin-bottom: 15px;">
-                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">🫒 Oils</h4>
+                                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">🫒 Oils</h4>
                                         ${plan.oils.map(o => `
                                             <div class="portion-item glass-dark">
                                                 <span class="name">${o.ingredient_name}</span>
@@ -4420,7 +4398,7 @@
 
                                 ${plan.supplements && plan.supplements.length > 0 ? `
                                     <div style="margin-bottom: 15px;">
-                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">💊 Supplements</h4>
+                                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">💊 Supplements</h4>
                                         ${plan.supplements.map(s => `
                                             <div class="portion-item glass-dark">
                                                 <span class="name">${s.ingredient_name}</span>
@@ -4443,7 +4421,7 @@
 
                                 ${plan.treats && plan.treats.length > 0 ? `
                                     <div>
-                                        <h4 style="color: rgba(255,255,255,0.8); margin-bottom: 10px;">🦴 Treats</h4>
+                                        <h4 style="color: var(--text-primary); margin-bottom: 10px;">🦴 Treats</h4>
                                         ${plan.treats.map(t => `
                                             <div class="portion-item glass-dark">
                                                 <span class="name">${t.ingredient_name}</span>
@@ -4469,13 +4447,13 @@
                         <!-- Nutrition Summary - Total, Per Day, Per Meal -->
                         ${plan.nutrient_totals ? `
                             <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
-                                <h3 style="color: white; margin-bottom: 20px;">📊 Nutrition Breakdown</h3>
+                                <h3 style="color: var(--text-primary); margin-bottom: 20px;">📊 Nutrition Breakdown</h3>
 
                                 <!-- Nutrition Table -->
                                 <div style="overflow-x: auto;">
-                                    <table style="width: 100%; border-collapse: collapse; color: white;">
+                                    <table style="width: 100%; border-collapse: collapse; color: var(--text-primary);">
                                         <thead>
-                                            <tr style="border-bottom: 2px solid rgba(255,255,255,0.3);">
+                                            <tr style="border-bottom: 2px solid var(--border-divider);">
                                                 <th style="text-align: left; padding: 12px 8px; font-weight: 600;">Nutrient</th>
                                                 <th style="text-align: center; padding: 12px 8px; font-weight: 600; background: rgba(138, 43, 226, 0.2);">Total (${plan.num_days} days)</th>
                                                 <th style="text-align: center; padding: 12px 8px; font-weight: 600; background: rgba(16, 185, 129, 0.2);">Per Day</th>
@@ -4483,31 +4461,31 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🔥 Calories</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1); font-weight: bold;">${(plan.nutrient_totals.kcal * plan.num_days)?.toFixed(0) || (plan.target_kcal * plan.num_days)?.toFixed(0)} kcal</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1); font-weight: bold;">${plan.nutrient_totals.kcal?.toFixed(0) || plan.target_kcal?.toFixed(0)} kcal</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1); font-weight: bold;">${plan.per_meal_kcal?.toFixed(0)} kcal</td>
                                             </tr>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🥩 Protein</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.protein_g * plan.num_days)?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.protein_g?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.protein_g / plan.meals_per_day)?.toFixed(1)}g</td>
                                             </tr>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🧈 Fat</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.fat_g * plan.num_days)?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.fat_g?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.fat_g / plan.meals_per_day)?.toFixed(1)}g</td>
                                             </tr>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🍚 Carbs</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.carbs_g * plan.num_days)?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.carbs_g / plan.meals_per_day)?.toFixed(1)}g</td>
                                             </tr>
-                                            <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+                                            <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🦴 Calcium</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.calcium_mg * plan.num_days)?.toFixed(0)}mg</td>
                                                 <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.calcium_mg?.toFixed(0)}mg</td>
@@ -4528,7 +4506,7 @@
                         <!-- Food Pyramid Visualization -->
                         ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
                             <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
-                                <h3 style="color: white; margin-bottom: 15px; text-align: center;">🔺 Recipe Food Pyramid</h3>
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px; text-align: center;">🔺 Recipe Food Pyramid</h3>
                                 <div class="food-pyramid">
                                     ${(() => {
                                         // Group by category and calculate percentages
@@ -4581,7 +4559,7 @@
                                         `).join('');
                                     })()}
                                 </div>
-                                <p style="color: rgba(255,255,255,0.5); font-size: 0.8em; text-align: center; margin-top: 10px;">
+                                <p style="color: var(--text-muted); font-size: 0.8em; text-align: center; margin-top: 10px;">
                                     Ideal: 50% protein, 20% carbs, 20% veggies, 5% fruits, 3% fats, 2% supplements
                                 </p>
                             </div>
@@ -4593,21 +4571,21 @@
                                 <ul>
                                     ${plan.warnings.map(w => `<li>${w}</li>`).join('')}
                                 </ul>
-                                <p style="color: rgba(255,255,255,0.7); font-size: 0.9em; margin-top: 10px;">Consider adding supplements to address deficiencies.</p>
+                                <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">Consider adding supplements to address deficiencies.</p>
                             </div>
                         ` : `
                             <div class="warnings-section success">
                                 <h4>✓ Nutritionally Complete</h4>
-                                <p style="color: rgba(255,255,255,0.8);">This meal plan meets AAFCO nutritional guidelines for adult dogs.</p>
+                                <p style="color: var(--text-primary);">This meal plan meets AAFCO nutritional guidelines for adult dogs.</p>
                             </div>
                         `}
                     `;
                     showToast('Batch meal plan calculated!', 'success');
                 } else {
-                    resultDiv.innerHTML = `<div class="warnings-section has-warnings"><h4>⚠️ Error</h4><p style="color: rgba(255,255,255,0.8);">${plan.detail || 'Could not calculate plan. Make sure you have a dog, recipe, and ingredients set up.'}</p></div>`;
+                    resultDiv.innerHTML = `<div class="warnings-section has-warnings"><h4>⚠️ Error</h4><p style="color: var(--text-primary);">${plan.detail || 'Could not calculate plan. Make sure you have a dog, recipe, and ingredients set up.'}</p></div>`;
                 }
             } catch (err) {
-                resultDiv.innerHTML = `<div class="warnings-section has-warnings"><h4>⚠️ Error</h4><p style="color: rgba(255,255,255,0.8);">Connection error. Please try again.</p></div>`;
+                resultDiv.innerHTML = `<div class="warnings-section has-warnings"><h4>⚠️ Error</h4><p style="color: var(--text-primary);">Connection error. Please try again.</p></div>`;
             }
         });
 
@@ -4625,7 +4603,7 @@
             const dogId = document.getElementById('tracking-dog-select').value;
             if (!dogId) {
                 document.getElementById('daily-summary').style.display = 'none';
-                document.getElementById('todays-meals-list').innerHTML = '<p style="color: rgba(255,255,255,0.5);">Select a dog to view tracking data</p>';
+                document.getElementById('todays-meals-list').innerHTML = '<p style="color: var(--text-muted);">Select a dog to view tracking data</p>';
                 document.getElementById('weight-history-list').innerHTML = '';
                 return;
             }
@@ -4662,14 +4640,14 @@
                     const meals = await mealsRes.json();
                     const mealsList = document.getElementById('todays-meals-list');
                     if (meals.length === 0) {
-                        mealsList.innerHTML = '<p style="color: rgba(255,255,255,0.5);">No meals logged today</p>';
+                        mealsList.innerHTML = '<p style="color: var(--text-muted);">No meals logged today</p>';
                     } else {
                         mealsList.innerHTML = meals.map(meal => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
                                 <div>
-                                    <strong style="color: white;">${meal.meal_type || 'Meal'}</strong>
-                                    <span style="color: rgba(255,255,255,0.6); margin-left: 12px;">${meal.kcal_fed} kcal</span>
-                                    ${meal.recipe_name ? `<span style="color: rgba(255,255,255,0.4); margin-left: 8px;">(${meal.recipe_name})</span>` : ''}
+                                    <strong style="color: var(--text-primary);">${meal.meal_type || 'Meal'}</strong>
+                                    <span style="color: var(--text-secondary); margin-left: 12px;">${meal.kcal_fed} kcal</span>
+                                    ${meal.recipe_name ? `<span style="color: var(--text-muted); margin-left: 8px;">(${meal.recipe_name})</span>` : ''}
                                 </div>
                                 <button class="btn btn-sm btn-delete" onclick="deleteFeedingLog(${meal.id})">✕</button>
                             </div>
@@ -4687,16 +4665,16 @@
                     const weights = await weightRes.json();
                     const weightList = document.getElementById('weight-history-list');
                     if (weights.length === 0) {
-                        weightList.innerHTML = '<p style="color: rgba(255,255,255,0.5);">No weight history</p>';
+                        weightList.innerHTML = '<p style="color: var(--text-muted);">No weight history</p>';
                     } else {
                         weightList.innerHTML = weights.map(w => {
                             const date = new Date(w.logged_at).toLocaleDateString();
                             return `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
                                 <div>
-                                    <strong style="color: white;">${displayWeight(w.weight_kg)}</strong>
-                                    <span style="color: rgba(255,255,255,0.4); margin-left: 12px;">${date}</span>
-                                    ${w.notes ? `<span style="color: rgba(255,255,255,0.5); margin-left: 8px;">- ${w.notes}</span>` : ''}
+                                    <strong style="color: var(--text-primary);">${displayWeight(w.weight_kg)}</strong>
+                                    <span style="color: var(--text-muted); margin-left: 12px;">${date}</span>
+                                    ${w.notes ? `<span style="color: var(--text-muted); margin-left: 8px;">- ${w.notes}</span>` : ''}
                                 </div>
                             </div>
                         `}).join('');
@@ -4966,7 +4944,7 @@
                 simulatorData.currentAmounts = {};
 
                 if (simulatorData.recipe.ingredients.length === 0) {
-                    adjustmentsDiv.innerHTML = '<p style="color: rgba(255,255,255,0.7);">This recipe has no ingredients. Add some first!</p>';
+                    adjustmentsDiv.innerHTML = '<p style="color: var(--text-secondary);">This recipe has no ingredients. Add some first!</p>';
                     document.getElementById('simulator-content').style.display = 'block';
                     return;
                 }
@@ -5016,21 +4994,21 @@
                     const display = document.getElementById('current-nutrition-display');
                     display.innerHTML = `
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
-                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.target_kcal?.toFixed(0)}</div>
-                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Target kcal</div>
+                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.target_kcal?.toFixed(0)}</div>
+                                <div style="font-size: 0.8em; color: var(--text-secondary);">Target kcal</div>
                             </div>
-                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Protein</div>
+                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: var(--text-secondary);">Protein</div>
                             </div>
-                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Fat</div>
+                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: var(--text-secondary);">Fat</div>
                             </div>
-                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: white;">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: rgba(255,255,255,0.7);">Carbs</div>
+                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
+                                <div style="font-size: 0.8em; color: var(--text-secondary);">Carbs</div>
                             </div>
                         </div>
                     `;
@@ -5180,12 +5158,12 @@
             }
 
             document.getElementById('change-summary').innerHTML = `
-                <h3 style="color: white; margin-bottom: 15px;">📊 What Changed</h3>
+                <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 What Changed</h3>
                 ${changes.length > 0 ? `
-                    <ul style="color: rgba(255,255,255,0.9); margin: 0; padding-left: 20px;">
+                    <ul style="color: var(--text-primary); margin: 0; padding-left: 20px;">
                         ${changes.map(c => `<li style="margin-bottom: 8px;">${c}</li>`).join('')}
                     </ul>
-                ` : '<p style="color: rgba(255,255,255,0.7);">No significant changes detected.</p>'}
+                ` : '<p style="color: var(--text-secondary);">No significant changes detected.</p>'}
                 ${result.warnings.length > 0 ? `
                     <div style="margin-top: 15px; padding: 10px; background: rgba(239, 68, 68, 0.2); border-radius: 8px;">
                         <strong style="color: #ef4444;">Warnings:</strong>
