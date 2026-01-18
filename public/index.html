@@ -3951,20 +3951,597 @@
     <script>
         const API_BASE = '/api';
 
+        // ==================== Calculation Constants & Functions ====================
+        // These replace the backend Python calculations for Cloudflare Pages deployment
+
+        // Activity/life stage factors for MER calculation
+        const ACTIVITY_FACTORS = {
+            neutered_adult: 1.6,
+            intact_adult: 1.8,
+            weight_loss: 1.1,
+            weight_gain: 1.8,
+            puppy_young: 3.0,  // Under 4 months
+            puppy_older: 2.0,  // 4+ months
+        };
+
+        // Modified Atwater factors for pet food (kcal/g)
+        const MODIFIED_ATWATER = {
+            protein: 3.5,
+            fat: 8.5,
+            carbs: 3.5,  // NFE
+        };
+
+        // Eggshell powder calcium content
+        const EGGSHELL_CALCIUM_PCT = 38.0;  // 38% calcium by weight
+
+        // AAFCO requirements (per 1000 kcal for adult maintenance)
+        const AAFCO_REQUIREMENTS = {
+            protein: { min: 45.0, max: null },
+            fat: { min: 13.75, max: null },
+            calcium: { min: 1.25, max: 6.25 },
+            phosphorus: { min: 1.0, max: 4.0 },
+            iron: { min: 10.0, max: null },
+            zinc: { min: 20.0, max: null },
+            vitamin_a: { min: 1250.0, max: 62500.0 },
+            vitamin_d: { min: 3.125, max: 18.75 },
+            vitamin_e: { min: 12.5, max: null },
+        };
+
+        /**
+         * Calculate Resting Energy Requirement (RER)
+         * Formula: RER = 70 × (weight_kg ^ 0.75)
+         */
+        function calculateRER(weightKg) {
+            if (weightKg <= 0) throw new Error("Weight must be positive");
+            return 70 * Math.pow(weightKg, 0.75);
+        }
+
+        /**
+         * Get activity factor for MER calculation
+         */
+        function getActivityFactor(neutered, ageYears, targetWeightKg = null, currentWeightKg = null) {
+            // Check for puppy (under 1 year)
+            if (ageYears < 1) {
+                if (ageYears < 4/12) {  // Under 4 months
+                    return ACTIVITY_FACTORS.puppy_young;
+                }
+                return ACTIVITY_FACTORS.puppy_older;
+            }
+
+            // Check for weight management goals
+            if (targetWeightKg !== null && currentWeightKg !== null) {
+                if (targetWeightKg < currentWeightKg) {
+                    return ACTIVITY_FACTORS.weight_loss;
+                } else if (targetWeightKg > currentWeightKg) {
+                    return ACTIVITY_FACTORS.weight_gain;
+                }
+            }
+
+            // Adult dogs
+            return neutered ? ACTIVITY_FACTORS.neutered_adult : ACTIVITY_FACTORS.intact_adult;
+        }
+
+        /**
+         * Calculate Maintenance Energy Requirement (MER)
+         * Formula: MER = RER × factor
+         */
+        function calculateMER(weightKg, factor) {
+            return calculateRER(weightKg) * factor;
+        }
+
+        /**
+         * Calculate nutrient amount for a given weight of ingredient
+         */
+        function calculateNutrientAmount(grams, nutrientPer100g) {
+            return (grams * nutrientPer100g) / 100;
+        }
+
+        /**
+         * Convert grams to calories
+         */
+        function gramsToKcal(grams, kcalPer100g) {
+            return (grams / 100) * kcalPer100g;
+        }
+
+        /**
+         * Convert desired calories to grams
+         */
+        function kcalToGrams(desiredKcal, kcalPer100g) {
+            if (kcalPer100g <= 0) return 0;
+            return (desiredKcal / kcalPer100g) * 100;
+        }
+
+        /**
+         * Aggregate nutrient totals from recipe ingredients
+         */
+        function aggregateNutrients(ingredients, targetKcal) {
+            const totals = {
+                kcal: 0,
+                protein_g: 0,
+                fat_g: 0,
+                carbs_g: 0,
+                calcium_mg: 0,
+                phosphorus_mg: 0,
+                iron_mg: 0,
+                zinc_mg: 0,
+                vitamin_a_mcg: 0,
+                vitamin_d_mcg: 0,
+                vitamin_e_mg: 0,
+            };
+
+            // First pass: calculate total kcal from percentages
+            let totalKcalFrom100g = 0;
+            for (const ing of ingredients) {
+                totalKcalFrom100g += (ing.percentage / 100) * ing.kcal_per_100g;
+            }
+
+            // Calculate scaling factor to reach target kcal
+            const scaleFactor = totalKcalFrom100g > 0 ? targetKcal / totalKcalFrom100g : 0;
+
+            // Second pass: calculate actual grams and nutrients
+            for (const ing of ingredients) {
+                const grams = (ing.percentage / 100) * 100 * scaleFactor;  // grams of this ingredient
+
+                totals.kcal += calculateNutrientAmount(grams, ing.kcal_per_100g || 0);
+                totals.protein_g += calculateNutrientAmount(grams, ing.protein_g_per_100g || 0);
+                totals.fat_g += calculateNutrientAmount(grams, ing.fat_g_per_100g || 0);
+                totals.carbs_g += calculateNutrientAmount(grams, ing.carbs_g_per_100g || 0);
+                totals.calcium_mg += calculateNutrientAmount(grams, ing.calcium_mg_per_100g || 0);
+                totals.phosphorus_mg += calculateNutrientAmount(grams, ing.phosphorus_mg_per_100g || 0);
+                totals.iron_mg += calculateNutrientAmount(grams, ing.iron_mg_per_100g || 0);
+                totals.zinc_mg += calculateNutrientAmount(grams, ing.zinc_mg_per_100g || 0);
+                totals.vitamin_a_mcg += calculateNutrientAmount(grams, ing.vitamin_a_mcg_per_100g || 0);
+                totals.vitamin_d_mcg += calculateNutrientAmount(grams, ing.vitamin_d_mcg_per_100g || 0);
+                totals.vitamin_e_mg += calculateNutrientAmount(grams, ing.vitamin_e_mg_per_100g || 0);
+            }
+
+            return totals;
+        }
+
+        /**
+         * Convert nutrient amount to per-1000kcal basis for AAFCO comparison
+         */
+        function nutrientPer1000kcal(nutrientAmount, totalKcal) {
+            if (totalKcal <= 0) return 0;
+            return (nutrientAmount / totalKcal) * 1000;
+        }
+
+        /**
+         * Check AAFCO compliance for a nutrient
+         */
+        function checkAAFCOCompliance(nutrient, amountPer1000kcal, minPer1000kcal, maxPer1000kcal = null) {
+            const result = {
+                nutrient,
+                amount_per_1000kcal: Math.round(amountPer1000kcal * 100) / 100,
+                min_required: minPer1000kcal,
+                max_allowed: maxPer1000kcal,
+                status: 'adequate',
+                warning: null,
+                percentage: 0,
+            };
+
+            if (amountPer1000kcal < minPer1000kcal) {
+                result.status = 'deficient';
+                result.warning = `${nutrient} is below minimum (${amountPer1000kcal.toFixed(2)} < ${minPer1000kcal})`;
+                result.percentage = (amountPer1000kcal / minPer1000kcal) * 100;
+            } else if (maxPer1000kcal !== null && amountPer1000kcal > maxPer1000kcal) {
+                result.status = 'excess';
+                result.warning = `${nutrient} is above maximum (${amountPer1000kcal.toFixed(2)} > ${maxPer1000kcal})`;
+                result.percentage = 100 + ((amountPer1000kcal - maxPer1000kcal) / maxPer1000kcal) * 100;
+            } else {
+                result.percentage = (amountPer1000kcal / minPer1000kcal) * 100;
+            }
+
+            return result;
+        }
+
+        /**
+         * Calculate NFE (carbohydrates) from kibble GA
+         */
+        function calculateKibbleNFE(proteinPct, fatPct, fiberPct, moisturePct, ashPct) {
+            const nfe = 100 - (proteinPct + fatPct + fiberPct + moisturePct + ashPct);
+            return Math.max(0, nfe);
+        }
+
+        /**
+         * Calculate nutrients from kibble guaranteed analysis
+         */
+        function calculateKibbleNutrients(proteinPct, fatPct, fiberPct, moisturePct, ashPct, amountGrams, calciumPct = null, phosphorusPct = null) {
+            const nfePct = calculateKibbleNFE(proteinPct, fatPct, fiberPct, moisturePct, ashPct);
+
+            const proteinG = (proteinPct / 100) * amountGrams;
+            const fatG = (fatPct / 100) * amountGrams;
+            const carbsG = (nfePct / 100) * amountGrams;
+            const fiberG = (fiberPct / 100) * amountGrams;
+
+            const kcal = proteinG * MODIFIED_ATWATER.protein +
+                         fatG * MODIFIED_ATWATER.fat +
+                         carbsG * MODIFIED_ATWATER.carbs;
+
+            const calciumMg = calciumPct ? (calciumPct / 100) * amountGrams * 1000 : 0;
+            const phosphorusMg = phosphorusPct ? (phosphorusPct / 100) * amountGrams * 1000 : 0;
+
+            return {
+                kcal: Math.round(kcal * 100) / 100,
+                protein_g: Math.round(proteinG * 100) / 100,
+                fat_g: Math.round(fatG * 100) / 100,
+                carbs_g: Math.round(carbsG * 100) / 100,
+                fiber_g: Math.round(fiberG * 100) / 100,
+                calcium_mg: Math.round(calciumMg * 100) / 100,
+                phosphorus_mg: Math.round(phosphorusMg * 100) / 100,
+                nfe_pct: Math.round(nfePct * 100) / 100,
+                carb_pct_of_kibble: Math.round(nfePct * 100) / 100,
+            };
+        }
+
+        /**
+         * Analyze Calcium to Phosphorus ratio
+         */
+        function analyzeCaPRatio(totalCalciumMg, totalPhosphorusMg, targetRatio = 1.2) {
+            if (totalPhosphorusMg <= 0) {
+                return {
+                    total_calcium_mg: Math.round(totalCalciumMg * 100) / 100,
+                    total_phosphorus_mg: 0,
+                    ca_p_ratio: 0,
+                    status: 'unknown',
+                    calcium_gap_mg: null,
+                    eggshell_recommendation_g: null,
+                    message: 'Cannot calculate ratio: no phosphorus data'
+                };
+            }
+
+            const actualRatio = totalCalciumMg / totalPhosphorusMg;
+
+            if (actualRatio >= 1.1 && actualRatio <= 2.0) {
+                return {
+                    total_calcium_mg: Math.round(totalCalciumMg * 100) / 100,
+                    total_phosphorus_mg: Math.round(totalPhosphorusMg * 100) / 100,
+                    ca_p_ratio: Math.round(actualRatio * 100) / 100,
+                    status: 'optimal',
+                    calcium_gap_mg: null,
+                    eggshell_recommendation_g: null,
+                    message: `Ca:P ratio is ${actualRatio.toFixed(2)}:1 - within optimal range (1.1-2.0:1)`
+                };
+            } else if (actualRatio >= 1.0 && actualRatio < 1.1) {
+                return {
+                    total_calcium_mg: Math.round(totalCalciumMg * 100) / 100,
+                    total_phosphorus_mg: Math.round(totalPhosphorusMg * 100) / 100,
+                    ca_p_ratio: Math.round(actualRatio * 100) / 100,
+                    status: 'acceptable',
+                    calcium_gap_mg: null,
+                    eggshell_recommendation_g: null,
+                    message: `Ca:P ratio is ${actualRatio.toFixed(2)}:1 - acceptable but below optimal`
+                };
+            } else if (actualRatio < 1.0) {
+                const calciumNeeded = totalPhosphorusMg * 1.0;
+                const calciumGapMg = calciumNeeded - totalCalciumMg;
+                const eggshellG = calciumGapMg / (EGGSHELL_CALCIUM_PCT / 100 * 1000);
+
+                return {
+                    total_calcium_mg: Math.round(totalCalciumMg * 100) / 100,
+                    total_phosphorus_mg: Math.round(totalPhosphorusMg * 100) / 100,
+                    ca_p_ratio: Math.round(actualRatio * 100) / 100,
+                    status: 'low',
+                    calcium_gap_mg: Math.round(calciumGapMg * 100) / 100,
+                    eggshell_recommendation_g: Math.round(eggshellG * 100) / 100,
+                    message: `Ca:P ratio is ${actualRatio.toFixed(2)}:1 - LOW. Add ${eggshellG.toFixed(1)}g eggshell powder`
+                };
+            } else {
+                return {
+                    total_calcium_mg: Math.round(totalCalciumMg * 100) / 100,
+                    total_phosphorus_mg: Math.round(totalPhosphorusMg * 100) / 100,
+                    ca_p_ratio: Math.round(actualRatio * 100) / 100,
+                    status: 'high',
+                    calcium_gap_mg: null,
+                    eggshell_recommendation_g: null,
+                    message: `Ca:P ratio is ${actualRatio.toFixed(2)}:1 - above optimal, reduce calcium sources`
+                };
+            }
+        }
+
+        /**
+         * Combine kibble and fresh food nutrients
+         */
+        function combineNutrientTotals(kibbleNutrients, freshTotals) {
+            return {
+                kcal: (kibbleNutrients?.kcal || 0) + (freshTotals?.kcal || 0),
+                protein_g: (kibbleNutrients?.protein_g || 0) + (freshTotals?.protein_g || 0),
+                fat_g: (kibbleNutrients?.fat_g || 0) + (freshTotals?.fat_g || 0),
+                carbs_g: (kibbleNutrients?.carbs_g || 0) + (freshTotals?.carbs_g || 0),
+                calcium_mg: (kibbleNutrients?.calcium_mg || 0) + (freshTotals?.calcium_mg || 0),
+                phosphorus_mg: (kibbleNutrients?.phosphorus_mg || 0) + (freshTotals?.phosphorus_mg || 0),
+                iron_mg: freshTotals?.iron_mg || 0,
+                zinc_mg: freshTotals?.zinc_mg || 0,
+                vitamin_a_mcg: freshTotals?.vitamin_a_mcg || 0,
+                vitamin_d_mcg: freshTotals?.vitamin_d_mcg || 0,
+                vitamin_e_mg: freshTotals?.vitamin_e_mg || 0,
+            };
+        }
+
+        /**
+         * Get weight status relative to target
+         */
+        function getWeightStatus(currentKg, targetKg) {
+            if (targetKg === null || targetKg === undefined) {
+                return 'no_target';
+            }
+            const diff = currentKg - targetKg;
+            if (Math.abs(diff) < 0.5) {
+                return 'at_target';
+            } else if (diff > 0) {
+                return 'needs_loss';
+            } else {
+                return 'needs_gain';
+            }
+        }
+
+        /**
+         * Calculate full dog nutrition data (replaces backend /dog/{id} response)
+         */
+        function calculateDogNutrition(dog) {
+            const rer = calculateRER(dog.weight_kg);
+            const factor = getActivityFactor(
+                dog.neutered,
+                dog.age_years,
+                dog.target_weight_kg,
+                dog.weight_kg
+            );
+            const mer = calculateMER(dog.weight_kg, factor);
+            const effectiveDailyKcal = dog.target_daily_kcal || mer;
+            const weightStatus = getWeightStatus(dog.weight_kg, dog.target_weight_kg);
+
+            return {
+                ...dog,
+                rer: Math.round(rer * 100) / 100,
+                mer: Math.round(mer * 100) / 100,
+                effective_daily_kcal: Math.round(effectiveDailyKcal * 100) / 100,
+                activity_factor: factor,
+                weight_status: weightStatus,
+            };
+        }
+
+        /**
+         * Compute feeding plan (replaces /plan/compute endpoint)
+         */
+        function computeFeedingPlan(dog, recipe, kibbleKcal = 0, treatsKcal = 0) {
+            const targetKcal = dog.effective_daily_kcal || dog.mer;
+            const homemadeKcal = Math.max(0, targetKcal - kibbleKcal - treatsKcal);
+
+            // Get recipe ingredients with full data
+            const ingredients = recipe.ingredients.map(ri => ({
+                percentage: ri.percentage,
+                kcal_per_100g: ri.kcal_per_100g || 0,
+                protein_g_per_100g: ri.protein_g_per_100g || 0,
+                fat_g_per_100g: ri.fat_g_per_100g || 0,
+                carbs_g_per_100g: ri.carbs_g_per_100g || 0,
+                calcium_mg_per_100g: ri.calcium_mg_per_100g || 0,
+                phosphorus_mg_per_100g: ri.phosphorus_mg_per_100g || 0,
+                iron_mg_per_100g: ri.iron_mg_per_100g || 0,
+                zinc_mg_per_100g: ri.zinc_mg_per_100g || 0,
+                vitamin_a_mcg_per_100g: ri.vitamin_a_mcg_per_100g || 0,
+                vitamin_d_mcg_per_100g: ri.vitamin_d_mcg_per_100g || 0,
+                vitamin_e_mg_per_100g: ri.vitamin_e_mg_per_100g || 0,
+            }));
+
+            const nutrients = aggregateNutrients(ingredients, homemadeKcal);
+
+            // Check AAFCO compliance
+            const status = [];
+            const nutrientMap = {
+                protein: nutrients.protein_g,
+                fat: nutrients.fat_g,
+                calcium: nutrients.calcium_mg,
+                phosphorus: nutrients.phosphorus_mg,
+                iron: nutrients.iron_mg,
+                zinc: nutrients.zinc_mg,
+                vitamin_a: nutrients.vitamin_a_mcg,
+                vitamin_d: nutrients.vitamin_d_mcg,
+                vitamin_e: nutrients.vitamin_e_mg,
+            };
+
+            for (const [nutrient, amount] of Object.entries(nutrientMap)) {
+                const req = AAFCO_REQUIREMENTS[nutrient];
+                if (req) {
+                    const per1000 = nutrientPer1000kcal(amount, nutrients.kcal);
+                    const check = checkAAFCOCompliance(nutrient, per1000, req.min, req.max);
+                    status.push(check);
+                }
+            }
+
+            return {
+                target_kcal: targetKcal,
+                kibble_kcal: kibbleKcal,
+                treats_kcal: treatsKcal,
+                homemade_kcal: homemadeKcal,
+                nutrients,
+                aafco_status: status,
+                meals_per_day: recipe.meals_per_day || 2,
+            };
+        }
+
+        /**
+         * Compute full batch meal plan (replaces /plan/compute endpoint)
+         */
+        async function computeBatchPlan(dogId, recipeId, kibbleKcal = 0, treatsKcal = 0, numDays = 7) {
+            // Fetch dog and recipe data
+            const dog = await db.getDog(dogId);
+            const recipe = await db.getRecipe(recipeId);
+
+            if (!dog || !recipe) {
+                throw new Error('Dog or recipe not found');
+            }
+
+            const targetKcal = dog.effective_daily_kcal || dog.mer;
+            const mealsPerDay = recipe.meals_per_day || 2;
+            const totalMeals = numDays * mealsPerDay;
+
+            // Separate ingredients by type
+            const foodIngredients = recipe.ingredients.filter(i =>
+                !i.ingredient_type || i.ingredient_type === 'food'
+            );
+            const oilIngredients = recipe.ingredients.filter(i => i.ingredient_type === 'oil');
+            const supplementIngredients = recipe.ingredients.filter(i => i.ingredient_type === 'supplement');
+            const treatIngredients = recipe.ingredients.filter(i => i.ingredient_type === 'treat');
+
+            // Calculate calories from oils and supplements
+            let oilsKcal = 0;
+            const oils = oilIngredients.map(ing => {
+                const mlPerMeal = ing.serving_size_ml || 5;
+                const mlPerDay = mlPerMeal * mealsPerDay;
+                const kcalPerMl = ing.kcal_per_ml || (ing.kcal_per_100g / 100);
+                const kcalPerDay = mlPerDay * kcalPerMl;
+                oilsKcal += kcalPerDay;
+                return {
+                    ingredient_name: ing.ingredient_name,
+                    ml_per_meal: mlPerMeal,
+                    tsp_per_meal: mlPerMeal / 5,
+                    kcal_per_day: kcalPerDay
+                };
+            });
+
+            let supplementsKcal = 0;
+            const supplements = supplementIngredients.map(ing => {
+                const unitsPerDay = ing.units_per_day || 1;
+                const kcalFromSupplement = (ing.kcal_per_unit || 0) * unitsPerDay;
+                supplementsKcal += kcalFromSupplement;
+                return {
+                    ingredient_name: ing.ingredient_name,
+                    units_per_day: unitsPerDay,
+                    kcal_from_supplement: kcalFromSupplement
+                };
+            });
+
+            const treats = treatIngredients.map(ing => ({
+                ingredient_name: ing.ingredient_name,
+                units_per_day: ing.units_per_day || 2,
+                treat_kcal_budget: treatsKcal
+            }));
+
+            // Calculate homemade food calories
+            const homemadeKcal = Math.max(0, targetKcal - kibbleKcal - treatsKcal - oilsKcal - supplementsKcal);
+            const perMealKcal = homemadeKcal / mealsPerDay;
+
+            // Calculate food ingredient portions
+            const totalFoodPercentage = foodIngredients.reduce((sum, i) => sum + i.percentage, 0);
+
+            // Get total kcal/100g for food ingredients
+            let totalKcalPer100g = 0;
+            foodIngredients.forEach(ing => {
+                totalKcalPer100g += (ing.percentage / totalFoodPercentage) * (ing.kcal_per_100g || 0);
+            });
+
+            // Calculate total grams needed per day
+            const gramsPerDay = totalKcalPer100g > 0 ? (homemadeKcal / totalKcalPer100g) * 100 : 0;
+            const gramsPerMeal = gramsPerDay / mealsPerDay;
+            const gramsPerContainer = gramsPerMeal;
+
+            // Calculate ingredient portions
+            const ingredientPortions = foodIngredients.map(ing => {
+                const portionPct = ing.percentage / totalFoodPercentage;
+                const gramsPerDayIng = gramsPerDay * portionPct;
+                const gramsPerMealIng = gramsPerMeal * portionPct;
+                const totalGramsBatch = gramsPerDayIng * numDays;
+
+                return {
+                    ingredient_name: ing.ingredient_name,
+                    percentage: ing.percentage,
+                    category: ing.category || 'other',
+                    ingredient_type: ing.ingredient_type || 'food',
+                    grams_per_day: gramsPerDayIng,
+                    grams_per_meal: gramsPerMealIng,
+                    total_grams_batch: totalGramsBatch,
+                    kcal_per_100g: ing.kcal_per_100g || 0,
+                };
+            });
+
+            // Calculate nutrients for AAFCO check
+            const nutrients = {
+                kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0,
+                calcium_mg: 0, phosphorus_mg: 0, iron_mg: 0, zinc_mg: 0,
+                vitamin_a_mcg: 0, vitamin_d_mcg: 0, vitamin_e_mg: 0
+            };
+
+            ingredientPortions.forEach(p => {
+                const ing = foodIngredients.find(i => i.ingredient_name === p.ingredient_name);
+                if (!ing) return;
+                const grams = p.grams_per_day;
+                nutrients.kcal += calculateNutrientAmount(grams, ing.kcal_per_100g || 0);
+                nutrients.protein_g += calculateNutrientAmount(grams, ing.protein_g_per_100g || 0);
+                nutrients.fat_g += calculateNutrientAmount(grams, ing.fat_g_per_100g || 0);
+                nutrients.carbs_g += calculateNutrientAmount(grams, ing.carbs_g_per_100g || 0);
+                nutrients.calcium_mg += calculateNutrientAmount(grams, ing.calcium_mg_per_100g || 0);
+                nutrients.phosphorus_mg += calculateNutrientAmount(grams, ing.phosphorus_mg_per_100g || 0);
+                nutrients.iron_mg += calculateNutrientAmount(grams, ing.iron_mg_per_100g || 0);
+                nutrients.zinc_mg += calculateNutrientAmount(grams, ing.zinc_mg_per_100g || 0);
+                nutrients.vitamin_a_mcg += calculateNutrientAmount(grams, ing.vitamin_a_mcg_per_100g || 0);
+                nutrients.vitamin_d_mcg += calculateNutrientAmount(grams, ing.vitamin_d_mcg_per_100g || 0);
+                nutrients.vitamin_e_mg += calculateNutrientAmount(grams, ing.vitamin_e_mg_per_100g || 0);
+            });
+
+            // Check AAFCO compliance
+            const warnings = [];
+            const nutrientMap = {
+                protein: nutrients.protein_g,
+                fat: nutrients.fat_g,
+                calcium: nutrients.calcium_mg,
+                phosphorus: nutrients.phosphorus_mg,
+                iron: nutrients.iron_mg,
+                zinc: nutrients.zinc_mg,
+                vitamin_a: nutrients.vitamin_a_mcg,
+                vitamin_d: nutrients.vitamin_d_mcg,
+                vitamin_e: nutrients.vitamin_e_mg,
+            };
+
+            for (const [nutrient, amount] of Object.entries(nutrientMap)) {
+                const req = AAFCO_REQUIREMENTS[nutrient];
+                if (req) {
+                    const per1000 = nutrientPer1000kcal(amount, nutrients.kcal || homemadeKcal);
+                    if (per1000 < req.min) {
+                        warnings.push(`${nutrient} is below AAFCO minimum (${per1000.toFixed(1)} vs ${req.min} per 1000 kcal)`);
+                    } else if (req.max && per1000 > req.max) {
+                        warnings.push(`${nutrient} exceeds AAFCO maximum (${per1000.toFixed(1)} vs ${req.max} per 1000 kcal)`);
+                    }
+                }
+            }
+
+            return {
+                dog_name: dog.name,
+                recipe_name: recipe.name,
+                target_kcal: targetKcal,
+                per_meal_kcal: perMealKcal,
+                meals_per_day: mealsPerDay,
+                num_days: numDays,
+                total_meals: totalMeals,
+                grams_per_container: gramsPerContainer,
+                ingredient_portions: ingredientPortions,
+                oils,
+                supplements,
+                treats,
+                calorie_budget: {
+                    homemade_food_kcal: homemadeKcal,
+                    kibble_kcal: kibbleKcal,
+                    oils_kcal: oilsKcal,
+                    supplements_kcal: supplementsKcal,
+                    treats_kcal: treatsKcal,
+                },
+                nutrients,
+                warnings,
+            };
+        }
+
         // ==================== Supabase Auth Configuration ====================
-        // TODO: Replace with your Supabase project credentials
-        const SUPABASE_URL = localStorage.getItem('SUPABASE_URL') || '';
-        const SUPABASE_ANON_KEY = localStorage.getItem('SUPABASE_ANON_KEY') || '';
+        const SUPABASE_URL = 'https://msazepwvgcmbqnyiarow.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1zYXplcHd2Z2NtYnFueWlhcm93Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MjUxNDQsImV4cCI6MjA4NDMwMTE0NH0.LHB3ZICNgTD9s2V-qECbA81ry4hXTAN5DDj7SCXT9JU';
 
         // Initialize Supabase client (if configured)
-        let supabase = null;
+        let supabaseClient = null;
         let currentUser = null;
 
         if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
             // Check for existing session on load
-            supabase.auth.getSession().then(({ data: { session } }) => {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (session) {
                     currentUser = session.user;
                     updateAuthUI(session.user);
@@ -3972,7 +4549,7 @@
             });
 
             // Listen for auth changes
-            supabase.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 currentUser = session?.user || null;
                 updateAuthUI(session?.user);
 
@@ -4006,7 +4583,7 @@
         }
 
         function showAuthModal() {
-            if (!supabase) {
+            if (!supabaseClient) {
                 showToast('Auth not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in localStorage for testing.', 'error');
                 return;
             }
@@ -4049,7 +4626,7 @@
         async function handleAuth(event) {
             event.preventDefault();
 
-            if (!supabase) {
+            if (!supabaseClient) {
                 showToast('Auth not configured', 'error');
                 return;
             }
@@ -4065,9 +4642,9 @@
             try {
                 let result;
                 if (authMode === 'signin') {
-                    result = await supabase.auth.signInWithPassword({ email, password });
+                    result = await supabaseClient.auth.signInWithPassword({ email, password });
                 } else {
-                    result = await supabase.auth.signUp({ email, password });
+                    result = await supabaseClient.auth.signUp({ email, password });
                 }
 
                 if (result.error) {
@@ -4090,8 +4667,8 @@
         }
 
         async function signOut() {
-            if (!supabase) return;
-            await supabase.auth.signOut();
+            if (!supabaseClient) return;
+            await supabaseClient.auth.signOut();
             document.getElementById('user-dropdown').style.display = 'none';
         }
 
@@ -4111,11 +4688,11 @@
         // Get auth token for API requests
         async function getAuthToken() {
             if (!supabase || !currentUser) return null;
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             return session?.access_token || null;
         }
 
-        // Helper to make authenticated API requests
+        // Helper to make authenticated API requests (legacy - kept for USDA API calls)
         async function fetchWithAuth(url, options = {}) {
             const token = await getAuthToken();
             const headers = {
@@ -4129,6 +4706,479 @@
 
             return fetch(url, { ...options, headers });
         }
+
+        // ==================== Supabase Database Operations ====================
+        // Direct database calls replacing FastAPI backend
+
+        const db = {
+            // ===== DOGS =====
+            async listDogs() {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('dogs')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                if (error) { console.error('Error loading dogs:', error); return []; }
+                return data || [];
+            },
+
+            async getDog(id) {
+                if (!supabaseClient) return null;
+                const { data, error } = await supabaseClient
+                    .from('dogs')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (error) { console.error('Error loading dog:', error); return null; }
+                // Add calculated fields
+                return data ? calculateDogNutrition(data) : null;
+            },
+
+            async createDog(dogData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('dogs')
+                    .insert([{
+                        user_id: currentUser?.id || null,
+                        name: dogData.name,
+                        breed: dogData.breed || null,
+                        age_years: dogData.age_years,
+                        sex: dogData.sex,
+                        neutered: dogData.neutered,
+                        weight_kg: dogData.weight_kg,
+                        target_weight_kg: dogData.target_weight_kg || null,
+                        target_daily_kcal: dogData.target_daily_kcal || null,
+                        activity_level: dogData.activity_level || 'moderate',
+                        life_stage: dogData.life_stage || 'adult',
+                        notes: dogData.notes || null,
+                    }])
+                    .select()
+                    .single();
+                if (error) throw error;
+
+                // Create initial weight log
+                if (data) {
+                    await supabaseClient.from('weight_logs').insert([{
+                        dog_id: data.id,
+                        weight_kg: dogData.weight_kg,
+                        notes: 'Initial weight'
+                    }]);
+                }
+                return data;
+            },
+
+            async updateDog(id, updates) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const oldDog = await this.getDog(id);
+                const { data, error } = await supabaseClient
+                    .from('dogs')
+                    .update(updates)
+                    .eq('id', id)
+                    .select()
+                    .single();
+                if (error) throw error;
+
+                // Log weight change if applicable
+                if (updates.weight_kg && oldDog && updates.weight_kg !== oldDog.weight_kg) {
+                    await supabaseClient.from('weight_logs').insert([{
+                        dog_id: id,
+                        weight_kg: updates.weight_kg,
+                        notes: 'Weight updated'
+                    }]);
+                }
+                return data;
+            },
+
+            async deleteDog(id) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { error } = await supabaseClient
+                    .from('dogs')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+                return true;
+            },
+
+            // ===== INGREDIENTS =====
+            async listIngredients() {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('ingredients')
+                    .select('*')
+                    .order('name');
+                if (error) { console.error('Error loading ingredients:', error); return []; }
+                return data || [];
+            },
+
+            async getIngredient(id) {
+                if (!supabaseClient) return null;
+                const { data, error } = await supabaseClient
+                    .from('ingredients')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (error) { console.error('Error loading ingredient:', error); return null; }
+                return data;
+            },
+
+            async searchIngredients(query) {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('ingredients')
+                    .select('*')
+                    .ilike('name', `%${query}%`)
+                    .limit(20);
+                if (error) { console.error('Error searching ingredients:', error); return []; }
+                return data || [];
+            },
+
+            async createIngredient(ingredientData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('ingredients')
+                    .insert([{
+                        user_id: currentUser?.id || null,
+                        name: ingredientData.name,
+                        source_type: ingredientData.source_type || 'USER',
+                        source_id: ingredientData.source_id || null,
+                        ingredient_type: ingredientData.ingredient_type || 'food',
+                        category: ingredientData.category || 'other',
+                        kcal_per_100g: ingredientData.kcal_per_100g || 0,
+                        protein_g_per_100g: ingredientData.protein_g_per_100g || 0,
+                        fat_g_per_100g: ingredientData.fat_g_per_100g || 0,
+                        carbs_g_per_100g: ingredientData.carbs_g_per_100g || 0,
+                        calcium_mg_per_100g: ingredientData.calcium_mg_per_100g || 0,
+                        phosphorus_mg_per_100g: ingredientData.phosphorus_mg_per_100g || 0,
+                        iron_mg_per_100g: ingredientData.iron_mg_per_100g || 0,
+                        zinc_mg_per_100g: ingredientData.zinc_mg_per_100g || 0,
+                        vitamin_a_mcg_per_100g: ingredientData.vitamin_a_mcg_per_100g || 0,
+                        vitamin_d_mcg_per_100g: ingredientData.vitamin_d_mcg_per_100g || 0,
+                        vitamin_e_mg_per_100g: ingredientData.vitamin_e_mg_per_100g || 0,
+                    }])
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async updateIngredient(id, updates) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('ingredients')
+                    .update(updates)
+                    .eq('id', id)
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async deleteIngredient(id) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { error } = await supabaseClient
+                    .from('ingredients')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+                return true;
+            },
+
+            // ===== RECIPES =====
+            async listRecipes() {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .order('id', { ascending: false });
+                if (error) { console.error('Error loading recipes:', error); return []; }
+                return data || [];
+            },
+
+            async getRecipe(id) {
+                if (!supabaseClient) return null;
+                // Get recipe with its ingredients
+                const { data: recipe, error: recipeError } = await supabaseClient
+                    .from('recipes')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                if (recipeError) { console.error('Error loading recipe:', recipeError); return null; }
+                if (!recipe) return null;
+
+                // Get recipe ingredients with full ingredient data
+                const { data: recipeIngredients, error: riError } = await supabaseClient
+                    .from('recipe_ingredients')
+                    .select(`
+                        id,
+                        percentage,
+                        ingredient_id,
+                        ingredients (
+                            id,
+                            name,
+                            kcal_per_100g,
+                            protein_g_per_100g,
+                            fat_g_per_100g,
+                            carbs_g_per_100g,
+                            calcium_mg_per_100g,
+                            phosphorus_mg_per_100g,
+                            iron_mg_per_100g,
+                            zinc_mg_per_100g,
+                            vitamin_a_mcg_per_100g,
+                            vitamin_d_mcg_per_100g,
+                            vitamin_e_mg_per_100g,
+                            ingredient_type,
+                            category
+                        )
+                    `)
+                    .eq('recipe_id', id);
+
+                if (riError) { console.error('Error loading recipe ingredients:', riError); }
+
+                // Format the response
+                recipe.ingredients = (recipeIngredients || []).map(ri => ({
+                    id: ri.id,
+                    ingredient_id: ri.ingredient_id,
+                    ingredient_name: ri.ingredients?.name || '',
+                    percentage: ri.percentage,
+                    kcal_per_100g: ri.ingredients?.kcal_per_100g || 0,
+                    protein_g_per_100g: ri.ingredients?.protein_g_per_100g || 0,
+                    fat_g_per_100g: ri.ingredients?.fat_g_per_100g || 0,
+                    carbs_g_per_100g: ri.ingredients?.carbs_g_per_100g || 0,
+                    calcium_mg_per_100g: ri.ingredients?.calcium_mg_per_100g || 0,
+                    phosphorus_mg_per_100g: ri.ingredients?.phosphorus_mg_per_100g || 0,
+                    iron_mg_per_100g: ri.ingredients?.iron_mg_per_100g || 0,
+                    zinc_mg_per_100g: ri.ingredients?.zinc_mg_per_100g || 0,
+                    vitamin_a_mcg_per_100g: ri.ingredients?.vitamin_a_mcg_per_100g || 0,
+                    vitamin_d_mcg_per_100g: ri.ingredients?.vitamin_d_mcg_per_100g || 0,
+                    vitamin_e_mg_per_100g: ri.ingredients?.vitamin_e_mg_per_100g || 0,
+                    ingredient_type: ri.ingredients?.ingredient_type || 'food',
+                    category: ri.ingredients?.category || 'other',
+                }));
+
+                return recipe;
+            },
+
+            async createRecipe(recipeData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('recipes')
+                    .insert([{
+                        user_id: currentUser?.id || null,
+                        name: recipeData.name,
+                        meals_per_day: recipeData.meals_per_day || 2,
+                    }])
+                    .select()
+                    .single();
+                if (error) throw error;
+                data.ingredients = [];
+                return data;
+            },
+
+            async updateRecipe(id, updates) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('recipes')
+                    .update(updates)
+                    .eq('id', id)
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async deleteRecipe(id) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                // Delete recipe ingredients first
+                await supabaseClient.from('recipe_ingredients').delete().eq('recipe_id', id);
+                const { error } = await supabaseClient
+                    .from('recipes')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+                return true;
+            },
+
+            async addIngredientToRecipe(recipeId, ingredientId, percentage) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                // Check if already exists
+                const { data: existing } = await supabaseClient
+                    .from('recipe_ingredients')
+                    .select('id')
+                    .eq('recipe_id', recipeId)
+                    .eq('ingredient_id', ingredientId)
+                    .single();
+
+                if (existing) {
+                    // Update percentage
+                    await supabaseClient
+                        .from('recipe_ingredients')
+                        .update({ percentage })
+                        .eq('id', existing.id);
+                } else {
+                    // Insert new
+                    await supabaseClient
+                        .from('recipe_ingredients')
+                        .insert([{ recipe_id: recipeId, ingredient_id: ingredientId, percentage }]);
+                }
+                return this.getRecipe(recipeId);
+            },
+
+            async removeIngredientFromRecipe(recipeId, ingredientId) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                await supabaseClient
+                    .from('recipe_ingredients')
+                    .delete()
+                    .eq('recipe_id', recipeId)
+                    .eq('ingredient_id', ingredientId);
+                return this.getRecipe(recipeId);
+            },
+
+            // ===== FEEDING LOGS =====
+            async listFeedingLogs(dogId, limit = 10) {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('feeding_logs')
+                    .select('*, recipes(name)')
+                    .eq('dog_id', dogId)
+                    .order('logged_at', { ascending: false })
+                    .limit(limit);
+                if (error) { console.error('Error loading feeding logs:', error); return []; }
+                return data || [];
+            },
+
+            async getTodayFeedingLogs(dogId) {
+                if (!supabaseClient) return [];
+                const today = new Date().toISOString().split('T')[0];
+                const { data, error } = await supabaseClient
+                    .from('feeding_logs')
+                    .select('*, recipes(name)')
+                    .eq('dog_id', dogId)
+                    .gte('logged_at', today)
+                    .order('logged_at', { ascending: false });
+                if (error) { console.error('Error loading today logs:', error); return []; }
+                return data || [];
+            },
+
+            async createFeedingLog(logData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('feeding_logs')
+                    .insert([{
+                        dog_id: logData.dog_id,
+                        recipe_id: logData.recipe_id || null,
+                        meal_type: logData.meal_type || null,
+                        kcal_fed: logData.kcal_fed,
+                        notes: logData.notes || null,
+                    }])
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async deleteFeedingLog(id) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { error } = await supabaseClient
+                    .from('feeding_logs')
+                    .delete()
+                    .eq('id', id);
+                if (error) throw error;
+                return true;
+            },
+
+            async getTodaySummary(dogId) {
+                const logs = await this.getTodayFeedingLogs(dogId);
+                const totalKcal = logs.reduce((sum, log) => sum + (log.kcal_fed || 0), 0);
+                return {
+                    total_kcal_today: totalKcal,
+                    meal_count: logs.length,
+                    meals: logs,
+                };
+            },
+
+            // ===== WEIGHT LOGS =====
+            async listWeightLogs(dogId, limit = 10) {
+                if (!supabaseClient) return [];
+                const { data, error } = await supabaseClient
+                    .from('weight_logs')
+                    .select('*')
+                    .eq('dog_id', dogId)
+                    .order('logged_at', { ascending: false })
+                    .limit(limit);
+                if (error) { console.error('Error loading weight logs:', error); return []; }
+                return data || [];
+            },
+
+            async createWeightLog(logData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                const { data, error } = await supabaseClient
+                    .from('weight_logs')
+                    .insert([{
+                        dog_id: logData.dog_id,
+                        weight_kg: logData.weight_kg,
+                        notes: logData.notes || null,
+                    }])
+                    .select()
+                    .single();
+                if (error) throw error;
+
+                // Update dog's current weight
+                await this.updateDog(logData.dog_id, { weight_kg: logData.weight_kg });
+
+                return data;
+            },
+
+            // ===== FEEDING PLANS =====
+            async getFeedingPlan(dogId) {
+                if (!supabaseClient) return null;
+                const { data, error } = await supabaseClient
+                    .from('feeding_plans')
+                    .select('*, recipes(*)')
+                    .eq('dog_id', dogId)
+                    .single();
+                if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+                    console.error('Error loading feeding plan:', error);
+                }
+                return data || null;
+            },
+
+            async saveFeedingPlan(planData) {
+                if (!supabaseClient) throw new Error('Database not configured');
+                // Check if plan exists
+                const existing = await this.getFeedingPlan(planData.dog_id);
+                if (existing) {
+                    const { data, error } = await supabaseClient
+                        .from('feeding_plans')
+                        .update({
+                            recipe_id: planData.recipe_id,
+                            kibble_kcal: planData.kibble_kcal || 0,
+                            treats_kcal: planData.treats_kcal || 0,
+                            homemade_kcal: planData.homemade_kcal || 0,
+                            target_kcal: planData.target_kcal,
+                        })
+                        .eq('dog_id', planData.dog_id)
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    return data;
+                } else {
+                    const { data, error } = await supabaseClient
+                        .from('feeding_plans')
+                        .insert([{
+                            dog_id: planData.dog_id,
+                            recipe_id: planData.recipe_id,
+                            kibble_kcal: planData.kibble_kcal || 0,
+                            treats_kcal: planData.treats_kcal || 0,
+                            homemade_kcal: planData.homemade_kcal || 0,
+                            target_kcal: planData.target_kcal,
+                        }])
+                        .select()
+                        .single();
+                    if (error) throw error;
+                    return data;
+                }
+            },
+        };
 
         // Weight unit state
         let currentWeightUnit = localStorage.getItem('weightUnit') || 'kg';
@@ -4259,10 +5309,11 @@
         async function updateOnboardingDisplay() {
             if (onboardingDogId) {
                 try {
-                    const res = await fetchWithAuth(`${API_BASE}/dog/${onboardingDogId}`);
-                    const dog = await res.json();
-                    document.getElementById('onboard-dog-display').textContent = dog.name;
-                    document.getElementById('onboard-target-kcal').textContent = `${Math.round(dog.mer || 0)} kcal`;
+                    const dog = await db.getDog(onboardingDogId);
+                    if (dog) {
+                        document.getElementById('onboard-dog-display').textContent = dog.name;
+                        document.getElementById('onboard-target-kcal').textContent = `${Math.round(dog.mer || 0)} kcal`;
+                    }
                 } catch (err) {
                     console.error('Error fetching dog for display:', err);
                 }
@@ -4296,19 +5347,13 @@
                     };
 
                     try {
-                        const res = await fetchWithAuth(`${API_BASE}/dog`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(dogData)
+                        const dog = await db.createDog({
+                            ...dogData,
+                            sex: 'male',
+                            neutered: true
                         });
-
-                        if (res.ok) {
-                            const dog = await res.json();
-                            onboardingDogId = dog.id;
-                            nextOnboardStep(3);
-                        } else {
-                            showToast('Failed to add dog', 'error');
-                        }
+                        onboardingDogId = dog.id;
+                        nextOnboardStep(3);
                     } catch (err) {
                         showToast('Error adding dog', 'error');
                     }
@@ -4327,20 +5372,10 @@
                     };
 
                     try {
-                        const res = await fetchWithAuth(`${API_BASE}/recipe`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(recipeData)
-                        });
-
-                        if (res.ok) {
-                            const recipe = await res.json();
-                            onboardingRecipeId = recipe.id;
-                            nextOnboardStep(4);
-                            updateOnboardingDisplay();
-                        } else {
-                            showToast('Failed to create recipe', 'error');
-                        }
+                        const recipe = await db.createRecipe(recipeData);
+                        onboardingRecipeId = recipe.id;
+                        nextOnboardStep(4);
+                        updateOnboardingDisplay();
                     } catch (err) {
                         showToast('Error creating recipe', 'error');
                     }
@@ -4467,8 +5502,8 @@
         async function loadHomeDashboard() {
             try {
                 // Fetch all dogs
-                const res = await fetchWithAuth(`${API_BASE}/dog`);
-                allDogs = await res.json();
+                const rawDogs = await db.listDogs();
+                allDogs = rawDogs.map(dog => calculateDogNutrition(dog));
                 updateTierUI(); // Update UI based on current limits
 
                 const noDogEl = document.getElementById('home-no-dog');
@@ -4511,8 +5546,8 @@
         async function loadHomeDogData(dogId) {
             try {
                 // Get dog details
-                const dogRes = await fetchWithAuth(`${API_BASE}/dog/${dogId}`);
-                const dog = await dogRes.json();
+                const dog = await db.getDog(dogId);
+                if (!dog) return;
 
                 // Update profile card
                 document.getElementById('home-dog-name').textContent = dog.name;
@@ -4520,8 +5555,7 @@
                     `${displayWeight(dog.weight_kg)} • ${dog.age_years} years • ${dog.activity_level} activity`;
 
                 // Get today's summary
-                const summaryRes = await fetchWithAuth(`${API_BASE}/log/feeding/dog/${dogId}/summary`);
-                const summary = await summaryRes.json();
+                const summary = await db.getTodaySummary(dogId);
 
                 const targetKcal = dog.target_daily_kcal || dog.mer || 0;
                 const fedKcal = summary.total_kcal || 0;
@@ -4567,8 +5601,7 @@
 
         async function loadHomeMeals(dogId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/log/feeding/dog/${dogId}/today`);
-                const meals = await res.json();
+                const meals = await db.getTodayFeedingLogs(dogId);
 
                 const container = document.getElementById('home-meals-list');
 
@@ -4610,8 +5643,8 @@
         // ===== SETTINGS DOGS =====
         async function loadSettingsDogs() {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog`);
-                allDogs = await res.json();
+                const rawDogs = await db.listDogs();
+                allDogs = rawDogs.map(dog => calculateDogNutrition(dog));
                 updateTierUI(); // Centralized tier UI updates
 
                 const container = document.getElementById('settings-dogs-list');
@@ -4664,20 +5697,11 @@
                     };
 
                     try {
-                        const res = await fetchWithAuth(`${API_BASE}/dog`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(dogData)
-                        });
-
-                        if (res.ok) {
-                            showToast('Dog added successfully!', 'success');
-                            settingsDogForm.reset();
-                            loadSettingsDogs();
-                            loadHomeDashboard();
-                        } else {
-                            showToast('Failed to add dog', 'error');
-                        }
+                        await db.createDog(dogData);
+                        showToast('Dog added successfully!', 'success');
+                        settingsDogForm.reset();
+                        loadSettingsDogs();
+                        loadHomeDashboard();
                     } catch (err) {
                         showToast('Error adding dog', 'error');
                     }
@@ -4804,29 +5828,21 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    e.target.reset();
-                    loadDogs();
-                    showToast(`${data.name} added successfully!`, 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error adding dog', 'error');
-                }
+                await db.createDog(data);
+                e.target.reset();
+                loadDogs();
+                showToast(`${data.name} added successfully!`, 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error adding dog', 'error');
             }
             btn.disabled = false;
         });
 
         async function loadDogs() {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog`);
-                const dogs = await res.json();
+                const rawDogs = await db.listDogs();
+                // Add calculated fields (RER, MER, etc.) to each dog
+                const dogs = rawDogs.map(dog => calculateDogNutrition(dog));
                 const list = document.getElementById('dogs-list');
                 const planSelect = document.getElementById('plan-dog');
                 const trackingSelect = document.getElementById('tracking-dog-select');
@@ -4887,8 +5903,8 @@
         // Edit dog
         async function editDog(dogId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`);
-                const dog = await res.json();
+                const dog = await db.getDog(dogId);
+                if (!dog) { showToast('Dog not found', 'error'); return; }
 
                 document.getElementById('edit-dog-id').value = dog.id;
                 document.getElementById('edit-dog-name').value = dog.name;
@@ -4932,21 +5948,12 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    closeModal('edit-dog-modal');
-                    loadDogs();
-                    showToast('Dog updated successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error updating dog', 'error');
-                }
+                await db.updateDog(dogId, data);
+                closeModal('edit-dog-modal');
+                loadDogs();
+                showToast('Dog updated successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error updating dog', 'error');
             }
         });
 
@@ -4959,75 +5966,113 @@
 
         async function deleteDog(dogId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/dog/${dogId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    closeModal('confirm-delete-modal');
-                    loadDogs();
-                    showToast('Dog deleted successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error deleting dog', 'error');
-                }
+                await db.deleteDog(dogId);
+                closeModal('confirm-delete-modal');
+                loadDogs();
+                showToast('Dog deleted successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error deleting dog', 'error');
             }
         }
 
-        // Ingredient search
+        // USDA API configuration (get your free key at https://fdc.nal.usda.gov/api-key-signup.html)
+        const USDA_API_KEY = localStorage.getItem('USDA_API_KEY') || 'DEMO_KEY';
+        const USDA_API_BASE = 'https://api.nal.usda.gov/fdc/v1';
+
+        // Ingredient search - directly calls USDA API
         async function searchIngredients() {
             const query = document.getElementById('ingredient-search').value;
             if (!query) return;
 
+            // First search local database
             const results = document.getElementById('search-results');
-            results.innerHTML = `<div class="loading"><div class="spinner"></div> Searching USDA database...</div>`;
+            results.innerHTML = `<div class="loading"><div class="spinner"></div> Searching...</div>`;
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/search?q=${encodeURIComponent(query)}`);
-                const data = await res.json();
+                // Search local ingredients first
+                const localResults = await db.searchIngredients(query);
 
-                // Check for API error response
-                if (!res.ok) {
-                    results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>Error: ${data.detail || 'Search failed'}</p></div>`;
-                    return;
+                // Then search USDA
+                const usdaRes = await fetch(`${USDA_API_BASE}/foods/search?api_key=${USDA_API_KEY}&query=${encodeURIComponent(query)}&pageSize=8`);
+                const usdaData = await usdaRes.json();
+
+                let html = '';
+
+                // Show local results
+                if (localResults.length > 0) {
+                    html += `<div style="font-size: 0.9rem; color: var(--text-secondary); padding: 8px 16px; border-bottom: 1px solid var(--border-divider);">Your Ingredients</div>`;
+                    html += localResults.slice(0, 4).map(ing => `
+                        <div class="search-result" style="background: var(--primary-tint);">
+                            <h4>${ing.name}</h4>
+                            <p>${ing.kcal_per_100g?.toFixed(0) || 0} kcal/100g · Already saved</p>
+                        </div>
+                    `).join('');
                 }
 
-                // API returns array directly with snake_case keys
-                if (Array.isArray(data) && data.length > 0) {
-                    results.innerHTML = data.slice(0, 8).map(item => {
+                // Show USDA results
+                if (usdaData.foods && usdaData.foods.length > 0) {
+                    html += `<div style="font-size: 0.9rem; color: var(--text-secondary); padding: 8px 16px; border-bottom: 1px solid var(--border-divider);">USDA Database</div>`;
+                    html += usdaData.foods.slice(0, 8).map(item => {
                         const escapedDesc = item.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
                         return `
-                        <div class="search-result" onclick="importFromUSDA('${item.fdc_id}', '${escapedDesc}')">
+                        <div class="search-result" onclick="importFromUSDA('${item.fdcId}', '${escapedDesc}')">
                             <h4>${item.description}</h4>
-                            <p>USDA ${item.data_type || 'Food'} · Click to import</p>
+                            <p>USDA ${item.dataType || 'Food'} · Click to import</p>
                         </div>
                     `}).join('');
-                } else {
-                    results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>No results found. Try a different search term.</p></div>`;
                 }
+
+                if (!html) {
+                    html = `<div class="empty-state" style="padding: 20px;"><p>No results found. Try a different search term.</p></div>`;
+                }
+
+                results.innerHTML = html;
             } catch (err) {
-                console.error('USDA search error:', err);
+                console.error('Search error:', err);
                 results.innerHTML = `<div class="empty-state" style="padding: 20px;"><p>Search failed: ${err.message || 'Unknown error'}</p></div>`;
             }
         }
 
+        // Import from USDA - fetches full nutrient data and saves to Supabase
         async function importFromUSDA(fdcId, name) {
             showToast('Importing ingredient...', 'info');
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/from-usda`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fdc_id: fdcId })
-                });
-                if (res.ok) {
-                    document.getElementById('search-results').innerHTML = '';
-                    document.getElementById('ingredient-search').value = '';
-                    loadIngredients();
-                    showToast('Ingredient imported!', 'success');
-                } else {
-                    showToast('Import failed', 'error');
-                }
+                // Fetch full nutrient data from USDA
+                const res = await fetch(`${USDA_API_BASE}/food/${fdcId}?api_key=${USDA_API_KEY}`);
+                const food = await res.json();
+
+                // Extract nutrients (USDA nutrient IDs)
+                const getNutrient = (id) => {
+                    const n = food.foodNutrients?.find(fn => fn.nutrient?.id === id || fn.number === id.toString());
+                    return n?.amount || 0;
+                };
+
+                // Create ingredient in Supabase
+                const ingredientData = {
+                    name: food.description || name,
+                    source_type: 'USDA',
+                    source_id: fdcId.toString(),
+                    kcal_per_100g: getNutrient(1008), // Energy
+                    protein_g_per_100g: getNutrient(1003), // Protein
+                    fat_g_per_100g: getNutrient(1004), // Total fat
+                    carbs_g_per_100g: getNutrient(1005), // Carbohydrates
+                    calcium_mg_per_100g: getNutrient(1087), // Calcium
+                    phosphorus_mg_per_100g: getNutrient(1091), // Phosphorus
+                    iron_mg_per_100g: getNutrient(1089), // Iron
+                    zinc_mg_per_100g: getNutrient(1095), // Zinc
+                    vitamin_a_mcg_per_100g: getNutrient(1106), // Vitamin A (RAE)
+                    vitamin_d_mcg_per_100g: getNutrient(1114), // Vitamin D
+                    vitamin_e_mg_per_100g: getNutrient(1109), // Vitamin E
+                };
+
+                await db.createIngredient(ingredientData);
+                document.getElementById('search-results').innerHTML = '';
+                document.getElementById('ingredient-search').value = '';
+                loadIngredients();
+                showToast('Ingredient imported!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                console.error('Import error:', err);
+                showToast('Import failed: ' + (err.message || 'Unknown error'), 'error');
             }
         }
 
@@ -5063,27 +6108,18 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/manual`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    e.target.reset();
-                    loadIngredients();
-                    showToast('Ingredient added!', 'success');
-                } else {
-                    showToast('Error adding ingredient', 'error');
-                }
+                await db.createIngredient(data);
+                e.target.reset();
+                loadIngredients();
+                showToast('Ingredient added!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error adding ingredient', 'error');
             }
         });
 
         async function loadIngredients() {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient`);
-                const ingredients = await res.json();
+                const ingredients = await db.listIngredients();
                 const list = document.getElementById('ingredients-list');
 
                 // Cache ingredients for checkbox list
@@ -5136,8 +6172,8 @@
         // Edit ingredient
         async function editIngredient(ingredientId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`);
-                const ing = await res.json();
+                const ing = await db.getIngredient(ingredientId);
+                if (!ing) { showToast('Ingredient not found', 'error'); return; }
 
                 document.getElementById('edit-ingredient-id').value = ing.id;
                 document.getElementById('edit-ingredient-name').value = ing.name;
@@ -5166,21 +6202,12 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    closeModal('edit-ingredient-modal');
-                    loadIngredients();
-                    showToast('Ingredient updated successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error updating ingredient', 'error');
-                }
+                await db.updateIngredient(ingredientId, data);
+                closeModal('edit-ingredient-modal');
+                loadIngredients();
+                showToast('Ingredient updated successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error updating ingredient', 'error');
             }
         });
 
@@ -5193,17 +6220,12 @@
 
         async function deleteIngredient(ingredientId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/ingredient/${ingredientId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    closeModal('confirm-delete-modal');
-                    loadIngredients();
-                    showToast('Ingredient deleted successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error deleting ingredient', 'error');
-                }
+                await db.deleteIngredient(ingredientId);
+                closeModal('confirm-delete-modal');
+                loadIngredients();
+                showToast('Ingredient deleted successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error deleting ingredient', 'error');
             }
         }
 
@@ -5224,16 +6246,10 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    e.target.reset();
-                    loadRecipes();
-                    showToast('Recipe created!', 'success');
-                }
+                await db.createRecipe(data);
+                e.target.reset();
+                loadRecipes();
+                showToast('Recipe created!', 'success');
             } catch (err) {
                 showToast('Error creating recipe', 'error');
             }
@@ -5254,9 +6270,8 @@
             // Get current recipe ingredients to pre-check
             let existingIngredients = [];
             try {
-                const recipeRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
-                const recipe = await recipeRes.json();
-                existingIngredients = recipe.ingredients || [];
+                const recipe = await db.getRecipe(recipeId);
+                existingIngredients = recipe?.ingredients || [];
             } catch (err) {
                 console.error('Error loading recipe:', err);
             }
@@ -5446,21 +6461,16 @@
 
             // First, remove all existing ingredients from recipe
             try {
-                const recipeRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
-                const recipe = await recipeRes.json();
+                const recipe = await db.getRecipe(recipeId);
 
                 // Delete existing ingredients
-                for (const ing of recipe.ingredients || []) {
-                    await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient/${ing.id}`, { method: 'DELETE' });
+                for (const ing of recipe?.ingredients || []) {
+                    await db.removeIngredientFromRecipe(recipeId, ing.ingredient_id);
                 }
 
                 // Add all ingredients with auto-calculated percentages
                 for (const ing of ingredientsToAdd) {
-                    await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(ing)
-                    });
+                    await db.addIngredientToRecipe(recipeId, ing.ingredient_id, ing.percentage);
                 }
 
                 loadRecipes();
@@ -5473,8 +6483,7 @@
 
         async function loadRecipes() {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe`);
-                const recipes = await res.json();
+                const recipes = await db.listRecipes();
                 allRecipes = recipes; // Update global array for tier checking
                 updateTierUI(); // Update UI based on current limits
 
@@ -5490,7 +6499,7 @@
                 }
 
                 const fullRecipes = await Promise.all(
-                    recipes.map(r => fetchWithAuth(`${API_BASE}/recipe/${r.id}`).then(res => res.json()))
+                    recipes.map(r => db.getRecipe(r.id))
                 );
 
                 list.innerHTML = fullRecipes.map(recipe => `
@@ -5533,23 +6542,19 @@
         // Remove ingredient from recipe
         async function removeIngredientFromRecipe(recipeId, ingredientId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient/${ingredientId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    loadRecipes();
-                    showToast('Ingredient removed from recipe!', 'success');
-                } else {
-                    showToast('Error removing ingredient', 'error');
-                }
+                await db.removeIngredientFromRecipe(recipeId, ingredientId);
+                loadRecipes();
+                showToast('Ingredient removed from recipe!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error removing ingredient', 'error');
             }
         }
 
         // Edit recipe
         async function editRecipe(recipeId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`);
-                const recipe = await res.json();
+                const recipe = await db.getRecipe(recipeId);
+                if (!recipe) { showToast('Recipe not found', 'error'); return; }
 
                 document.getElementById('edit-recipe-id').value = recipe.id;
                 document.getElementById('edit-recipe-name').value = recipe.name;
@@ -5572,21 +6577,12 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    closeModal('edit-recipe-modal');
-                    loadRecipes();
-                    showToast('Recipe updated successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error updating recipe', 'error');
-                }
+                await db.updateRecipe(recipeId, data);
+                closeModal('edit-recipe-modal');
+                loadRecipes();
+                showToast('Recipe updated successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error updating recipe', 'error');
             }
         });
 
@@ -5599,43 +6595,31 @@
 
         async function deleteRecipe(recipeId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    closeModal('confirm-delete-modal');
-                    loadRecipes();
-                    showToast('Recipe deleted successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error deleting recipe', 'error');
-                }
+                await db.deleteRecipe(recipeId);
+                closeModal('confirm-delete-modal');
+                loadRecipes();
+                showToast('Recipe deleted successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error deleting recipe', 'error');
             }
         }
 
         // Feeding plan
         document.getElementById('plan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const data = {
-                dog_id: parseInt(document.getElementById('plan-dog').value),
-                recipe_id: parseInt(document.getElementById('plan-recipe').value),
-                kibble_kcal: parseFloat(document.getElementById('plan-kibble').value) || 0,
-                treats_kcal: parseFloat(document.getElementById('plan-treats').value) || 0,
-                num_days: parseInt(document.getElementById('plan-days').value) || 7
-            };
+            const dogId = parseInt(document.getElementById('plan-dog').value);
+            const recipeId = parseInt(document.getElementById('plan-recipe').value);
+            const kibbleKcal = parseFloat(document.getElementById('plan-kibble').value) || 0;
+            const treatsKcal = parseFloat(document.getElementById('plan-treats').value) || 0;
+            const numDays = parseInt(document.getElementById('plan-days').value) || 7;
 
             const resultDiv = document.getElementById('plan-result');
             resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div> Calculating optimal feeding plan...</div>`;
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/plan/compute`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                const plan = await res.json();
+                const plan = await computeBatchPlan(dogId, recipeId, kibbleKcal, treatsKcal, numDays);
 
-                if (res.ok) {
+                if (plan) {
                     resultDiv.innerHTML = `
                         <div class="plan-header glass-dark">
                             <div class="plan-dog-avatar">🐕</div>
@@ -6018,24 +7002,27 @@
 
             // Load daily summary
             try {
-                const summaryRes = await fetchWithAuth(`${API_BASE}/log/summary/today/${dogId}`);
-                if (summaryRes.ok) {
-                    const summary = await summaryRes.json();
-                    document.getElementById('daily-summary').style.display = 'block';
-                    document.getElementById('summary-target').textContent = summary.target_kcal.toFixed(0);
-                    document.getElementById('summary-fed').textContent = summary.total_kcal_fed.toFixed(0);
-                    document.getElementById('summary-remaining').textContent = summary.remaining_kcal.toFixed(0);
+                const dog = await db.getDog(dogId);
+                const todayLogs = await db.getTodayFeedingLogs(dogId);
+                const totalKcalFed = todayLogs.reduce((sum, log) => sum + (log.kcal_fed || 0), 0);
+                const targetKcal = dog?.effective_daily_kcal || dog?.mer || 0;
+                const remainingKcal = targetKcal - totalKcalFed;
+                const onTrack = totalKcalFed <= targetKcal;
 
-                    const statusEl = document.getElementById('summary-status');
-                    if (summary.on_track) {
-                        statusEl.style.background = 'rgba(16, 185, 129, 0.2)';
-                        statusEl.style.color = '#10b981';
-                        statusEl.innerHTML = '✓ On track! ' + (summary.remaining_kcal > 0 ? `${summary.remaining_kcal.toFixed(0)} kcal remaining` : 'Daily target reached');
-                    } else {
-                        statusEl.style.background = 'rgba(245, 158, 11, 0.2)';
-                        statusEl.style.color = '#f59e0b';
-                        statusEl.innerHTML = '⚠️ Over daily target by ' + (summary.total_kcal_fed - summary.target_kcal).toFixed(0) + ' kcal';
-                    }
+                document.getElementById('daily-summary').style.display = 'block';
+                document.getElementById('summary-target').textContent = targetKcal.toFixed(0);
+                document.getElementById('summary-fed').textContent = totalKcalFed.toFixed(0);
+                document.getElementById('summary-remaining').textContent = Math.abs(remainingKcal).toFixed(0);
+
+                const statusEl = document.getElementById('summary-status');
+                if (onTrack) {
+                    statusEl.style.background = 'rgba(16, 185, 129, 0.2)';
+                    statusEl.style.color = '#10b981';
+                    statusEl.innerHTML = '✓ On track! ' + (remainingKcal > 0 ? `${remainingKcal.toFixed(0)} kcal remaining` : 'Daily target reached');
+                } else {
+                    statusEl.style.background = 'rgba(245, 158, 11, 0.2)';
+                    statusEl.style.color = '#f59e0b';
+                    statusEl.innerHTML = '⚠️ Over daily target by ' + Math.abs(remainingKcal).toFixed(0) + ' kcal';
                 }
             } catch (err) {
                 console.error('Error loading summary:', err);
@@ -6043,24 +7030,21 @@
 
             // Load today's meals
             try {
-                const mealsRes = await fetchWithAuth(`${API_BASE}/log/feeding/today/${dogId}`);
-                if (mealsRes.ok) {
-                    const meals = await mealsRes.json();
-                    const mealsList = document.getElementById('todays-meals-list');
-                    if (meals.length === 0) {
-                        mealsList.innerHTML = '<p style="color: var(--text-muted);">No meals logged today</p>';
-                    } else {
-                        mealsList.innerHTML = meals.map(meal => `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
-                                <div>
-                                    <strong style="color: var(--text-primary);">${meal.meal_type || 'Meal'}</strong>
-                                    <span style="color: var(--text-secondary); margin-left: 12px;">${meal.kcal_fed} kcal</span>
-                                    ${meal.recipe_name ? `<span style="color: var(--text-muted); margin-left: 8px;">(${meal.recipe_name})</span>` : ''}
-                                </div>
-                                <button class="btn btn-sm btn-delete" onclick="deleteFeedingLog(${meal.id})">✕</button>
+                const meals = await db.getTodayFeedingLogs(dogId);
+                const mealsList = document.getElementById('todays-meals-list');
+                if (meals.length === 0) {
+                    mealsList.innerHTML = '<p style="color: var(--text-muted);">No meals logged today</p>';
+                } else {
+                    mealsList.innerHTML = meals.map(meal => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <strong style="color: var(--text-primary);">${meal.meal_type || 'Meal'}</strong>
+                                <span style="color: var(--text-secondary); margin-left: 12px;">${meal.kcal_fed} kcal</span>
+                                ${meal.recipes?.name ? `<span style="color: var(--text-muted); margin-left: 8px;">(${meal.recipes.name})</span>` : ''}
                             </div>
-                        `).join('');
-                    }
+                            <button class="btn btn-sm btn-delete" onclick="deleteFeedingLog(${meal.id})">✕</button>
+                        </div>
+                    `).join('');
                 }
             } catch (err) {
                 console.error('Error loading meals:', err);
@@ -6068,25 +7052,22 @@
 
             // Load weight history
             try {
-                const weightRes = await fetchWithAuth(`${API_BASE}/log/weight/dog/${dogId}?limit=10`);
-                if (weightRes.ok) {
-                    const weights = await weightRes.json();
-                    const weightList = document.getElementById('weight-history-list');
-                    if (weights.length === 0) {
-                        weightList.innerHTML = '<p style="color: var(--text-muted);">No weight history</p>';
-                    } else {
-                        weightList.innerHTML = weights.map(w => {
-                            const date = new Date(w.logged_at).toLocaleDateString();
-                            return `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
-                                <div>
-                                    <strong style="color: var(--text-primary);">${displayWeight(w.weight_kg)}</strong>
-                                    <span style="color: var(--text-muted); margin-left: 12px;">${date}</span>
-                                    ${w.notes ? `<span style="color: var(--text-muted); margin-left: 8px;">- ${w.notes}</span>` : ''}
-                                </div>
+                const weights = await db.listWeightLogs(dogId, 10);
+                const weightList = document.getElementById('weight-history-list');
+                if (weights.length === 0) {
+                    weightList.innerHTML = '<p style="color: var(--text-muted);">No weight history</p>';
+                } else {
+                    weightList.innerHTML = weights.map(w => {
+                        const date = new Date(w.logged_at).toLocaleDateString();
+                        return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-secondary); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <strong style="color: var(--text-primary);">${displayWeight(w.weight_kg)}</strong>
+                                <span style="color: var(--text-muted); margin-left: 12px;">${date}</span>
+                                ${w.notes ? `<span style="color: var(--text-muted); margin-left: 8px;">- ${w.notes}</span>` : ''}
                             </div>
-                        `}).join('');
-                    }
+                        </div>
+                    `}).join('');
                 }
             } catch (err) {
                 console.error('Error loading weight history:', err);
@@ -6094,12 +7075,9 @@
 
             // Populate recipe select for logging
             try {
-                const recipesRes = await fetchWithAuth(`${API_BASE}/recipe`);
-                if (recipesRes.ok) {
-                    const recipes = await recipesRes.json();
-                    document.getElementById('log-recipe').innerHTML = '<option value="">No recipe</option>' +
-                        recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-                }
+                const recipes = await db.listRecipes();
+                document.getElementById('log-recipe').innerHTML = '<option value="">No recipe</option>' +
+                    recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
             } catch (err) {
                 console.error('Error loading recipes:', err);
             }
@@ -6124,22 +7102,13 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/log/feeding`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    document.getElementById('log-kcal').value = '';
-                    document.getElementById('log-notes').value = '';
-                    loadTrackingData();
-                    showToast('Meal logged successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error logging meal', 'error');
-                }
+                await db.createFeedingLog(data);
+                document.getElementById('log-kcal').value = '';
+                document.getElementById('log-notes').value = '';
+                loadTrackingData();
+                showToast('Meal logged successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error logging meal', 'error');
             }
         });
 
@@ -6160,37 +7129,24 @@
             };
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/log/weight`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (res.ok) {
-                    document.getElementById('log-weight').value = '';
-                    document.getElementById('weight-log-notes').value = '';
-                    loadTrackingData();
-                    loadDogs(); // Refresh dog list as weight is updated
-                    showToast('Weight logged successfully!', 'success');
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Error logging weight', 'error');
-                }
+                await db.createWeightLog(data);
+                document.getElementById('log-weight').value = '';
+                document.getElementById('weight-log-notes').value = '';
+                loadTrackingData();
+                loadDogs(); // Refresh dog list as weight is updated
+                showToast('Weight logged successfully!', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error logging weight', 'error');
             }
         });
 
         async function deleteFeedingLog(logId) {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/log/feeding/${logId}`, { method: 'DELETE' });
-                if (res.ok) {
-                    loadTrackingData();
-                    showToast('Meal log deleted', 'success');
-                } else {
-                    showToast('Error deleting log', 'error');
-                }
+                await db.deleteFeedingLog(logId);
+                loadTrackingData();
+                showToast('Meal log deleted', 'success');
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error deleting log', 'error');
             }
         }
 
@@ -6234,8 +7190,7 @@
 
         async function loadRecipesForModal() {
             try {
-                const res = await fetchWithAuth(`${API_BASE}/recipe`);
-                const recipes = await res.json();
+                const recipes = await db.listRecipes();
                 const select = document.getElementById('modal-recipe-select');
                 select.innerHTML = recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
             } catch (err) {
@@ -6252,45 +7207,38 @@
                 return;
             }
 
-            // First search for the ingredient in USDA
+            // Search local database first, then USDA
             try {
                 showToast('Searching for ingredient...', 'info');
-                const searchRes = await fetchWithAuth(`${API_BASE}/ingredient/search?q=${encodeURIComponent(selectedIngredientName)}`);
-                const searchResults = await searchRes.json();
+                const localResults = await db.searchIngredients(selectedIngredientName);
 
-                if (searchResults.length > 0) {
-                    // Import from USDA
-                    const importRes = await fetchWithAuth(`${API_BASE}/ingredient/from-usda`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ fdc_id: searchResults[0].fdc_id })
-                    });
+                if (localResults.length > 0) {
+                    // Use existing local ingredient
+                    await db.addIngredientToRecipe(recipeId, localResults[0].id, grams);
+                    showToast(`Added ${selectedIngredientName} to recipe!`, 'success');
+                    closeAddToRecipeModal();
+                    loadRecipes();
+                } else {
+                    // Search USDA and import
+                    const usdaRes = await fetch(`${USDA_API_BASE}/foods/search?api_key=${USDA_API_KEY}&query=${encodeURIComponent(selectedIngredientName)}&pageSize=1`);
+                    const usdaData = await usdaRes.json();
 
-                    if (importRes.ok) {
-                        const ingredient = await importRes.json();
-                        // Add to recipe
-                        const addRes = await fetchWithAuth(`${API_BASE}/recipe/${recipeId}/ingredient`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ingredient_id: ingredient.id, grams: grams })
-                        });
-
-                        if (addRes.ok) {
+                    if (usdaData.foods && usdaData.foods.length > 0) {
+                        await importFromUSDA(usdaData.foods[0].fdcId, usdaData.foods[0].description);
+                        // Get the newly imported ingredient
+                        const newIngredients = await db.searchIngredients(selectedIngredientName);
+                        if (newIngredients.length > 0) {
+                            await db.addIngredientToRecipe(recipeId, newIngredients[0].id, grams);
                             showToast(`Added ${selectedIngredientName} to recipe!`, 'success');
                             closeAddToRecipeModal();
                             loadRecipes();
-                        } else {
-                            const err = await addRes.json();
-                            showToast(err.detail || 'Error adding to recipe', 'error');
                         }
                     } else {
-                        showToast('Error importing ingredient', 'error');
+                        showToast('Ingredient not found in USDA database', 'error');
                     }
-                } else {
-                    showToast('Ingredient not found in USDA database', 'error');
                 }
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Error adding ingredient', 'error');
             }
         }
 
@@ -6308,12 +7256,11 @@
         // Populate simulator dropdowns
         async function populateSimulatorDropdowns() {
             try {
-                const [dogsRes, recipesRes] = await Promise.all([
-                    fetchWithAuth(`${API_BASE}/dog`),
-                    fetchWithAuth(`${API_BASE}/recipe`)
+                const [rawDogs, recipes] = await Promise.all([
+                    db.listDogs(),
+                    db.listRecipes()
                 ]);
-                const dogs = await dogsRes.json();
-                const recipes = await recipesRes.json();
+                const dogs = rawDogs.map(d => calculateDogNutrition(d));
 
                 const dogSelect = document.getElementById('sim-dog');
                 const recipeSelect = document.getElementById('sim-recipe');
@@ -6338,13 +7285,13 @@
             }
 
             try {
-                const [dogRes, recipeRes] = await Promise.all([
-                    fetchWithAuth(`${API_BASE}/dog/${dogId}`),
-                    fetchWithAuth(`${API_BASE}/recipe/${recipeId}`)
+                const [dog, recipe] = await Promise.all([
+                    db.getDog(dogId),
+                    db.getRecipe(recipeId)
                 ]);
 
-                simulatorData.dog = await dogRes.json();
-                simulatorData.recipe = await recipeRes.json();
+                simulatorData.dog = dog;
+                simulatorData.recipe = recipe;
 
                 // Build adjustment inputs
                 const adjustmentsDiv = document.getElementById('ingredient-adjustments');
@@ -6383,44 +7330,31 @@
         }
 
         async function showCurrentNutrition() {
-            // Calculate a simple meal plan to get current nutrition
+            // Calculate nutrition using frontend function
             try {
-                const res = await fetchWithAuth(`${API_BASE}/plan/compute`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        dog_id: simulatorData.dog.id,
-                        recipe_id: simulatorData.recipe.id,
-                        kibble_kcal: 0,
-                        treats_kcal: 0,
-                        num_days: 1
-                    })
-                });
+                const plan = await computeBatchPlan(simulatorData.dog.id, simulatorData.recipe.id, 0, 0, 1);
 
-                if (res.ok) {
-                    const plan = await res.json();
-                    const display = document.getElementById('current-nutrition-display');
-                    display.innerHTML = `
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
-                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.target_kcal?.toFixed(0)}</div>
-                                <div style="font-size: 0.8em; color: var(--text-secondary);">Target kcal</div>
-                            </div>
-                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.protein_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: var(--text-secondary);">Protein</div>
-                            </div>
-                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.fat_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: var(--text-secondary);">Fat</div>
-                            </div>
-                            <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
-                                <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</div>
-                                <div style="font-size: 0.8em; color: var(--text-secondary);">Carbs</div>
-                            </div>
+                const display = document.getElementById('current-nutrition-display');
+                display.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.target_kcal?.toFixed(0)}</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Target kcal</div>
                         </div>
-                    `;
-                }
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrients?.protein_g?.toFixed(1) || 0}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Protein</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrients?.fat_g?.toFixed(1) || 0}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Fat</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.nutrients?.carbs_g?.toFixed(1) || 0}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Carbs</div>
+                        </div>
+                    </div>
+                `;
             } catch (err) {
                 console.error('Error showing current nutrition:', err);
             }
@@ -6505,22 +7439,149 @@
             }
 
             try {
-                const res = await fetchWithAuth(`${API_BASE}/plan/simulate`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
-                });
-
-                if (res.ok) {
-                    const result = await res.json();
-                    displaySimulationResults(result);
-                } else {
-                    const err = await res.json();
-                    showToast(err.detail || 'Simulation failed', 'error');
-                }
+                // Perform simulation with adjusted percentages
+                const result = await simulateNutrition(requestBody);
+                displaySimulationResults(result);
             } catch (err) {
-                showToast('Connection error', 'error');
+                showToast(err.message || 'Simulation failed', 'error');
             }
+        }
+
+        /**
+         * Simulate nutrition changes (replaces /plan/simulate endpoint)
+         */
+        async function simulateNutrition(request) {
+            const dog = await db.getDog(request.dog_id);
+            const recipe = await db.getRecipe(request.recipe_id);
+
+            if (!dog || !recipe) {
+                throw new Error('Dog or recipe not found');
+            }
+
+            const targetKcal = dog.effective_daily_kcal || dog.mer;
+
+            // Calculate "before" nutrition using original recipe
+            const beforeIngredients = recipe.ingredients.map(i => ({
+                ...i,
+                percentage: i.percentage
+            }));
+            const beforeNutrients = aggregateNutrients(beforeIngredients, targetKcal);
+
+            // Calculate "after" nutrition using adjusted percentages
+            const adjustmentMap = {};
+            request.ingredient_adjustments.forEach(adj => {
+                adjustmentMap[adj.ingredient_id] = adj.new_percentage;
+            });
+
+            const afterIngredients = recipe.ingredients.map(i => ({
+                ...i,
+                percentage: adjustmentMap[i.ingredient_id] ?? i.percentage
+            }));
+
+            let freshNutrients = aggregateNutrients(afterIngredients, targetKcal);
+            let kibbleNutrients = null;
+            let combinedNutrients = { ...freshNutrients };
+
+            // Add kibble if provided
+            if (request.kibble) {
+                kibbleNutrients = calculateKibbleNutrients(
+                    request.kibble.protein_pct,
+                    request.kibble.fat_pct,
+                    request.kibble.fiber_pct,
+                    request.kibble.moisture_pct,
+                    request.kibble.ash_pct,
+                    request.kibble.amount_grams,
+                    request.kibble.calcium_pct,
+                    request.kibble.phosphorus_pct
+                );
+
+                // Reduce fresh food by kibble calories
+                const remainingKcal = Math.max(0, targetKcal - kibbleNutrients.kcal);
+                freshNutrients = aggregateNutrients(afterIngredients, remainingKcal);
+
+                combinedNutrients = combineNutrientTotals(kibbleNutrients, freshNutrients);
+            }
+
+            // Check AAFCO compliance
+            const nutrientStatus = [];
+            const warnings = [];
+            const recommendations = [];
+
+            const nutrientMap = {
+                protein: combinedNutrients.protein_g,
+                fat: combinedNutrients.fat_g,
+                calcium: combinedNutrients.calcium_mg,
+                phosphorus: combinedNutrients.phosphorus_mg,
+                iron: combinedNutrients.iron_mg,
+                zinc: combinedNutrients.zinc_mg,
+                vitamin_a: combinedNutrients.vitamin_a_mcg,
+                vitamin_d: combinedNutrients.vitamin_d_mcg,
+                vitamin_e: combinedNutrients.vitamin_e_mg,
+            };
+
+            let overallStatus = 'excellent';
+
+            for (const [nutrient, amount] of Object.entries(nutrientMap)) {
+                const req = AAFCO_REQUIREMENTS[nutrient];
+                if (req) {
+                    const per1000 = nutrientPer1000kcal(amount, combinedNutrients.kcal || targetKcal);
+                    const check = checkAAFCOCompliance(nutrient, per1000, req.min, req.max);
+                    nutrientStatus.push(check);
+
+                    if (check.status === 'deficient') {
+                        warnings.push(check.warning);
+                        overallStatus = overallStatus === 'dangerous' ? 'dangerous' : 'bad';
+                    } else if (check.status === 'excess') {
+                        warnings.push(check.warning);
+                        overallStatus = 'dangerous';
+                    }
+                }
+            }
+
+            if (warnings.length === 0 && overallStatus !== 'dangerous') {
+                overallStatus = 'excellent';
+            } else if (overallStatus !== 'dangerous' && overallStatus !== 'bad') {
+                overallStatus = 'good';
+            }
+
+            // Ca:P ratio analysis
+            const caPAnalysis = analyzeCaPRatio(combinedNutrients.calcium_mg, combinedNutrients.phosphorus_mg);
+            if (caPAnalysis.status === 'low') {
+                recommendations.push(caPAnalysis.message);
+            }
+
+            // Format nutrients for response
+            const formatNutrients = (n) => ({
+                kcal: n.kcal || 0,
+                protein_g: n.protein_g || 0,
+                fat_g: n.fat_g || 0,
+                carbs_g: n.carbs_g || 0,
+                calcium_mg: n.calcium_mg || 0,
+                phosphorus_mg: n.phosphorus_mg || 0,
+                iron_mg: n.iron_mg || 0,
+                zinc_mg: n.zinc_mg || 0,
+                vitamin_a_mcg: n.vitamin_a_mcg || 0,
+                vitamin_d_mcg: n.vitamin_d_mcg || 0,
+                vitamin_e_mg: n.vitamin_e_mg || 0,
+            });
+
+            return {
+                before: formatNutrients(beforeNutrients),
+                after: {
+                    kibble: kibbleNutrients ? formatNutrients(kibbleNutrients) : null,
+                    fresh: formatNutrients(freshNutrients),
+                    combined: formatNutrients(combinedNutrients),
+                },
+                nutrient_status: nutrientStatus,
+                overall_status: overallStatus,
+                warnings,
+                recommendations,
+                ca_p_analysis: caPAnalysis,
+                kibble_analysis: kibbleNutrients ? {
+                    carb_pct: kibbleNutrients.nfe_pct,
+                    high_filler: kibbleNutrients.nfe_pct > 40
+                } : null,
+            };
         }
 
         let sourceBreakdownChart = null;
