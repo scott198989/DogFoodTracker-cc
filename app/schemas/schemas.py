@@ -441,3 +441,66 @@ class SimulateResponse(BaseModel):
     overall_status: str  # "excellent", "good", "caution", "bad", "dangerous"
     warnings: list[str]
     recommendations: list[str]
+
+
+# Hybrid Feeding Schemas (Kibble + Fresh)
+class KibbleInput(BaseModel):
+    """Kibble Guaranteed Analysis from bag label."""
+    protein_pct: float = Field(..., ge=0, le=100, description="Crude Protein %")
+    fat_pct: float = Field(..., ge=0, le=100, description="Crude Fat %")
+    fiber_pct: float = Field(..., ge=0, le=100, description="Crude Fiber %")
+    moisture_pct: float = Field(10.0, ge=0, le=100, description="Moisture %")
+    ash_pct: float = Field(7.0, ge=0, le=100, description="Ash %")
+    calcium_pct: Optional[float] = Field(None, ge=0, le=10, description="Calcium % if listed")
+    phosphorus_pct: Optional[float] = Field(None, ge=0, le=10, description="Phosphorus % if listed")
+    amount_grams: float = Field(..., gt=0, description="Kibble serving size in grams")
+
+
+class KibbleNutrients(BaseModel):
+    """Calculated nutrients from kibble GA values."""
+    kcal: float
+    protein_g: float
+    fat_g: float
+    carbs_g: float
+    fiber_g: float
+    calcium_mg: float
+    phosphorus_mg: float
+    carb_pct_of_kibble: float
+
+
+class CaPRatioAnalysis(BaseModel):
+    """Calcium to Phosphorus ratio analysis."""
+    total_calcium_mg: float
+    total_phosphorus_mg: float
+    ca_p_ratio: float
+    status: str  # "optimal", "acceptable", "low", "high"
+    calcium_gap_mg: Optional[float] = None
+    eggshell_recommendation_g: Optional[float] = None
+    message: str
+
+
+class HybridNutrientBreakdown(BaseModel):
+    """Breakdown of nutrients by source."""
+    kibble: Optional[NutrientTotalsResponse] = None
+    fresh: NutrientTotalsResponse
+    combined: NutrientTotalsResponse
+
+
+class HybridSimulateRequest(BaseModel):
+    """Simulate request with optional kibble input."""
+    dog_id: int
+    recipe_id: int
+    ingredient_adjustments: list[IngredientAdjustment]
+    kibble: Optional[KibbleInput] = None
+
+
+class HybridSimulateResponse(BaseModel):
+    """Extended response with hybrid feeding data."""
+    before: NutrientTotalsResponse
+    after: HybridNutrientBreakdown
+    nutrient_status: list[NutrientStatusResponse]
+    overall_status: str
+    warnings: list[str]
+    recommendations: list[str]
+    ca_p_analysis: Optional[CaPRatioAnalysis] = None
+    kibble_analysis: Optional[dict] = None

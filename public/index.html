@@ -3172,6 +3172,75 @@
                         </div>
                     </div>
 
+                    <!-- Kibble Input Section -->
+                    <div id="kibble-section" class="form-card glass-dark" style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: var(--text-primary); margin: 0;">🥣 Kibble Base (Optional)</h3>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="kibble-toggle" onchange="toggleKibbleSection()">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.9rem;">Enable to add kibble alongside fresh food (hybrid feeding)</p>
+
+                        <div id="kibble-inputs" style="display: none;">
+                            <p style="color: var(--text-muted); margin-bottom: 15px; font-size: 0.85rem;">Enter values from your kibble's Guaranteed Analysis (GA)</p>
+
+                            <div class="form-grid" style="grid-template-columns: repeat(3, 1fr);">
+                                <div class="form-group">
+                                    <label>Protein %</label>
+                                    <input type="number" id="kibble-protein" step="0.1" min="0" max="100" placeholder="e.g., 26" oninput="previewKibbleCarbs()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fat %</label>
+                                    <input type="number" id="kibble-fat" step="0.1" min="0" max="100" placeholder="e.g., 15" oninput="previewKibbleCarbs()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Fiber %</label>
+                                    <input type="number" id="kibble-fiber" step="0.1" min="0" max="100" placeholder="e.g., 4" oninput="previewKibbleCarbs()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Moisture %</label>
+                                    <input type="number" id="kibble-moisture" step="0.1" min="0" max="100" value="10" placeholder="10" oninput="previewKibbleCarbs()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ash %</label>
+                                    <input type="number" id="kibble-ash" step="0.1" min="0" max="100" value="7" placeholder="7" oninput="previewKibbleCarbs()">
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount (grams)</label>
+                                    <input type="number" id="kibble-amount" step="1" min="1" placeholder="e.g., 150">
+                                </div>
+                            </div>
+
+                            <!-- Optional Ca/P -->
+                            <div class="form-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 10px;">
+                                <div class="form-group">
+                                    <label>Calcium % <span style="color: var(--text-muted);">(if listed)</span></label>
+                                    <input type="number" id="kibble-calcium" step="0.01" min="0" max="10" placeholder="e.g., 1.2">
+                                </div>
+                                <div class="form-group">
+                                    <label>Phosphorus % <span style="color: var(--text-muted);">(if listed)</span></label>
+                                    <input type="number" id="kibble-phosphorus" step="0.01" min="0" max="10" placeholder="e.g., 1.0">
+                                </div>
+                            </div>
+
+                            <!-- Calculated NFE Display -->
+                            <div id="kibble-nfe-display" style="margin-top: 15px; padding: 12px; background: rgba(14, 165, 233, 0.1); border-radius: 8px; display: none;">
+                                <span style="color: var(--text-secondary);">Calculated Carbs (NFE): </span>
+                                <span id="kibble-nfe-value" style="color: var(--text-primary); font-weight: 600;">0%</span>
+                            </div>
+
+                            <!-- High Filler Warning -->
+                            <div id="high-filler-warning" style="display: none; margin-top: 15px; padding: 12px; background: rgba(249, 115, 22, 0.2); border-radius: 8px; border-left: 4px solid #f97316;">
+                                <strong style="color: #f97316;">HIGH FILLER CONTENT</strong>
+                                <p style="color: var(--text-secondary); margin: 5px 0 0 0; font-size: 0.9rem;">
+                                    Kibble is <span id="kibble-carb-display">0</span>% carbohydrates. Consider a lower-carb option.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="simulator-content" style="display: none;">
                         <!-- Current Nutrition Overview -->
                         <div class="form-card glass-dark" style="margin-top: 20px;">
@@ -3181,7 +3250,7 @@
 
                         <!-- Ingredient Adjustments -->
                         <div class="form-card glass-dark" style="margin-top: 20px;">
-                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔧 Adjust Ingredients</h3>
+                            <h3 style="color: var(--text-primary); margin-bottom: 15px;">🔧 Adjust Fresh Ingredients</h3>
                             <p style="color: var(--text-secondary); margin-bottom: 15px;">Change amounts below and click "Simulate" to see the impact</p>
                             <div id="ingredient-adjustments"></div>
                             <div class="quick-actions" style="margin-top: 20px;">
@@ -3199,12 +3268,22 @@
                             <!-- Overall Status -->
                             <div id="overall-status-card" class="form-card glass-dark" style="margin-top: 20px;"></div>
 
-                            <!-- Macro Pie Chart -->
+                            <!-- Source Breakdown (Kibble vs Fresh) -->
                             <div class="form-card glass-dark" style="margin-top: 20px;">
-                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">🥧 Macro Distribution</h3>
-                                <div style="max-width: 400px; margin: 0 auto;">
-                                    <canvas id="macro-chart"></canvas>
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 Nutrient Sources: Kibble vs Fresh</h3>
+                                <div style="max-width: 600px; margin: 0 auto;">
+                                    <canvas id="source-breakdown-chart"></canvas>
                                 </div>
+                                <div id="source-legend" style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #f59e0b; border-radius: 2px; margin-right: 5px;"></span>Kibble</span>
+                                    <span><span style="display: inline-block; width: 12px; height: 12px; background: #10b981; border-radius: 2px; margin-right: 5px;"></span>Fresh</span>
+                                </div>
+                            </div>
+
+                            <!-- Ca:P Ratio Card -->
+                            <div id="ca-p-card" class="form-card glass-dark" style="margin-top: 20px; display: none;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">🦴 Calcium : Phosphorus Ratio</h3>
+                                <div id="ca-p-display"></div>
                             </div>
 
                             <!-- Nutrient Bars -->
@@ -6075,6 +6154,39 @@
             }
         }
 
+        // Toggle kibble input section
+        function toggleKibbleSection() {
+            const toggle = document.getElementById('kibble-toggle');
+            const inputs = document.getElementById('kibble-inputs');
+            inputs.style.display = toggle.checked ? 'block' : 'none';
+        }
+
+        // Preview kibble carbs (NFE) in real-time
+        function previewKibbleCarbs() {
+            const protein = parseFloat(document.getElementById('kibble-protein').value) || 0;
+            const fat = parseFloat(document.getElementById('kibble-fat').value) || 0;
+            const fiber = parseFloat(document.getElementById('kibble-fiber').value) || 0;
+            const moisture = parseFloat(document.getElementById('kibble-moisture').value) || 10;
+            const ash = parseFloat(document.getElementById('kibble-ash').value) || 7;
+
+            const nfe = 100 - (protein + fat + fiber + moisture + ash);
+            const carbPct = Math.max(0, nfe);
+
+            // Show NFE display
+            const nfeDisplay = document.getElementById('kibble-nfe-display');
+            document.getElementById('kibble-nfe-value').textContent = carbPct.toFixed(1) + '%';
+            nfeDisplay.style.display = (protein || fat || fiber) ? 'block' : 'none';
+
+            // High filler warning
+            const warningDiv = document.getElementById('high-filler-warning');
+            if (carbPct > 40) {
+                document.getElementById('kibble-carb-display').textContent = carbPct.toFixed(0);
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+        }
+
         async function runSimulation() {
             // Collect current percentage amounts
             const adjustments = [];
@@ -6088,15 +6200,43 @@
                 });
             });
 
+            // Build request body
+            const requestBody = {
+                dog_id: simulatorData.dog.id,
+                recipe_id: simulatorData.recipe.id,
+                ingredient_adjustments: adjustments
+            };
+
+            // Add kibble data if enabled
+            const kibbleToggle = document.getElementById('kibble-toggle');
+            if (kibbleToggle && kibbleToggle.checked) {
+                const protein = parseFloat(document.getElementById('kibble-protein').value);
+                const fat = parseFloat(document.getElementById('kibble-fat').value);
+                const fiber = parseFloat(document.getElementById('kibble-fiber').value);
+                const amount = parseFloat(document.getElementById('kibble-amount').value);
+
+                if (protein && fat && fiber && amount) {
+                    requestBody.kibble = {
+                        protein_pct: protein,
+                        fat_pct: fat,
+                        fiber_pct: fiber,
+                        moisture_pct: parseFloat(document.getElementById('kibble-moisture').value) || 10,
+                        ash_pct: parseFloat(document.getElementById('kibble-ash').value) || 7,
+                        amount_grams: amount,
+                        calcium_pct: parseFloat(document.getElementById('kibble-calcium').value) || null,
+                        phosphorus_pct: parseFloat(document.getElementById('kibble-phosphorus').value) || null
+                    };
+                } else {
+                    showToast('Fill in Protein%, Fat%, Fiber%, and Amount for kibble', 'error');
+                    return;
+                }
+            }
+
             try {
                 const res = await fetch(`${API_BASE}/plan/simulate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        dog_id: simulatorData.dog.id,
-                        recipe_id: simulatorData.recipe.id,
-                        ingredient_adjustments: adjustments
-                    })
+                    body: JSON.stringify(requestBody)
                 });
 
                 if (res.ok) {
@@ -6110,6 +6250,8 @@
                 showToast('Connection error', 'error');
             }
         }
+
+        let sourceBreakdownChart = null;
 
         function displaySimulationResults(result) {
             document.getElementById('simulation-results').style.display = 'block';
@@ -6138,25 +6280,39 @@
                 </div>
             `;
 
-            // Macro pie chart
-            const ctx = document.getElementById('macro-chart').getContext('2d');
+            // Source breakdown stacked bar chart (Kibble vs Fresh)
+            const ctx = document.getElementById('source-breakdown-chart').getContext('2d');
+            if (sourceBreakdownChart) sourceBreakdownChart.destroy();
             if (macroChart) macroChart.destroy();
 
-            const macros = result.after;
-            const totalMacroG = macros.protein_g + macros.fat_g + macros.carbs_g;
+            const hasKibble = result.after.kibble !== null;
+            const kibble = result.after.kibble || { protein_g: 0, fat_g: 0, carbs_g: 0, kcal: 0 };
+            const fresh = result.after.fresh;
+            const combined = result.after.combined;
 
-            macroChart = new Chart(ctx, {
-                type: 'doughnut',
+            sourceBreakdownChart = new Chart(ctx, {
+                type: 'bar',
                 data: {
-                    labels: ['Protein', 'Fat', 'Carbs'],
-                    datasets: [{
-                        data: [macros.protein_g, macros.fat_g, macros.carbs_g],
-                        backgroundColor: ['#0ea5e9', '#f59e0b', '#10b981'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Calories (kcal)', 'Protein (g)', 'Fat (g)', 'Carbs (g)'],
+                    datasets: [
+                        {
+                            label: 'Kibble',
+                            data: [kibble.kcal, kibble.protein_g, kibble.fat_g, kibble.carbs_g],
+                            backgroundColor: '#f59e0b',
+                        },
+                        {
+                            label: 'Fresh',
+                            data: [fresh.kcal, fresh.protein_g, fresh.fat_g, fresh.carbs_g],
+                            backgroundColor: '#10b981',
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
+                    scales: {
+                        x: { stacked: true, ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { stacked: true, ticks: { color: 'rgba(255,255,255,0.7)' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    },
                     plugins: {
                         legend: {
                             labels: { color: 'white' }
@@ -6164,9 +6320,9 @@
                         tooltip: {
                             callbacks: {
                                 label: (context) => {
+                                    const label = context.dataset.label;
                                     const value = context.raw;
-                                    const pct = ((value / totalMacroG) * 100).toFixed(1);
-                                    return `${context.label}: ${value.toFixed(1)}g (${pct}%)`;
+                                    return `${label}: ${value.toFixed(1)}`;
                                 }
                             }
                         }
@@ -6174,9 +6330,53 @@
                 }
             });
 
-            // Nutrient bars
+            // Show/hide legend based on kibble presence
+            document.getElementById('source-legend').style.display = hasKibble ? 'flex' : 'none';
+
+            // Ca:P Ratio display
+            if (result.ca_p_analysis) {
+                const caP = result.ca_p_analysis;
+                const caPCard = document.getElementById('ca-p-card');
+                caPCard.style.display = 'block';
+
+                const statusColors = {
+                    optimal: '#10b981',
+                    acceptable: '#22c55e',
+                    low: '#f97316',
+                    high: '#eab308',
+                    unknown: '#6b7280'
+                };
+
+                document.getElementById('ca-p-display').innerHTML = `
+                    <div style="display: flex; justify-content: space-around; text-align: center; margin-bottom: 15px; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div style="font-size: 2rem; color: var(--text-primary); font-weight: 700;">${caP.ca_p_ratio.toFixed(2)}:1</div>
+                            <div style="color: var(--text-secondary);">Ca:P Ratio</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.2rem; color: var(--text-primary);">${caP.total_calcium_mg.toFixed(0)}mg</div>
+                            <div style="color: var(--text-secondary);">Total Calcium</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 1.2rem; color: var(--text-primary);">${caP.total_phosphorus_mg.toFixed(0)}mg</div>
+                            <div style="color: var(--text-secondary);">Total Phosphorus</div>
+                        </div>
+                    </div>
+                    <div style="padding: 12px; background: rgba(${caP.status === 'low' ? '249, 115, 22' : caP.status === 'high' ? '234, 179, 8' : '16, 185, 129'}, 0.2); border-radius: 8px; border-left: 4px solid ${statusColors[caP.status]};">
+                        <p style="color: var(--text-primary); margin: 0;">${caP.message}</p>
+                        ${caP.eggshell_recommendation_g ? `
+                            <p style="color: var(--text-secondary); margin: 8px 0 0 0; font-size: 0.9rem;">
+                                <strong>Recommendation:</strong> Add ${caP.eggshell_recommendation_g.toFixed(1)}g eggshell powder (${(caP.eggshell_recommendation_g / 5).toFixed(1)} tsp)
+                            </p>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                document.getElementById('ca-p-card').style.display = 'none';
+            }
+
+            // Nutrient bars (using combined totals)
             const barsHtml = result.nutrient_status.map(ns => {
-                const pct = Math.min(ns.percent_of_min, 200);
                 const displayPct = ns.percent_of_min > 100 ? Math.min(ns.percent_of_min, 150) : ns.percent_of_min;
                 return `
                     <div class="nutrient-bar-container">
@@ -6196,10 +6396,10 @@
 
             document.getElementById('nutrient-bars').innerHTML = barsHtml;
 
-            // Change summary
+            // Change summary (comparing before fresh to combined after)
             const changes = [];
             const before = result.before;
-            const after = result.after;
+            const after = result.after.combined;
 
             if (Math.abs(after.kcal - before.kcal) > 1) {
                 const diff = after.kcal - before.kcal;
@@ -6212,6 +6412,12 @@
             if (Math.abs(after.fat_g - before.fat_g) > 0.5) {
                 const diff = after.fat_g - before.fat_g;
                 changes.push(`Fat: ${diff > 0 ? '+' : ''}${diff.toFixed(1)}g (now ${after.fat_g.toFixed(1)}g)`);
+            }
+
+            // Add kibble analysis info if present
+            if (result.kibble_analysis) {
+                const ka = result.kibble_analysis;
+                changes.push(`Kibble contributes: ${ka.kcal_from_kibble.toFixed(0)} kcal, ${ka.protein_g.toFixed(1)}g protein, ${ka.fat_g.toFixed(1)}g fat, ${ka.carbs_g.toFixed(1)}g carbs`);
             }
 
             document.getElementById('change-summary').innerHTML = `
@@ -6246,6 +6452,19 @@
                 input.value = simulatorData.originalAmounts[ing.ingredient_id];
             });
             document.getElementById('simulation-results').style.display = 'none';
+            // Also reset kibble inputs
+            document.getElementById('kibble-toggle').checked = false;
+            toggleKibbleSection();
+            document.getElementById('kibble-protein').value = '';
+            document.getElementById('kibble-fat').value = '';
+            document.getElementById('kibble-fiber').value = '';
+            document.getElementById('kibble-moisture').value = '10';
+            document.getElementById('kibble-ash').value = '7';
+            document.getElementById('kibble-amount').value = '';
+            document.getElementById('kibble-calcium').value = '';
+            document.getElementById('kibble-phosphorus').value = '';
+            document.getElementById('kibble-nfe-display').style.display = 'none';
+            document.getElementById('high-filler-warning').style.display = 'none';
             showToast('Reset to original amounts', 'info');
         }
 

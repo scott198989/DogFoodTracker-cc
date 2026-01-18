@@ -261,3 +261,217 @@ def check_aafco_compliance(
         result["warning"] = f"{nutrient} is above maximum ({amount_per_1000kcal:.2f} > {max_per_1000kcal})"
 
     return result
+
+
+# =============================================================================
+# Kibble / Hybrid Feeding Calculations
+# =============================================================================
+
+# Modified Atwater factors for pet food (kcal/g)
+MODIFIED_ATWATER = {
+    "protein": 3.5,
+    "fat": 8.5,
+    "carbs": 3.5,  # NFE
+}
+
+# Eggshell powder calcium content
+EGGSHELL_CALCIUM_PCT = 38.0  # 38% calcium by weight
+
+
+def calculate_kibble_nfe(
+    protein_pct: float,
+    fat_pct: float,
+    fiber_pct: float,
+    moisture_pct: float,
+    ash_pct: float
+) -> float:
+    """
+    Calculate Nitrogen-Free Extract (NFE) / Carbohydrates from kibble GA.
+
+    Formula: NFE = 100 - (Protein% + Fat% + Fiber% + Moisture% + Ash%)
+
+    Args:
+        protein_pct: Crude Protein % from bag
+        fat_pct: Crude Fat % from bag
+        fiber_pct: Crude Fiber % from bag
+        moisture_pct: Moisture % from bag
+        ash_pct: Ash % from bag
+
+    Returns:
+        NFE percentage (carbohydrates)
+    """
+    nfe = 100 - (protein_pct + fat_pct + fiber_pct + moisture_pct + ash_pct)
+    return max(0, nfe)
+
+
+def calculate_kibble_nutrients(
+    protein_pct: float,
+    fat_pct: float,
+    fiber_pct: float,
+    moisture_pct: float,
+    ash_pct: float,
+    amount_grams: float,
+    calcium_pct: Optional[float] = None,
+    phosphorus_pct: Optional[float] = None
+) -> dict:
+    """
+    Calculate actual nutrient amounts from kibble GA values.
+
+    Uses Modified Atwater factors:
+    - Protein: 3.5 kcal/g
+    - Fat: 8.5 kcal/g
+    - Carbs (NFE): 3.5 kcal/g
+
+    Args:
+        protein_pct: Crude Protein % from bag
+        fat_pct: Crude Fat % from bag
+        fiber_pct: Crude Fiber % from bag
+        moisture_pct: Moisture % from bag
+        ash_pct: Ash % from bag
+        amount_grams: Kibble serving size in grams
+        calcium_pct: Calcium % if listed on bag
+        phosphorus_pct: Phosphorus % if listed on bag
+
+    Returns:
+        Dict with calculated nutrient values and kcal
+    """
+    # Calculate NFE (carbs)
+    nfe_pct = calculate_kibble_nfe(protein_pct, fat_pct, fiber_pct, moisture_pct, ash_pct)
+
+    # Convert percentages to actual grams based on serving size
+    protein_g = (protein_pct / 100) * amount_grams
+    fat_g = (fat_pct / 100) * amount_grams
+    carbs_g = (nfe_pct / 100) * amount_grams
+    fiber_g = (fiber_pct / 100) * amount_grams
+
+    # Calculate kcal using Modified Atwater factors
+    kcal = (
+        protein_g * MODIFIED_ATWATER["protein"] +
+        fat_g * MODIFIED_ATWATER["fat"] +
+        carbs_g * MODIFIED_ATWATER["carbs"]
+    )
+
+    # Calculate minerals (convert % to mg)
+    # % means g per 100g, so for amount_grams: (pct/100) * amount_grams * 1000 = mg
+    calcium_mg = (calcium_pct / 100) * amount_grams * 1000 if calcium_pct else 0
+    phosphorus_mg = (phosphorus_pct / 100) * amount_grams * 1000 if phosphorus_pct else 0
+
+    return {
+        "kcal": round(kcal, 2),
+        "protein_g": round(protein_g, 2),
+        "fat_g": round(fat_g, 2),
+        "carbs_g": round(carbs_g, 2),
+        "fiber_g": round(fiber_g, 2),
+        "calcium_mg": round(calcium_mg, 2),
+        "phosphorus_mg": round(phosphorus_mg, 2),
+        "nfe_pct": round(nfe_pct, 2),
+        "carb_pct_of_kibble": round(nfe_pct, 2),
+    }
+
+
+def analyze_ca_p_ratio(
+    total_calcium_mg: float,
+    total_phosphorus_mg: float,
+    target_ratio: float = 1.2
+) -> dict:
+    """
+    Analyze Calcium to Phosphorus ratio and provide recommendations.
+
+    Target ratio: 1.2:1 (Ca:P)
+    Warning threshold: < 1:1
+
+    Args:
+        total_calcium_mg: Combined calcium from all sources
+        total_phosphorus_mg: Combined phosphorus from all sources
+        target_ratio: Desired Ca:P ratio (default 1.2)
+
+    Returns:
+        Dict with ratio analysis and eggshell recommendation if needed
+    """
+    if total_phosphorus_mg <= 0:
+        return {
+            "total_calcium_mg": round(total_calcium_mg, 2),
+            "total_phosphorus_mg": 0,
+            "ca_p_ratio": 0,
+            "status": "unknown",
+            "calcium_gap_mg": None,
+            "eggshell_recommendation_g": None,
+            "message": "Cannot calculate ratio: no phosphorus data"
+        }
+
+    actual_ratio = total_calcium_mg / total_phosphorus_mg
+
+    # Determine status and build response
+    if actual_ratio >= 1.1 and actual_ratio <= 2.0:
+        return {
+            "total_calcium_mg": round(total_calcium_mg, 2),
+            "total_phosphorus_mg": round(total_phosphorus_mg, 2),
+            "ca_p_ratio": round(actual_ratio, 2),
+            "status": "optimal",
+            "calcium_gap_mg": None,
+            "eggshell_recommendation_g": None,
+            "message": f"Ca:P ratio is {actual_ratio:.2f}:1 - within optimal range (1.1-2.0:1)"
+        }
+    elif actual_ratio >= 1.0 and actual_ratio < 1.1:
+        return {
+            "total_calcium_mg": round(total_calcium_mg, 2),
+            "total_phosphorus_mg": round(total_phosphorus_mg, 2),
+            "ca_p_ratio": round(actual_ratio, 2),
+            "status": "acceptable",
+            "calcium_gap_mg": None,
+            "eggshell_recommendation_g": None,
+            "message": f"Ca:P ratio is {actual_ratio:.2f}:1 - acceptable but below optimal"
+        }
+    elif actual_ratio < 1.0:
+        # Calculate calcium gap to reach 1:1 minimum
+        calcium_needed_for_1_1 = total_phosphorus_mg * 1.0
+        calcium_gap_mg = calcium_needed_for_1_1 - total_calcium_mg
+
+        # Calculate eggshell powder recommendation (38% calcium)
+        eggshell_g = calcium_gap_mg / (EGGSHELL_CALCIUM_PCT / 100 * 1000)
+
+        return {
+            "total_calcium_mg": round(total_calcium_mg, 2),
+            "total_phosphorus_mg": round(total_phosphorus_mg, 2),
+            "ca_p_ratio": round(actual_ratio, 2),
+            "status": "low",
+            "calcium_gap_mg": round(calcium_gap_mg, 2),
+            "eggshell_recommendation_g": round(eggshell_g, 2),
+            "message": f"Ca:P ratio is {actual_ratio:.2f}:1 - LOW. Add {eggshell_g:.1f}g eggshell powder"
+        }
+    else:  # ratio > 2.0
+        return {
+            "total_calcium_mg": round(total_calcium_mg, 2),
+            "total_phosphorus_mg": round(total_phosphorus_mg, 2),
+            "ca_p_ratio": round(actual_ratio, 2),
+            "status": "high",
+            "calcium_gap_mg": None,
+            "eggshell_recommendation_g": None,
+            "message": f"Ca:P ratio is {actual_ratio:.2f}:1 - above optimal, reduce calcium sources"
+        }
+
+
+def combine_nutrient_totals(kibble_nutrients: dict, fresh_totals: NutrientTotals) -> NutrientTotals:
+    """
+    Combine nutrients from kibble and fresh food sources.
+
+    Args:
+        kibble_nutrients: Dict from calculate_kibble_nutrients()
+        fresh_totals: NutrientTotals from aggregate_nutrients()
+
+    Returns:
+        Combined NutrientTotals
+    """
+    return NutrientTotals(
+        kcal=kibble_nutrients.get("kcal", 0) + fresh_totals.kcal,
+        protein_g=kibble_nutrients.get("protein_g", 0) + fresh_totals.protein_g,
+        fat_g=kibble_nutrients.get("fat_g", 0) + fresh_totals.fat_g,
+        carbs_g=kibble_nutrients.get("carbs_g", 0) + fresh_totals.carbs_g,
+        calcium_mg=kibble_nutrients.get("calcium_mg", 0) + fresh_totals.calcium_mg,
+        phosphorus_mg=kibble_nutrients.get("phosphorus_mg", 0) + fresh_totals.phosphorus_mg,
+        iron_mg=fresh_totals.iron_mg,  # Kibble GA doesn't include
+        zinc_mg=fresh_totals.zinc_mg,
+        vitamin_a_mcg=fresh_totals.vitamin_a_mcg,
+        vitamin_d_mcg=fresh_totals.vitamin_d_mcg,
+        vitamin_e_mg=fresh_totals.vitamin_e_mg,
+    )

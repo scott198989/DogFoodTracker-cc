@@ -13,6 +13,9 @@ from app.core.calculations import (
     aggregate_nutrients,
     nutrient_per_1000kcal,
     check_aafco_compliance,
+    calculate_kibble_nutrients,
+    analyze_ca_p_ratio,
+    combine_nutrient_totals,
 )
 from app.models.models import Dog, Recipe, FeedingPlan, AAFCORequirement, IngredientType, FoodCategory
 from app.schemas.schemas import (
@@ -29,6 +32,10 @@ from app.schemas.schemas import (
     CalorieBudgetResponse,
     IngredientType as IngredientTypeSchema,
     FoodCategory as FoodCategorySchema,
+    HybridSimulateRequest,
+    HybridSimulateResponse,
+    HybridNutrientBreakdown,
+    CaPRatioAnalysis,
 )
 
 router = APIRouter(prefix="/plan", tags=["feeding plans"])
@@ -493,16 +500,18 @@ def _plan_to_response(plan: FeedingPlan) -> FeedingPlanResponse:
     )
 
 
-@router.post("/simulate", response_model=SimulateResponse)
+@router.post("/simulate", response_model=HybridSimulateResponse)
 def simulate_nutrition(
-    request: SimulateRequest,
+    request: HybridSimulateRequest,
     db: Session = Depends(get_db)
 ):
     """
-    Simulate nutritional impact of ingredient changes without saving.
+    Simulate nutritional impact of ingredient changes with optional kibble input.
 
-    Allows users to see what happens if they adjust ingredient amounts
-    in a recipe before committing changes.
+    Supports:
+    - Fresh-only recipes (kibble=None)
+    - Hybrid kibble + fresh combinations
+    - Ca:P ratio analysis with eggshell recommendations
     """
     # Get dog
     dog = db.query(Dog).filter(Dog.id == request.dog_id).first()
@@ -524,7 +533,6 @@ def simulate_nutrition(
     before_ingredients = []
     for ri in recipe.ingredients:
         ing = ri.ingredient
-        # Convert percentage to grams using reference
         grams = (ri.percentage / 100) * reference_grams
         before_ingredients.append({
             "grams": grams,
@@ -543,7 +551,7 @@ def simulate_nutrition(
 
     before_totals = aggregate_nutrients(before_ingredients)
 
-    # Calculate AFTER nutrients (with percentage adjustments)
+    # Calculate AFTER nutrients (fresh food with percentage adjustments)
     after_ingredients = []
     for ri in recipe.ingredients:
         ing = ri.ingredient
@@ -564,15 +572,94 @@ def simulate_nutrition(
             "vitamin_e_mg_per_100g": ing.vitamin_e_mg_per_100g,
         })
 
-    after_totals = aggregate_nutrients(after_ingredients)
+    fresh_totals = aggregate_nutrients(after_ingredients)
+
+    # Initialize warnings and recommendations
+    warnings = []
+    recommendations = []
+
+    # Process kibble if provided
+    kibble_nutrients = None
+    kibble_analysis = None
+    kibble_response = None
+
+    if request.kibble:
+        kibble_nutrients = calculate_kibble_nutrients(
+            protein_pct=request.kibble.protein_pct,
+            fat_pct=request.kibble.fat_pct,
+            fiber_pct=request.kibble.fiber_pct,
+            moisture_pct=request.kibble.moisture_pct,
+            ash_pct=request.kibble.ash_pct,
+            amount_grams=request.kibble.amount_grams,
+            calcium_pct=request.kibble.calcium_pct,
+            phosphorus_pct=request.kibble.phosphorus_pct,
+        )
+
+        # Build kibble analysis
+        kibble_analysis = {
+            "carb_pct": kibble_nutrients["carb_pct_of_kibble"],
+            "high_filler_flag": kibble_nutrients["carb_pct_of_kibble"] > 40,
+            "kcal_from_kibble": kibble_nutrients["kcal"],
+            "protein_g": kibble_nutrients["protein_g"],
+            "fat_g": kibble_nutrients["fat_g"],
+            "carbs_g": kibble_nutrients["carbs_g"],
+        }
+
+        # Flag high filler content
+        if kibble_analysis["high_filler_flag"]:
+            warnings.append(
+                f"HIGH FILLER CONTENT: Kibble is {kibble_nutrients['carb_pct_of_kibble']:.0f}% carbs (NFE)"
+            )
+
+        # Build kibble response object
+        kibble_response = NutrientTotalsResponse(
+            kcal=kibble_nutrients["kcal"],
+            protein_g=kibble_nutrients["protein_g"],
+            fat_g=kibble_nutrients["fat_g"],
+            carbs_g=kibble_nutrients["carbs_g"],
+            calcium_mg=kibble_nutrients["calcium_mg"],
+            phosphorus_mg=kibble_nutrients["phosphorus_mg"],
+            iron_mg=0,
+            zinc_mg=0,
+            vitamin_a_mcg=0,
+            vitamin_d_mcg=0,
+            vitamin_e_mg=0,
+        )
+
+        # Combine kibble + fresh for total nutrients
+        combined_totals = combine_nutrient_totals(kibble_nutrients, fresh_totals)
+    else:
+        combined_totals = fresh_totals
+
+    # Analyze Ca:P ratio (always run on combined totals)
+    ca_p_result = analyze_ca_p_ratio(
+        combined_totals.calcium_mg,
+        combined_totals.phosphorus_mg
+    )
+
+    ca_p_analysis = CaPRatioAnalysis(
+        total_calcium_mg=ca_p_result["total_calcium_mg"],
+        total_phosphorus_mg=ca_p_result["total_phosphorus_mg"],
+        ca_p_ratio=ca_p_result["ca_p_ratio"],
+        status=ca_p_result["status"],
+        calcium_gap_mg=ca_p_result["calcium_gap_mg"],
+        eggshell_recommendation_g=ca_p_result["eggshell_recommendation_g"],
+        message=ca_p_result["message"],
+    )
+
+    # Add Ca:P warnings and recommendations
+    if ca_p_result["status"] == "low":
+        warnings.append(ca_p_result["message"])
+        if ca_p_result["eggshell_recommendation_g"]:
+            recommendations.append(
+                f"Add {ca_p_result['eggshell_recommendation_g']:.1f}g eggshell powder to balance calcium"
+            )
 
     # Get AAFCO requirements
     aafco_requirements = db.query(AAFCORequirement).all()
 
-    # Calculate nutrient status
+    # Calculate nutrient status (based on combined totals for AAFCO comparison)
     nutrient_status = []
-    warnings = []
-    recommendations = []
     overall_worst = "excellent"
 
     status_order = {"excellent": 0, "good": 1, "caution": 2, "bad": 3, "dangerous": 4}
@@ -584,17 +671,17 @@ def simulate_nutrition(
         "dangerous": "#ef4444"
     }
 
-    if after_totals.kcal > 0:
+    if combined_totals.kcal > 0:
         nutrient_mapping = {
-            "protein": (after_totals.protein_g * 1000, "Protein"),
-            "fat": (after_totals.fat_g * 1000, "Fat"),
-            "calcium": (after_totals.calcium_mg, "Calcium"),
-            "phosphorus": (after_totals.phosphorus_mg, "Phosphorus"),
-            "iron": (after_totals.iron_mg, "Iron"),
-            "zinc": (after_totals.zinc_mg, "Zinc"),
-            "vitamin_a": (after_totals.vitamin_a_mcg, "Vitamin A"),
-            "vitamin_d": (after_totals.vitamin_d_mcg, "Vitamin D"),
-            "vitamin_e": (after_totals.vitamin_e_mg, "Vitamin E"),
+            "protein": (combined_totals.protein_g * 1000, "Protein"),
+            "fat": (combined_totals.fat_g * 1000, "Fat"),
+            "calcium": (combined_totals.calcium_mg, "Calcium"),
+            "phosphorus": (combined_totals.phosphorus_mg, "Phosphorus"),
+            "iron": (combined_totals.iron_mg, "Iron"),
+            "zinc": (combined_totals.zinc_mg, "Zinc"),
+            "vitamin_a": (combined_totals.vitamin_a_mcg, "Vitamin A"),
+            "vitamin_d": (combined_totals.vitamin_d_mcg, "Vitamin D"),
+            "vitamin_e": (combined_totals.vitamin_e_mg, "Vitamin E"),
         }
 
         for req in aafco_requirements:
@@ -602,9 +689,8 @@ def simulate_nutrition(
                 continue
 
             amount, display_name = nutrient_mapping[req.nutrient]
-            per_1000 = nutrient_per_1000kcal(amount, after_totals.kcal)
+            per_1000 = nutrient_per_1000kcal(amount, combined_totals.kcal)
 
-            # Calculate percent of minimum
             pct_of_min = (per_1000 / req.min_per_1000kcal * 100) if req.min_per_1000kcal > 0 else 100
             pct_of_max = None
             if req.max_per_1000kcal:
@@ -628,7 +714,6 @@ def simulate_nutrition(
             else:
                 status = "good"
 
-            # Track worst status
             if status_order[status] > status_order[overall_worst]:
                 overall_worst = status
 
@@ -641,14 +726,43 @@ def simulate_nutrition(
                 color=color_map[status]
             ))
 
-    # Generate recommendations
+    # Generate additional recommendations based on nutrient status
     for ns in nutrient_status:
         if ns.status == "bad":
             recommendations.append(f"Add more foods rich in {ns.nutrient.lower()}")
         elif ns.status == "dangerous":
             recommendations.append(f"REDUCE foods high in {ns.nutrient.lower()} immediately")
 
-    return SimulateResponse(
+    # Build response
+    fresh_response = NutrientTotalsResponse(
+        kcal=round(fresh_totals.kcal, 2),
+        protein_g=round(fresh_totals.protein_g, 2),
+        fat_g=round(fresh_totals.fat_g, 2),
+        carbs_g=round(fresh_totals.carbs_g, 2),
+        calcium_mg=round(fresh_totals.calcium_mg, 2),
+        phosphorus_mg=round(fresh_totals.phosphorus_mg, 2),
+        iron_mg=round(fresh_totals.iron_mg, 2),
+        zinc_mg=round(fresh_totals.zinc_mg, 2),
+        vitamin_a_mcg=round(fresh_totals.vitamin_a_mcg, 2),
+        vitamin_d_mcg=round(fresh_totals.vitamin_d_mcg, 2),
+        vitamin_e_mg=round(fresh_totals.vitamin_e_mg, 2),
+    )
+
+    combined_response = NutrientTotalsResponse(
+        kcal=round(combined_totals.kcal, 2),
+        protein_g=round(combined_totals.protein_g, 2),
+        fat_g=round(combined_totals.fat_g, 2),
+        carbs_g=round(combined_totals.carbs_g, 2),
+        calcium_mg=round(combined_totals.calcium_mg, 2),
+        phosphorus_mg=round(combined_totals.phosphorus_mg, 2),
+        iron_mg=round(combined_totals.iron_mg, 2),
+        zinc_mg=round(combined_totals.zinc_mg, 2),
+        vitamin_a_mcg=round(combined_totals.vitamin_a_mcg, 2),
+        vitamin_d_mcg=round(combined_totals.vitamin_d_mcg, 2),
+        vitamin_e_mg=round(combined_totals.vitamin_e_mg, 2),
+    )
+
+    return HybridSimulateResponse(
         before=NutrientTotalsResponse(
             kcal=round(before_totals.kcal, 2),
             protein_g=round(before_totals.protein_g, 2),
@@ -662,21 +776,15 @@ def simulate_nutrition(
             vitamin_d_mcg=round(before_totals.vitamin_d_mcg, 2),
             vitamin_e_mg=round(before_totals.vitamin_e_mg, 2),
         ),
-        after=NutrientTotalsResponse(
-            kcal=round(after_totals.kcal, 2),
-            protein_g=round(after_totals.protein_g, 2),
-            fat_g=round(after_totals.fat_g, 2),
-            carbs_g=round(after_totals.carbs_g, 2),
-            calcium_mg=round(after_totals.calcium_mg, 2),
-            phosphorus_mg=round(after_totals.phosphorus_mg, 2),
-            iron_mg=round(after_totals.iron_mg, 2),
-            zinc_mg=round(after_totals.zinc_mg, 2),
-            vitamin_a_mcg=round(after_totals.vitamin_a_mcg, 2),
-            vitamin_d_mcg=round(after_totals.vitamin_d_mcg, 2),
-            vitamin_e_mg=round(after_totals.vitamin_e_mg, 2),
+        after=HybridNutrientBreakdown(
+            kibble=kibble_response,
+            fresh=fresh_response,
+            combined=combined_response,
         ),
         nutrient_status=nutrient_status,
         overall_status=overall_worst,
         warnings=warnings,
         recommendations=recommendations,
+        ca_p_analysis=ca_p_analysis,
+        kibble_analysis=kibble_analysis,
     )

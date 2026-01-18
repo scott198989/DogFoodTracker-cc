@@ -8,7 +8,9 @@
       "Bash(cmd /c copy:*)",
       "Bash(powershell -Command:*)",
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(xargs ls:*)",
+      "Bash(git add:*)"
     ]
   }
 }
