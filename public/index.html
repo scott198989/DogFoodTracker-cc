@@ -171,17 +171,55 @@
         }
 
         /* Navigation Tabs */
+        .nav-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
         .nav-tabs {
             display: flex;
             gap: 8px;
             padding: 8px;
-            margin-bottom: 24px;
             overflow-x: auto;
             scrollbar-width: none;
         }
 
         .nav-tabs::-webkit-scrollbar {
             display: none;
+        }
+
+        .nav-scroll-indicator {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            background: linear-gradient(to right, transparent, rgba(15, 23, 42, 0.95));
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            opacity: 1;
+            transition: opacity 0.3s;
+            border-radius: 0 24px 24px 0;
+        }
+
+        .nav-scroll-indicator.hidden {
+            opacity: 0;
+        }
+
+        .nav-scroll-indicator::after {
+            content: "›";
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.8rem;
+            font-weight: 300;
+            animation: scrollHint 1.5s ease-in-out infinite;
+        }
+
+        @keyframes scrollHint {
+            0%, 100% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(4px); opacity: 1; }
         }
 
         .nav-tab {
@@ -1899,16 +1937,19 @@
             </header>
 
             <!-- Navigation -->
-            <nav class="nav-tabs glass">
-                <button class="nav-tab active" data-tab="dogs"><span>🐕</span> Dogs</button>
-                <button class="nav-tab" data-tab="tracking"><span>📊</span> Tracking</button>
-                <button class="nav-tab" data-tab="ingredients"><span>🥩</span> Ingredients</button>
-                <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
-                <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
-                <button class="nav-tab" data-tab="guide"><span>📚</span> Ingredient Guide</button>
-                <button class="nav-tab" data-tab="simulator"><span>🔬</span> What If</button>
-                <button class="nav-tab" data-tab="about"><span>❤️</span> About</button>
-            </nav>
+            <div class="nav-container">
+                <nav class="nav-tabs glass" id="nav-tabs">
+                    <button class="nav-tab active" data-tab="dogs"><span>🐕</span> Dogs</button>
+                    <button class="nav-tab" data-tab="tracking"><span>📊</span> Tracking</button>
+                    <button class="nav-tab" data-tab="ingredients"><span>🥩</span> Ingredients</button>
+                    <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
+                    <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
+                    <button class="nav-tab" data-tab="guide"><span>📚</span> Ingredient Guide</button>
+                    <button class="nav-tab" data-tab="simulator"><span>🔬</span> What If</button>
+                    <button class="nav-tab" data-tab="about"><span>❤️</span> About</button>
+                </nav>
+                <div class="nav-scroll-indicator" id="nav-scroll-indicator"></div>
+            </div>
 
             <!-- Main Content -->
             <main class="main-content glass">
@@ -3334,6 +3375,28 @@
                 document.getElementById(btn.dataset.tab).classList.add('active');
             });
         });
+
+        // Nav scroll indicator - hide when scrolled to end
+        const navTabs = document.getElementById('nav-tabs');
+        const scrollIndicator = document.getElementById('nav-scroll-indicator');
+
+        function updateScrollIndicator() {
+            if (!navTabs || !scrollIndicator) return;
+            const isScrollable = navTabs.scrollWidth > navTabs.clientWidth;
+            const isAtEnd = navTabs.scrollLeft + navTabs.clientWidth >= navTabs.scrollWidth - 10;
+
+            if (!isScrollable || isAtEnd) {
+                scrollIndicator.classList.add('hidden');
+            } else {
+                scrollIndicator.classList.remove('hidden');
+            }
+        }
+
+        if (navTabs) {
+            navTabs.addEventListener('scroll', updateScrollIndicator);
+            window.addEventListener('resize', updateScrollIndicator);
+            updateScrollIndicator(); // Initial check
+        }
 
         // Initial load
         initWeightUnit();
