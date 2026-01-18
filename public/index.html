@@ -1632,6 +1632,103 @@
         .app-container {
             padding-bottom: 60px;
         }
+
+        /* About Section Styles */
+        .about-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .about-hero-img {
+            width: 100%;
+            max-height: 500px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            margin-bottom: 40px;
+        }
+
+        .about-heading {
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, var(--accent-3), var(--accent-4));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .about-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            line-height: 1.9;
+        }
+
+        .about-text p {
+            margin-bottom: 24px;
+        }
+
+        .about-text .emphasis {
+            color: white;
+            font-weight: 600;
+        }
+
+        .about-text .emotional {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .about-quote {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--accent-3);
+            text-align: center;
+            padding: 30px 20px;
+            margin: 40px 0;
+            border-left: 4px solid var(--accent-2);
+            background: rgba(14, 165, 233, 0.1);
+            border-radius: 0 16px 16px 0;
+        }
+
+        .about-closing-img {
+            width: 100%;
+            max-height: 600px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            margin-top: 40px;
+        }
+
+        .about-cta {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(6, 182, 212, 0.2));
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .about-cta p {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .about-heading {
+                font-size: 2rem;
+            }
+            .about-text {
+                font-size: 1rem;
+            }
+            .about-quote {
+                font-size: 1.1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1669,6 +1766,7 @@
                 <button class="nav-tab" data-tab="planner"><span>🍽️</span> Meal Planner</button>
                 <button class="nav-tab" data-tab="guide"><span>📚</span> Ingredient Guide</button>
                 <button class="nav-tab" data-tab="simulator"><span>🔬</span> What If</button>
+                <button class="nav-tab" data-tab="about"><span>❤️</span> About</button>
             </nav>
 
             <!-- Main Content -->
@@ -2746,6 +2844,59 @@
                             <!-- What Changed Summary -->
                             <div id="change-summary" class="form-card glass-dark" style="margin-top: 20px;"></div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div id="about" class="tab-panel">
+                    <div class="about-content">
+                        <img src="images/gunner-1.jpg" class="about-hero-img" alt="Gunner running happily in the backyard">
+
+                        <h1 class="about-heading">Meet Gunner</h1>
+
+                        <div class="about-text">
+                            <p>I rescued Gunner in 2021. From the moment I met him, I knew this was not just a dog. <span class="emphasis">This was family.</span></p>
+
+                            <p>Like a lot of people who love their dog, I told myself I wanted to give him "the best." But between work, school, and life, "the best" slowly turned into convenience. Table scraps. Extra treats. A little too much, a little too often.</p>
+
+                            <p class="emotional">And one day I realized he was not just getting older.</p>
+
+                            <p class="emotional">He was getting heavier. Slower.</p>
+
+                            <p><span class="emphasis">That one hurt.</span> Because that was not on time. That was on me.</p>
+
+                            <p>I am not a veterinarian. I am just a guy who did not want to keep guessing and hoping I was doing the right thing. So I started learning. I researched. I tried things. I messed up. I adjusted. I tracked everything. Ingredients. Portions. What worked. What did not.</p>
+
+                            <p>And I will be honest. It was intimidating at first. There is a lot of noise out there. A lot of opinions. A lot of ways to feel like you are doing it wrong.</p>
+
+                            <p>What I needed was not perfection. <span class="emphasis">I needed consistency.</span> I needed a simple way to stay intentional instead of winging it.</p>
+
+                            <p>So I built this app for myself.</p>
+
+                            <p>Something to take the guesswork out of meal planning. Something to keep me honest. Something that turns good intentions into actual habits.</p>
+
+                            <p><span class="emphasis">And it worked.</span></p>
+
+                            <p>Gunner is healthier. He is more energetic. He is excited for every meal in a way he never was before. More importantly, I know what is in his bowl and why.</p>
+
+                            <p>This app is our story turned into a tool.</p>
+
+                            <p>It is not a substitute for veterinary advice. You should always work with your vet when changing your dog's diet. But if you are like I was, trying to do better and tired of guessing, this is what helped me stay on track.</p>
+
+                            <div class="about-quote">
+                                Your dog is not just a dog. They are family.
+                            </div>
+
+                            <p class="emotional">And one day, sooner than you want, you are going to look back and wish you had one more year. One more month. One more walk.</p>
+
+                            <p>The least we can do is make sure the time they have is healthy, intentional, and full of love.</p>
+
+                            <div class="about-cta">
+                                <p>If you have ever looked at your dog and thought, "I could be doing better," this is where you start.</p>
+                            </div>
+                        </div>
+
+                        <img src="images/gunner-2.webp" class="about-closing-img" alt="Gunner">
                     </div>
                 </div>
             </main>
