@@ -149,14 +149,30 @@
 
         .nav-tabs {
             display: flex;
+            flex-wrap: nowrap;
             gap: 8px;
             padding: 8px;
+            padding-bottom: 12px;
             overflow-x: auto;
-            scrollbar-width: none;
+            overflow-y: hidden;
         }
 
         .nav-tabs::-webkit-scrollbar {
-            display: none;
+            height: 6px;
+        }
+
+        .nav-tabs::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 3px;
+        }
+
+        .nav-tabs::-webkit-scrollbar-thumb {
+            background: var(--primary-soft);
+            border-radius: 3px;
+        }
+
+        .nav-tabs::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
         }
 
         .nav-scroll-indicator {
