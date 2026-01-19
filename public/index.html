@@ -1992,13 +1992,18 @@
                     <!-- Auth Button -->
                     <div id="auth-container">
                         <button id="auth-btn" class="btn btn-secondary" onclick="showAuthModal()" style="display: flex; align-items: center; gap: 8px;">
-                            <span>👤</span> <span id="auth-btn-text">Sign In</span>
+                            <span>👤</span> <span id="auth-btn-text">Sign In / Sign Up</span>
                         </button>
                         <div id="user-menu" style="display: none; position: relative;">
                             <button class="btn btn-secondary" onclick="toggleUserMenu()" style="display: flex; align-items: center; gap: 8px;">
-                                <span>👤</span> <span id="user-email-display">User</span> <span>▼</span>
+                                <img id="user-avatar-display" src="" alt="" style="width: 24px; height: 24px; border-radius: 50%; display: none;">
+                                <span id="user-avatar-fallback">👤</span>
+                                <span id="user-email-display">User</span> <span>▼</span>
                             </button>
                             <div id="user-dropdown" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 8px; background: var(--bg-card); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 180px; z-index: 1000;">
+                                <button onclick="showProfileModal()" style="width: 100%; padding: 12px 16px; border: none; background: none; text-align: left; cursor: pointer; color: var(--text-primary); font-size: 0.95rem; border-bottom: 1px solid var(--border-divider);">
+                                    Profile
+                                </button>
                                 <button onclick="signOut()" style="width: 100%; padding: 12px 16px; border: none; background: none; text-align: left; cursor: pointer; color: var(--text-primary); font-size: 0.95rem;">
                                     Sign Out
                                 </button>
@@ -3912,7 +3917,16 @@
     <!-- Auth Modal -->
     <div class="modal-overlay" id="auth-modal">
         <div class="modal" style="max-width: 400px;">
-            <h3 id="auth-modal-title">Sign In</h3>
+            <!-- Auth Tabs -->
+            <div class="auth-tabs" style="display: flex; margin-bottom: 24px; border-bottom: 2px solid var(--border-divider);">
+                <button type="button" id="auth-tab-signin" onclick="setAuthMode('signin')" class="auth-tab active" style="flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 1rem; font-weight: 600; color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -2px;">
+                    Sign In
+                </button>
+                <button type="button" id="auth-tab-signup" onclick="setAuthMode('signup')" class="auth-tab" style="flex: 1; padding: 12px; background: none; border: none; cursor: pointer; font-size: 1rem; font-weight: 500; color: var(--text-secondary); border-bottom: 2px solid transparent; margin-bottom: -2px;">
+                    Sign Up
+                </button>
+            </div>
+
             <p style="color: var(--text-secondary); margin-bottom: 20px;" id="auth-modal-subtitle">
                 Sign in to sync your data across devices
             </p>
@@ -3927,6 +3941,11 @@
                     <label>Password</label>
                     <input type="password" id="auth-password" required placeholder="••••••••" minlength="6">
                 </div>
+                <div id="forgot-password-link" style="text-align: right; margin-top: -8px; margin-bottom: 16px;">
+                    <button type="button" onclick="showForgotPassword()" style="color: var(--primary); background: none; border: none; cursor: pointer; font-size: 0.9rem;">
+                        Forgot Password?
+                    </button>
+                </div>
                 <div id="auth-error" style="display: none; color: var(--danger); margin-bottom: 16px; padding: 12px; background: rgba(217, 137, 108, 0.1); border-radius: 8px;"></div>
                 <div class="modal-actions" style="flex-direction: column; gap: 12px;">
                     <button type="submit" class="btn btn-primary" style="width: 100%;" id="auth-submit-btn">
@@ -3938,13 +3957,59 @@
                 </div>
             </form>
 
-            <!-- Toggle between Sign In / Sign Up -->
-            <div style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border-divider);">
-                <span id="auth-toggle-text" style="color: var(--text-secondary);">Don't have an account?</span>
-                <button type="button" onclick="toggleAuthMode()" style="color: var(--primary); background: none; border: none; cursor: pointer; font-weight: 600; margin-left: 4px;" id="auth-toggle-btn">
-                    Sign Up
-                </button>
-            </div>
+            <!-- Forgot Password Form (hidden by default) -->
+            <form id="forgot-password-form" onsubmit="handlePasswordReset(event)" style="display: none;">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="reset-email" required placeholder="your@email.com">
+                </div>
+                <div id="reset-message" style="display: none; margin-bottom: 16px; padding: 12px; border-radius: 8px;"></div>
+                <div class="modal-actions" style="flex-direction: column; gap: 12px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="reset-submit-btn">
+                        Send Reset Link
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="hideForgotPassword()">
+                        Back to Sign In
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal" style="max-width: 450px;">
+            <h3>Your Profile</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                Manage your account settings
+            </p>
+
+            <form id="profile-form" onsubmit="updateProfile(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="profile-email" disabled style="background: var(--bg-surface); color: var(--text-secondary);">
+                </div>
+                <div class="form-group">
+                    <label>Display Name</label>
+                    <input type="text" id="profile-name" placeholder="Your name">
+                </div>
+                <div class="form-group">
+                    <label>Avatar URL</label>
+                    <input type="url" id="profile-avatar" placeholder="https://example.com/avatar.jpg">
+                    <div id="avatar-preview" style="margin-top: 12px; text-align: center;">
+                        <img id="avatar-preview-img" src="" alt="Avatar preview" style="width: 80px; height: 80px; border-radius: 50%; display: none; object-fit: cover; border: 3px solid var(--primary);">
+                    </div>
+                </div>
+                <div id="profile-message" style="display: none; margin-bottom: 16px; padding: 12px; border-radius: 8px;"></div>
+                <div class="modal-actions" style="flex-direction: column; gap: 12px;">
+                    <button type="submit" class="btn btn-primary" style="width: 100%;" id="profile-submit-btn">
+                        Save Changes
+                    </button>
+                    <button type="button" class="btn btn-secondary" style="width: 100%;" onclick="closeProfileModal()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -4571,11 +4636,27 @@
             const authBtn = document.getElementById('auth-btn');
             const userMenu = document.getElementById('user-menu');
             const userEmailDisplay = document.getElementById('user-email-display');
+            const userAvatarDisplay = document.getElementById('user-avatar-display');
+            const userAvatarFallback = document.getElementById('user-avatar-fallback');
 
             if (user) {
                 authBtn.style.display = 'none';
                 userMenu.style.display = 'block';
-                userEmailDisplay.textContent = user.email?.split('@')[0] || 'User';
+
+                // Show display name or email
+                const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
+                userEmailDisplay.textContent = displayName;
+
+                // Show avatar if available
+                const avatarUrl = user.user_metadata?.avatar_url;
+                if (avatarUrl) {
+                    userAvatarDisplay.src = avatarUrl;
+                    userAvatarDisplay.style.display = 'block';
+                    userAvatarFallback.style.display = 'none';
+                } else {
+                    userAvatarDisplay.style.display = 'none';
+                    userAvatarFallback.style.display = 'inline';
+                }
             } else {
                 authBtn.style.display = 'flex';
                 userMenu.style.display = 'none';
@@ -4595,32 +4676,217 @@
             document.getElementById('auth-modal').classList.remove('active');
             document.getElementById('auth-form').reset();
             document.getElementById('auth-error').style.display = 'none';
+            // Reset forgot password state
+            document.getElementById('auth-form').style.display = 'block';
+            document.getElementById('forgot-password-form').style.display = 'none';
+            document.getElementById('forgot-password-form').reset();
+            document.getElementById('reset-message').style.display = 'none';
+            document.getElementById('auth-tab-signin').style.display = 'block';
+            document.getElementById('auth-tab-signup').style.display = 'block';
+            setAuthMode('signin');
         }
 
-        function toggleAuthMode() {
-            authMode = authMode === 'signin' ? 'signup' : 'signin';
+        function setAuthMode(mode) {
+            authMode = mode;
 
-            const title = document.getElementById('auth-modal-title');
             const subtitle = document.getElementById('auth-modal-subtitle');
             const submitBtn = document.getElementById('auth-submit-btn');
-            const toggleText = document.getElementById('auth-toggle-text');
-            const toggleBtn = document.getElementById('auth-toggle-btn');
+            const signinTab = document.getElementById('auth-tab-signin');
+            const signupTab = document.getElementById('auth-tab-signup');
+            const forgotLink = document.getElementById('forgot-password-link');
 
+            // Update tabs
             if (authMode === 'signup') {
-                title.textContent = 'Create Account';
-                subtitle.textContent = 'Sign up to save your data to the cloud';
+                signinTab.style.color = 'var(--text-secondary)';
+                signinTab.style.fontWeight = '500';
+                signinTab.style.borderBottomColor = 'transparent';
+                signupTab.style.color = 'var(--primary)';
+                signupTab.style.fontWeight = '600';
+                signupTab.style.borderBottomColor = 'var(--primary)';
+                subtitle.textContent = 'Create an account to save your data to the cloud';
                 submitBtn.textContent = 'Create Account';
-                toggleText.textContent = 'Already have an account?';
-                toggleBtn.textContent = 'Sign In';
+                forgotLink.style.display = 'none';
             } else {
-                title.textContent = 'Sign In';
+                signinTab.style.color = 'var(--primary)';
+                signinTab.style.fontWeight = '600';
+                signinTab.style.borderBottomColor = 'var(--primary)';
+                signupTab.style.color = 'var(--text-secondary)';
+                signupTab.style.fontWeight = '500';
+                signupTab.style.borderBottomColor = 'transparent';
                 subtitle.textContent = 'Sign in to sync your data across devices';
                 submitBtn.textContent = 'Sign In';
-                toggleText.textContent = "Don't have an account?";
-                toggleBtn.textContent = 'Sign Up';
+                forgotLink.style.display = 'block';
             }
 
             document.getElementById('auth-error').style.display = 'none';
+        }
+
+        // Keep toggleAuthMode for backwards compatibility
+        function toggleAuthMode() {
+            setAuthMode(authMode === 'signin' ? 'signup' : 'signin');
+        }
+
+        // Password Reset Functions
+        function showForgotPassword() {
+            document.getElementById('auth-form').style.display = 'none';
+            document.getElementById('forgot-password-form').style.display = 'block';
+            document.getElementById('auth-modal-subtitle').textContent = 'Enter your email to receive a reset link';
+            document.getElementById('auth-tab-signin').style.display = 'none';
+            document.getElementById('auth-tab-signup').style.display = 'none';
+            document.getElementById('reset-email').focus();
+        }
+
+        function hideForgotPassword() {
+            document.getElementById('auth-form').style.display = 'block';
+            document.getElementById('forgot-password-form').style.display = 'none';
+            document.getElementById('reset-message').style.display = 'none';
+            document.getElementById('auth-tab-signin').style.display = 'block';
+            document.getElementById('auth-tab-signup').style.display = 'block';
+            setAuthMode('signin');
+        }
+
+        async function handlePasswordReset(event) {
+            event.preventDefault();
+
+            if (!supabaseClient) {
+                showToast('Auth not configured', 'error');
+                return;
+            }
+
+            const email = document.getElementById('reset-email').value;
+            const messageDiv = document.getElementById('reset-message');
+            const submitBtn = document.getElementById('reset-submit-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            try {
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin
+                });
+
+                if (error) {
+                    messageDiv.textContent = error.message;
+                    messageDiv.style.color = 'var(--danger)';
+                    messageDiv.style.background = 'rgba(217, 137, 108, 0.1)';
+                } else {
+                    messageDiv.textContent = 'Check your email for a password reset link!';
+                    messageDiv.style.color = 'var(--success)';
+                    messageDiv.style.background = 'rgba(123, 174, 142, 0.1)';
+                }
+                messageDiv.style.display = 'block';
+            } catch (err) {
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                messageDiv.style.color = 'var(--danger)';
+                messageDiv.style.background = 'rgba(217, 137, 108, 0.1)';
+                messageDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Reset Link';
+            }
+        }
+
+        // Profile Modal Functions
+        function showProfileModal() {
+            if (!currentUser) {
+                showToast('Please sign in first', 'error');
+                return;
+            }
+
+            // Populate form with current data
+            document.getElementById('profile-email').value = currentUser.email || '';
+            document.getElementById('profile-name').value = currentUser.user_metadata?.display_name || '';
+            document.getElementById('profile-avatar').value = currentUser.user_metadata?.avatar_url || '';
+
+            // Show avatar preview if exists
+            const avatarUrl = currentUser.user_metadata?.avatar_url;
+            const previewImg = document.getElementById('avatar-preview-img');
+            if (avatarUrl) {
+                previewImg.src = avatarUrl;
+                previewImg.style.display = 'block';
+            } else {
+                previewImg.style.display = 'none';
+            }
+
+            // Close user dropdown
+            document.getElementById('user-dropdown').style.display = 'none';
+
+            // Show modal
+            document.getElementById('profile-modal').classList.add('active');
+            document.getElementById('profile-name').focus();
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.remove('active');
+            document.getElementById('profile-message').style.display = 'none';
+        }
+
+        // Update avatar preview when URL changes
+        document.getElementById('profile-avatar')?.addEventListener('input', function(e) {
+            const previewImg = document.getElementById('avatar-preview-img');
+            if (e.target.value) {
+                previewImg.src = e.target.value;
+                previewImg.style.display = 'block';
+                previewImg.onerror = () => { previewImg.style.display = 'none'; };
+            } else {
+                previewImg.style.display = 'none';
+            }
+        });
+
+        async function updateProfile(event) {
+            event.preventDefault();
+
+            if (!supabaseClient || !currentUser) {
+                showToast('Not signed in', 'error');
+                return;
+            }
+
+            const displayName = document.getElementById('profile-name').value.trim();
+            const avatarUrl = document.getElementById('profile-avatar').value.trim();
+            const messageDiv = document.getElementById('profile-message');
+            const submitBtn = document.getElementById('profile-submit-btn');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Saving...';
+
+            try {
+                const { data, error } = await supabaseClient.auth.updateUser({
+                    data: {
+                        display_name: displayName,
+                        avatar_url: avatarUrl
+                    }
+                });
+
+                if (error) {
+                    messageDiv.textContent = error.message;
+                    messageDiv.style.color = 'var(--danger)';
+                    messageDiv.style.background = 'rgba(217, 137, 108, 0.1)';
+                    messageDiv.style.display = 'block';
+                } else {
+                    messageDiv.textContent = 'Profile updated successfully!';
+                    messageDiv.style.color = 'var(--success)';
+                    messageDiv.style.background = 'rgba(123, 174, 142, 0.1)';
+                    messageDiv.style.display = 'block';
+
+                    // Update current user and UI
+                    currentUser = data.user;
+                    updateAuthUI(data.user);
+
+                    // Close modal after a brief delay
+                    setTimeout(() => {
+                        closeProfileModal();
+                        showToast('Profile updated!', 'success');
+                    }, 1000);
+                }
+            } catch (err) {
+                messageDiv.textContent = 'An error occurred. Please try again.';
+                messageDiv.style.color = 'var(--danger)';
+                messageDiv.style.background = 'rgba(217, 137, 108, 0.1)';
+                messageDiv.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Changes';
+            }
         }
 
         async function handleAuth(event) {
