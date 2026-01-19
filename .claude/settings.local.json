@@ -11,7 +11,8 @@
       "Bash(grep:*)",
       "Bash(xargs ls:*)",
       "Bash(git add:*)",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(git log:*)"
     ]
   }
 }

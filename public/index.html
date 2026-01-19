@@ -6133,6 +6133,7 @@
 
                 list.innerHTML = ingredients.map(ing => `
                     <div class="ingredient-card glass-dark">
+                        <img src="images/ingredients/${encodeURIComponent(ing.name)}.png" alt="${ing.name}" class="ingredient-img" onerror="this.style.display='none'">
                         <div class="ingredient-header">
                             <h3>${ing.name}</h3>
                             <span class="ingredient-badge ${ing.source_type === 'USDA' ? 'badge-usda' : 'badge-user'}">${ing.source_type}</span>
