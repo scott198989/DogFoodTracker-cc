@@ -3795,16 +3795,30 @@
     <div id="upgrade-modal">
         <div class="upgrade-modal-content glass">
             <h2>Unlock Fresh Pup Pro</h2>
-            <p>Get more out of meal planning for your pups</p>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">Get more out of meal planning for your pups</p>
+
+            <div style="background: linear-gradient(135deg, var(--primary), var(--primary-hover)); padding: 16px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
+                <div style="font-size: 2.5rem; font-weight: 700; color: white;">$4.99</div>
+                <div style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">per month</div>
+            </div>
+
             <ul class="pro-benefits">
                 <li>Unlimited dog profiles</li>
                 <li>Unlimited recipes</li>
                 <li>Weight tracking history</li>
                 <li>Progress charts & insights</li>
                 <li>Advanced goal settings</li>
+                <li>"What If" recipe simulator</li>
             </ul>
-            <button class="btn btn-upgrade">Coming Soon</button>
+
+            <button class="btn btn-upgrade" onclick="startStripeCheckout()" id="upgrade-btn">
+                Subscribe Now
+            </button>
             <button class="btn btn-secondary" onclick="closeUpgradeModal()">Maybe Later</button>
+
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 16px; text-align: center;">
+                Cancel anytime. Secure payment via Stripe.
+            </p>
         </div>
     </div>
 
@@ -4625,9 +4639,13 @@
                     showToast('Signed in successfully!', 'success');
                     closeAuthModal();
                     loadAllData(); // Reload data for signed-in user
+                    loadUserTier(); // Load subscription tier from user metadata
                 } else if (event === 'SIGNED_OUT') {
                     showToast('Signed out', 'info');
                     loadAllData(); // Reload data for anonymous user
+                    // Reset tier to FREE on sign out
+                    userTier = localStorage.getItem('userTier') || 'FREE';
+                    updateTierUI();
                 }
             });
         }
@@ -5653,6 +5671,9 @@
 
             // Check if onboarding needed
             setTimeout(checkOnboarding, 500);
+
+            // Check for Stripe upgrade success/cancel in URL
+            checkUpgradeStatus();
         });
 
         // Close modals on overlay click
@@ -5670,6 +5691,75 @@
         let allDogs = [];
         let allRecipes = [];
         let selectedHomeDogId = localStorage.getItem('selectedDogId') || null;
+
+        // ===== STRIPE CONFIGURATION =====
+        // Replace with your Stripe Payment Link URL from Stripe Dashboard
+        // Create at: https://dashboard.stripe.com/payment-links
+        const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/YOUR_PAYMENT_LINK_ID';
+
+        function startStripeCheckout() {
+            if (!currentUser) {
+                showToast('Please sign in first to subscribe', 'error');
+                closeUpgradeModal();
+                showAuthModal();
+                return;
+            }
+
+            // Redirect to Stripe Payment Link with prefilled email
+            const email = encodeURIComponent(currentUser.email || '');
+            const successUrl = encodeURIComponent(window.location.origin + '?upgrade=success');
+            const cancelUrl = encodeURIComponent(window.location.origin + '?upgrade=cancelled');
+
+            // Stripe Payment Links support prefilled_email parameter
+            const checkoutUrl = `${STRIPE_PAYMENT_LINK}?prefilled_email=${email}&client_reference_id=${currentUser.id}`;
+
+            window.location.href = checkoutUrl;
+        }
+
+        // Check for upgrade success on page load
+        function checkUpgradeStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            if (urlParams.get('upgrade') === 'success') {
+                // Upgrade successful - update tier
+                upgradeToPro();
+                showToast('Welcome to Fresh Pup PRO! Enjoy unlimited features.', 'success');
+
+                // Clean up URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else if (urlParams.get('upgrade') === 'cancelled') {
+                showToast('Upgrade cancelled. You can try again anytime!', 'info');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        async function upgradeToPro() {
+            userTier = 'PRO';
+            localStorage.setItem('userTier', 'PRO');
+
+            // Also save to Supabase user metadata if signed in
+            if (supabaseClient && currentUser) {
+                try {
+                    await supabaseClient.auth.updateUser({
+                        data: { subscription_tier: 'PRO', subscribed_at: new Date().toISOString() }
+                    });
+                } catch (err) {
+                    console.error('Failed to save subscription to cloud:', err);
+                }
+            }
+
+            updateTierUI();
+            closeUpgradeModal();
+        }
+
+        // Load tier from Supabase user metadata on sign in
+        async function loadUserTier() {
+            if (currentUser && currentUser.user_metadata?.subscription_tier === 'PRO') {
+                userTier = 'PRO';
+                localStorage.setItem('userTier', 'PRO');
+            }
+            updateTierUI();
+        }
 
         function canAddDog() {
             if (isPro()) return true;
