@@ -1421,7 +1421,6 @@
             display: none;
             padding: 15px;
             gap: 15px;
-            display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         }
 
@@ -2637,14 +2636,10 @@
                     </div><!-- End My Recipes Sub-Section -->
 
                     <!-- Ingredients Library Sub-Section (content pulled from old ingredients tab) -->
-                    <div id="sub-ingredients-lib" class="recipe-subsection" style="display: none;">
-                        <!-- This will show the ingredients content -->
-                    </div>
+                    <div id="sub-ingredients-lib" class="recipe-subsection" style="display: none;"></div>
 
                     <!-- Ingredient Guide Sub-Section (content pulled from old guide tab) -->
-                    <div id="sub-ingredient-guide" class="recipe-subsection" style="display: none;">
-                        <!-- This will show the guide content -->
-                    </div>
+                    <div id="sub-ingredient-guide" class="recipe-subsection" style="display: none;"></div>
 
                     <!-- What If Sub-Section (PRO gated) -->
                     <div id="sub-what-if" class="recipe-subsection" style="display: none;">
@@ -2731,11 +2726,11 @@
 
                     <!-- Proteins Section -->
                     <div class="ingredient-category" data-category="proteins">
-                        <div class="category-header glass-dark" onclick="toggleCategory(this)">
+                        <div class="category-header glass-dark expanded" onclick="toggleCategory(this)">
                             <h3><span>🥩</span> Proteins (Meats, Fish, Eggs, Organs)</h3>
-                            <span class="expand-icon">+</span>
+                            <span class="expand-icon">−</span>
                         </div>
-                        <div class="category-content">
+                        <div class="category-content show">
                             <div class="ingredient-card glass-dark">
                                 <img src="images/ingredients/Beef.png" alt="Beef" class="ingredient-img">
                                 <div class="ingredient-info">
@@ -4899,6 +4894,7 @@
                 if (session) {
                     currentUser = session.user;
                     updateAuthUI(session.user);
+                    loadUserTier(); // Load subscription tier from user metadata
                 }
             });
 
@@ -6548,20 +6544,26 @@
         }
 
         function loadIngredientsForSubsection() {
-            // Copy ingredients content to subsection if needed
+            // Move ingredients content to subsection (preserves event listeners)
             const oldIngredients = document.getElementById('ingredients');
             const subIngredients = document.getElementById('sub-ingredients-lib');
-            if (oldIngredients && subIngredients && subIngredients.innerHTML.trim() === '') {
-                subIngredients.innerHTML = oldIngredients.innerHTML;
+            if (oldIngredients && subIngredients && subIngredients.children.length === 0) {
+                // Move all children from the old tab to the subsection
+                while (oldIngredients.firstChild) {
+                    subIngredients.appendChild(oldIngredients.firstChild);
+                }
             }
         }
 
         function loadGuideForSubsection() {
-            // Copy guide content to subsection if needed
+            // Move guide content to subsection (preserves event listeners)
             const oldGuide = document.getElementById('guide');
             const subGuide = document.getElementById('sub-ingredient-guide');
-            if (oldGuide && subGuide && subGuide.innerHTML.trim() === '') {
-                subGuide.innerHTML = oldGuide.innerHTML;
+            if (oldGuide && subGuide && subGuide.children.length === 0) {
+                // Move all children from the old tab to the subsection
+                while (oldGuide.firstChild) {
+                    subGuide.appendChild(oldGuide.firstChild);
+                }
             }
         }
 
