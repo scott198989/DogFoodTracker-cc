@@ -3032,7 +3032,49 @@
                         </div>
                         <!-- PRO What If Content (shown for PRO users) -->
                         <div id="whatif-content" style="display: none;">
-                            <!-- Simulator content will be here -->
+                            <div class="form-card glass-dark">
+                                <h3 style="color: var(--text-primary); margin-bottom: 20px;">Select Dog & Recipe</h3>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>Select Dog</label>
+                                        <select id="whatif-dog" required onchange="loadWhatIfRecipe()"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Select Recipe</label>
+                                        <select id="whatif-recipe" required onchange="loadWhatIfRecipe()"></select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="whatif-simulator-content" style="display: none; margin-top: 20px;">
+                                <div class="form-card glass-dark">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 15px;">📊 Current Nutritional Profile</h3>
+                                    <div id="whatif-nutrition-display"></div>
+                                </div>
+
+                                <div class="form-card glass-dark" style="margin-top: 20px;">
+                                    <h3 style="color: var(--text-primary); margin-bottom: 15px;">🎚️ Adjust Ingredient Percentages</h3>
+                                    <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.9rem;">
+                                        Modify the percentages below to see how changes affect nutrition
+                                    </p>
+                                    <div id="whatif-adjustments"></div>
+                                    <div class="quick-actions" style="margin-top: 20px;">
+                                        <button type="button" class="btn btn-primary" onclick="runWhatIfSimulation()">
+                                            <span>🔬</span> Run Simulation
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="resetWhatIfAdjustments()">
+                                            <span>↺</span> Reset
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div id="whatif-results" style="display: none; margin-top: 20px;">
+                                    <div class="form-card glass-dark">
+                                        <h3 style="color: var(--text-primary); margin-bottom: 15px;">📈 Simulation Results</h3>
+                                        <div id="whatif-comparison"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div><!-- End Recipes Tab -->
@@ -7530,9 +7572,13 @@
             if (sectionId === 'what-if') {
                 const gate = document.getElementById('whatif-pro-gate');
                 const content = document.getElementById('whatif-content');
+                const hasAccess = isPro() || isAdmin();
                 if (gate && content) {
-                    gate.style.display = isPro() ? 'none' : 'block';
-                    content.style.display = isPro() ? 'block' : 'none';
+                    gate.style.display = hasAccess ? 'none' : 'block';
+                    content.style.display = hasAccess ? 'block' : 'none';
+                    if (hasAccess) {
+                        populateSimulatorDropdowns();
+                    }
                 }
             }
 
@@ -7616,6 +7662,14 @@
         // Dog form
         document.getElementById('dog-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            // Check tier limit
+            if (!canAddDog()) {
+                showUpgradeModal();
+                showToast('FREE tier limit: 1 dog. Upgrade to PRO for unlimited!', 'caution');
+                return;
+            }
+
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
 
@@ -9337,8 +9391,228 @@
 
         let macroChart = null;
 
-        // Populate simulator dropdowns
+        // Populate simulator dropdowns (both the standalone tab and the recipe subsection)
         async function populateSimulatorDropdowns() {
+            try {
+                const [rawDogs, recipes] = await Promise.all([
+                    db.listDogs(),
+                    db.listRecipes()
+                ]);
+                const dogs = rawDogs.map(d => calculateDogNutrition(d));
+
+                // Standalone simulator tab
+                const dogSelect = document.getElementById('sim-dog');
+                const recipeSelect = document.getElementById('sim-recipe');
+
+                if (dogSelect) {
+                    dogSelect.innerHTML = '<option value="">Select a dog...</option>' +
+                        dogs.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                }
+
+                if (recipeSelect) {
+                    recipeSelect.innerHTML = '<option value="">Select a recipe...</option>' +
+                        recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+                }
+
+                // What If subsection in Recipes tab
+                const whatifDogSelect = document.getElementById('whatif-dog');
+                const whatifRecipeSelect = document.getElementById('whatif-recipe');
+
+                if (whatifDogSelect) {
+                    whatifDogSelect.innerHTML = '<option value="">Select a dog...</option>' +
+                        dogs.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+                }
+
+                if (whatifRecipeSelect) {
+                    whatifRecipeSelect.innerHTML = '<option value="">Select a recipe...</option>' +
+                        recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+                }
+            } catch (err) {
+                console.error('Error loading simulator data:', err);
+            }
+        }
+
+        // What If Simulator Data (for recipe subsection)
+        let whatifData = {
+            dog: null,
+            recipe: null,
+            originalAmounts: {},
+            currentAmounts: {}
+        };
+
+        // Load What If Recipe (recipe subsection version)
+        async function loadWhatIfRecipe() {
+            const dogId = document.getElementById('whatif-dog').value;
+            const recipeId = document.getElementById('whatif-recipe').value;
+
+            if (!dogId || !recipeId) {
+                document.getElementById('whatif-simulator-content').style.display = 'none';
+                return;
+            }
+
+            try {
+                const [dog, recipe] = await Promise.all([
+                    db.getDog(dogId),
+                    db.getRecipe(recipeId)
+                ]);
+
+                whatifData.dog = dog;
+                whatifData.recipe = recipe;
+
+                const adjustmentsDiv = document.getElementById('whatif-adjustments');
+                whatifData.originalAmounts = {};
+                whatifData.currentAmounts = {};
+
+                if (!recipe.ingredients || recipe.ingredients.length === 0) {
+                    adjustmentsDiv.innerHTML = '<p style="color: var(--text-secondary);">This recipe has no ingredients. Add some first!</p>';
+                    document.getElementById('whatif-simulator-content').style.display = 'block';
+                    return;
+                }
+
+                adjustmentsDiv.innerHTML = recipe.ingredients.map(ing => {
+                    whatifData.originalAmounts[ing.ingredient_id] = ing.percentage;
+                    whatifData.currentAmounts[ing.ingredient_id] = ing.percentage;
+                    return `
+                        <div class="adjustment-row" style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <label style="flex: 1; color: var(--text-primary);">${ing.ingredient_name}</label>
+                            <span style="color: var(--text-muted); font-size: 0.85em;">Original: ${ing.percentage}%</span>
+                            <input type="number" id="whatif-adj-${ing.ingredient_id}" value="${ing.percentage}" min="0" max="100" step="0.5" style="width: 80px;">
+                            <span style="color: var(--text-secondary);">%</span>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('whatif-simulator-content').style.display = 'block';
+                document.getElementById('whatif-results').style.display = 'none';
+
+                // Show current nutrition
+                await showWhatIfCurrentNutrition();
+
+            } catch (err) {
+                console.error('Error loading recipe:', err);
+                showToast('Error loading data', 'error');
+            }
+        }
+
+        async function showWhatIfCurrentNutrition() {
+            try {
+                const plan = await computeBatchPlan(whatifData.dog.id, whatifData.recipe.id, null, 0, 1);
+
+                const display = document.getElementById('whatif-nutrition-display');
+                display.innerHTML = `
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px;">
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--primary);">${plan.target_kcal?.toFixed(0) || '—'}</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Target kcal</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--accent-1);">${plan.nutrient_totals?.protein_g?.toFixed(1) || '—'}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Protein</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--accent-2);">${plan.nutrient_totals?.fat_g?.toFixed(1) || '—'}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Fat</div>
+                        </div>
+                        <div style="text-align: center; padding: 10px; background: var(--bg-secondary); border-radius: 8px;">
+                            <div style="font-size: 1.2em; font-weight: bold; color: var(--accent-3);">${plan.nutrient_totals?.carbs_g?.toFixed(1) || '—'}g</div>
+                            <div style="font-size: 0.8em; color: var(--text-secondary);">Carbs</div>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                console.error('Error showing nutrition:', err);
+            }
+        }
+
+        function resetWhatIfAdjustments() {
+            for (const [id, pct] of Object.entries(whatifData.originalAmounts)) {
+                const input = document.getElementById(`whatif-adj-${id}`);
+                if (input) {
+                    input.value = pct;
+                    whatifData.currentAmounts[id] = pct;
+                }
+            }
+            document.getElementById('whatif-results').style.display = 'none';
+        }
+
+        async function runWhatIfSimulation() {
+            // Collect adjusted percentages
+            const adjustedIngredients = [];
+            let totalPct = 0;
+
+            for (const ing of whatifData.recipe.ingredients) {
+                const input = document.getElementById(`whatif-adj-${ing.ingredient_id}`);
+                const newPct = parseFloat(input?.value) || 0;
+                totalPct += newPct;
+                adjustedIngredients.push({
+                    ...ing,
+                    percentage: newPct,
+                    original_percentage: whatifData.originalAmounts[ing.ingredient_id]
+                });
+            }
+
+            // Normalize percentages if needed
+            if (totalPct > 0 && totalPct !== 100) {
+                adjustedIngredients.forEach(ing => {
+                    ing.percentage = (ing.percentage / totalPct) * 100;
+                });
+            }
+
+            // Calculate nutrition with adjusted percentages
+            try {
+                // Create a temporary recipe object with adjusted ingredients
+                const tempRecipe = {
+                    ...whatifData.recipe,
+                    ingredients: adjustedIngredients
+                };
+
+                // Calculate original nutrition
+                const originalPlan = await computeBatchPlan(whatifData.dog.id, whatifData.recipe.id, null, 0, 1);
+
+                // For the adjusted version, we need to manually calculate
+                const comparisonDiv = document.getElementById('whatif-comparison');
+                comparisonDiv.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="padding: 15px; background: var(--bg-secondary); border-radius: 8px;">
+                            <h4 style="color: var(--text-primary); margin-bottom: 10px;">Original Recipe</h4>
+                            <div style="color: var(--text-secondary);">
+                                <p>🔥 ${originalPlan.target_kcal?.toFixed(0) || '—'} kcal/day</p>
+                                <p>🥩 Protein: ${originalPlan.nutrient_totals?.protein_g?.toFixed(1) || '—'}g</p>
+                                <p>🧈 Fat: ${originalPlan.nutrient_totals?.fat_g?.toFixed(1) || '—'}g</p>
+                                <p>🍚 Carbs: ${originalPlan.nutrient_totals?.carbs_g?.toFixed(1) || '—'}g</p>
+                            </div>
+                        </div>
+                        <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid #10b981;">
+                            <h4 style="color: #10b981; margin-bottom: 10px;">Adjusted Recipe</h4>
+                            <div style="color: var(--text-primary);">
+                                <p>Changes applied - percentages normalized to 100%</p>
+                                ${adjustedIngredients.map(ing => `
+                                    <p style="font-size: 0.85em;">
+                                        ${ing.ingredient_name}:
+                                        <span style="color: ${ing.percentage !== ing.original_percentage ? '#10b981' : 'var(--text-muted)'};">
+                                            ${ing.percentage.toFixed(1)}%
+                                            ${ing.percentage !== ing.original_percentage ? ` (was ${ing.original_percentage}%)` : ''}
+                                        </span>
+                                    </p>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    <p style="color: var(--text-muted); font-size: 0.85em; margin-top: 15px; text-align: center;">
+                        💡 To apply these changes permanently, edit the recipe in "My Recipes"
+                    </p>
+                `;
+
+                document.getElementById('whatif-results').style.display = 'block';
+
+            } catch (err) {
+                console.error('Simulation error:', err);
+                showToast('Error running simulation', 'error');
+            }
+        }
+
+        // LEGACY: Populate simulator dropdowns - old version for standalone tab
+        async function populateSimulatorDropdownsLegacy() {
             try {
                 const [rawDogs, recipes] = await Promise.all([
                     db.listDogs(),
@@ -9349,10 +9623,10 @@
                 const dogSelect = document.getElementById('sim-dog');
                 const recipeSelect = document.getElementById('sim-recipe');
 
-                dogSelect.innerHTML = '<option value="">Select a dog...</option>' +
+                if (dogSelect) dogSelect.innerHTML = '<option value="">Select a dog...</option>' +
                     dogs.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
 
-                recipeSelect.innerHTML = '<option value="">Select a recipe...</option>' +
+                if (recipeSelect) recipeSelect.innerHTML = '<option value="">Select a recipe...</option>' +
                     recipes.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
             } catch (err) {
                 console.error('Error loading simulator data:', err);
