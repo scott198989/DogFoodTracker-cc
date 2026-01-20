@@ -1968,6 +1968,122 @@
             background: var(--border-divider);
             color: var(--text-primary);
         }
+
+        /* Landing Page Styles */
+        .landing-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+        }
+
+        .landing-content {
+            text-align: center;
+            max-width: 600px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .landing-logo {
+            width: 180px;
+            height: auto;
+            margin-bottom: 24px;
+            filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.2));
+        }
+
+        .landing-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .landing-tagline {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        .landing-features {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .landing-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-card);
+            padding: 12px 20px;
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+        }
+
+        .landing-description {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        .landing-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .btn-large {
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .landing-note {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .landing-title {
+                font-size: 2.2rem;
+            }
+            .landing-tagline {
+                font-size: 1.1rem;
+            }
+            .landing-features {
+                flex-direction: column;
+                align-items: center;
+            }
+            .landing-buttons {
+                flex-direction: column;
+            }
+            .btn-large {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1981,7 +2097,52 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toast-container"></div>
 
-    <div class="app-container">
+    <!-- Landing Page (shown when not logged in) -->
+    <div id="landing-page" class="landing-page">
+        <div class="landing-content">
+            <img src="images/Logo.png" alt="Fresh Pup" class="landing-logo">
+
+            <h1 class="landing-title">Fresh Pup</h1>
+            <p class="landing-tagline">Because they give us unconditional love,<br>they deserve unconditional nutrition.</p>
+
+            <div class="landing-features">
+                <div class="landing-feature">
+                    <span class="feature-icon">🥩</span>
+                    <span>Balanced homemade meals</span>
+                </div>
+                <div class="landing-feature">
+                    <span class="feature-icon">📊</span>
+                    <span>AAFCO-compliant nutrition</span>
+                </div>
+                <div class="landing-feature">
+                    <span class="feature-icon">🐕</span>
+                    <span>Tailored to your dog's needs</span>
+                </div>
+            </div>
+
+            <p class="landing-description">
+                Stop guessing. Start feeding with confidence.<br>
+                Create perfectly balanced homemade meals that your pup will love.
+            </p>
+
+            <div class="landing-buttons">
+                <button class="btn btn-primary btn-large" onclick="showAuthModal(); setAuthMode('signup');">
+                    Get Started Free
+                </button>
+                <button class="btn btn-secondary btn-large" onclick="showAuthModal(); setAuthMode('signin');">
+                    Sign In
+                </button>
+            </div>
+
+            <p class="landing-note">
+                Free account includes 1 dog profile and 1 recipe.<br>
+                <a href="#" onclick="showUpgradeModal(); return false;" style="color: var(--primary);">Upgrade to PRO</a> for unlimited access.
+            </p>
+        </div>
+    </div>
+
+    <!-- Main App (hidden until logged in) -->
+    <div class="app-container" id="app-container" style="display: none;">
         <div class="container">
             <!-- Header -->
             <header>
@@ -3548,6 +3709,28 @@
                         </div>
                     </div>
 
+                    <!-- API Settings Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('api-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>🔑</span> API Settings</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="api-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div class="form-group">
+                                <label>USDA FoodData Central API Key</label>
+                                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
+                                    Get your free API key at <a href="https://fdc.nal.usda.gov/api-key-signup.html" target="_blank" style="color: var(--primary);">fdc.nal.usda.gov</a>
+                                </p>
+                                <input type="text" id="usda-api-key-input" placeholder="Enter your USDA API key" style="font-family: monospace;">
+                                <div style="margin-top: 12px; display: flex; gap: 12px;">
+                                    <button class="btn btn-primary" onclick="saveUSDAApiKey()">Save API Key</button>
+                                    <button class="btn btn-secondary" onclick="testUSDAApiKey()">Test Connection</button>
+                                </div>
+                                <div id="api-test-result" style="margin-top: 12px; display: none; padding: 12px; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- About Section -->
                     <div class="settings-section glass-dark" style="margin-bottom: 24px;">
                         <div class="settings-section-header" onclick="toggleSettingsSection('about-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
@@ -4659,10 +4842,15 @@
             const userEmailDisplay = document.getElementById('user-email-display');
             const userAvatarDisplay = document.getElementById('user-avatar-display');
             const userAvatarFallback = document.getElementById('user-avatar-fallback');
+            const landingPage = document.getElementById('landing-page');
+            const appContainer = document.getElementById('app-container');
 
             if (user) {
+                // User is logged in - show app, hide landing
                 authBtn.style.display = 'none';
                 userMenu.style.display = 'block';
+                landingPage.style.display = 'none';
+                appContainer.style.display = 'block';
 
                 // Show display name or email
                 const displayName = user.user_metadata?.display_name || user.email?.split('@')[0] || 'User';
@@ -4679,8 +4867,11 @@
                     userAvatarFallback.style.display = 'inline';
                 }
             } else {
+                // User is logged out - show landing, hide app
                 authBtn.style.display = 'flex';
                 userMenu.style.display = 'none';
+                landingPage.style.display = 'flex';
+                appContainer.style.display = 'none';
             }
         }
 
@@ -6156,11 +6347,18 @@
         });
 
         // Initial load
+        // Load all data - called on initial load and auth state changes
+        async function loadAllData() {
+            await loadDogs();
+            await loadRecipes();
+            await loadIngredients();
+            loadHomeDashboard();
+            loadUSDAApiKeySettings();
+        }
+
         initWeightUnit();
         updateTierUI();
-        loadHomeDashboard(); // Start on Home tab
-        loadRecipes();
-        loadIngredients();
+        loadAllData(); // Initial data load
 
         // Dog form
         document.getElementById('dog-form').addEventListener('submit', async (e) => {
@@ -6335,8 +6533,61 @@
         }
 
         // USDA API configuration (get your free key at https://fdc.nal.usda.gov/api-key-signup.html)
-        const USDA_API_KEY = localStorage.getItem('USDA_API_KEY') || 'DEMO_KEY';
+        let USDA_API_KEY = localStorage.getItem('USDA_API_KEY') || 'DEMO_KEY';
         const USDA_API_BASE = 'https://api.nal.usda.gov/fdc/v1';
+
+        // Load USDA API key into settings input
+        function loadUSDAApiKeySettings() {
+            const input = document.getElementById('usda-api-key-input');
+            if (input) {
+                const key = localStorage.getItem('USDA_API_KEY');
+                input.value = key && key !== 'DEMO_KEY' ? key : '';
+            }
+        }
+
+        function saveUSDAApiKey() {
+            const input = document.getElementById('usda-api-key-input');
+            const key = input.value.trim();
+
+            if (key) {
+                localStorage.setItem('USDA_API_KEY', key);
+                USDA_API_KEY = key;
+                showToast('USDA API key saved!', 'success');
+            } else {
+                localStorage.removeItem('USDA_API_KEY');
+                USDA_API_KEY = 'DEMO_KEY';
+                showToast('API key cleared, using demo key', 'info');
+            }
+        }
+
+        async function testUSDAApiKey() {
+            const resultDiv = document.getElementById('api-test-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Testing connection...';
+            resultDiv.style.background = 'var(--bg-secondary)';
+            resultDiv.style.color = 'var(--text-secondary)';
+
+            const keyToTest = document.getElementById('usda-api-key-input').value.trim() || USDA_API_KEY;
+
+            try {
+                const res = await fetch(`${USDA_API_BASE}/foods/search?api_key=${keyToTest}&query=chicken&pageSize=1`);
+                const data = await res.json();
+
+                if (res.ok && data.foods) {
+                    resultDiv.innerHTML = 'Connection successful! Found ' + data.totalHits + ' results for "chicken"';
+                    resultDiv.style.background = 'rgba(123, 174, 142, 0.2)';
+                    resultDiv.style.color = 'var(--success)';
+                } else {
+                    resultDiv.innerHTML = 'API Error: ' + (data.error?.message || 'Invalid response');
+                    resultDiv.style.background = 'rgba(217, 137, 108, 0.2)';
+                    resultDiv.style.color = 'var(--danger)';
+                }
+            } catch (err) {
+                resultDiv.innerHTML = 'Connection failed: ' + err.message;
+                resultDiv.style.background = 'rgba(217, 137, 108, 0.2)';
+                resultDiv.style.color = 'var(--danger)';
+            }
+        }
 
         // Ingredient search - directly calls USDA API
         async function searchIngredients() {
@@ -6352,8 +6603,19 @@
                 const localResults = await db.searchIngredients(query);
 
                 // Then search USDA
-                const usdaRes = await fetch(`${USDA_API_BASE}/foods/search?api_key=${USDA_API_KEY}&query=${encodeURIComponent(query)}&pageSize=8`);
-                const usdaData = await usdaRes.json();
+                let usdaData = { foods: [] };
+                let usdaError = null;
+
+                try {
+                    const usdaRes = await fetch(`${USDA_API_BASE}/foods/search?api_key=${USDA_API_KEY}&query=${encodeURIComponent(query)}&pageSize=8`);
+                    usdaData = await usdaRes.json();
+
+                    if (!usdaRes.ok) {
+                        usdaError = usdaData.error?.message || `USDA API error (${usdaRes.status})`;
+                    }
+                } catch (usdaErr) {
+                    usdaError = 'Could not connect to USDA API';
+                }
 
                 let html = '';
 
@@ -6368,8 +6630,13 @@
                     `).join('');
                 }
 
-                // Show USDA results
-                if (usdaData.foods && usdaData.foods.length > 0) {
+                // Show USDA results or error
+                if (usdaError) {
+                    html += `<div style="font-size: 0.9rem; color: var(--danger); padding: 12px 16px; background: rgba(217, 137, 108, 0.1); border-radius: 8px; margin: 8px;">
+                        <strong>USDA Search Error:</strong> ${usdaError}<br>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Check your API key in Settings > API Settings</span>
+                    </div>`;
+                } else if (usdaData.foods && usdaData.foods.length > 0) {
                     html += `<div style="font-size: 0.9rem; color: var(--text-secondary); padding: 8px 16px; border-bottom: 1px solid var(--border-divider);">USDA Database</div>`;
                     html += usdaData.foods.slice(0, 8).map(item => {
                         const escapedDesc = item.description.replace(/'/g, "\\'").replace(/"/g, '&quot;');
@@ -6623,7 +6890,15 @@
             const list = document.getElementById('ingredient-checkbox-list');
 
             if (!recipeId || allIngredientsCache.length === 0) {
-                list.innerHTML = `<div class="empty-state"><span>🥩</span><p>Add ingredients first, then check the ones to include in this recipe</p></div>`;
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <span>🥩</span>
+                        <p>No ingredients in your library yet!</p>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 8px;">
+                            Go to <strong>Ingredients</strong> tab to search the USDA database and add ingredients,<br>
+                            or use the <strong>Guide</strong> tab to learn about ingredients and add them directly.
+                        </p>
+                    </div>`;
                 return;
             }
 
