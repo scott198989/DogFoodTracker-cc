@@ -1059,6 +1059,378 @@
             margin-bottom: 8px;
         }
 
+        /* Quick Day Buttons */
+        .quick-day-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .day-btn {
+            flex: 1;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-divider);
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .day-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .day-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Dog Profile Summary */
+        .dog-profile-summary .profile-stat {
+            display: flex;
+            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 14px;
+            border-radius: 8px;
+        }
+
+        .dog-profile-summary .stat-label {
+            font-size: 0.75em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .dog-profile-summary .stat-value {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Batch Groups */
+        .batch-groups-section {
+            margin-bottom: 24px;
+        }
+
+        .batch-group {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-divider);
+        }
+
+        .batch-group.veggie-mush {
+            border-left: 4px solid #10b981;
+        }
+
+        .batch-group.proteins {
+            border-left: 4px solid #ef4444;
+        }
+
+        .batch-group.carbs {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .batch-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-divider);
+        }
+
+        .batch-group-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: var(--text-primary);
+        }
+
+        .batch-emoji {
+            font-size: 1.3em;
+        }
+
+        .batch-group-total {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .total-grams {
+            font-weight: 700;
+            color: var(--accent-1);
+            font-size: 1.1em;
+        }
+
+        .total-volume {
+            font-size: 0.85em;
+            color: var(--text-muted);
+        }
+
+        .batch-group-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .batch-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .item-name {
+            color: var(--text-primary);
+        }
+
+        .item-amounts {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .volume-hint {
+            color: var(--text-muted);
+            font-size: 0.9em;
+        }
+
+        .batch-group-footer {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-divider);
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 8px;
+        }
+
+        /* AAFCO Chart Styles */
+        .aafco-chart-section {
+            overflow: hidden;
+        }
+
+        .aafco-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+
+        .legend-color.zone-deficient {
+            background: #ef4444;
+        }
+
+        .legend-color.zone-adequate {
+            background: #10b981;
+        }
+
+        .legend-color.zone-excess {
+            background: #f59e0b;
+        }
+
+        .aafco-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .aafco-row {
+            display: grid;
+            grid-template-columns: 120px 1fr 100px;
+            gap: 12px;
+            align-items: center;
+        }
+
+        @media (max-width: 600px) {
+            .aafco-row {
+                grid-template-columns: 80px 1fr 70px;
+                gap: 8px;
+            }
+        }
+
+        .aafco-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nutrient-emoji {
+            font-size: 1em;
+        }
+
+        .nutrient-name {
+            font-size: 0.9em;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .aafco-bar-container {
+            position: relative;
+            height: 24px;
+        }
+
+        .aafco-bar-track {
+            position: relative;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .aafco-bar {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .aafco-bar.zone-deficient {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .aafco-bar.zone-adequate {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .aafco-bar.zone-excess {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .aafco-marker {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: white;
+            opacity: 0.7;
+            z-index: 2;
+        }
+
+        .aafco-min-marker {
+            border-left: 2px dashed rgba(255, 255, 255, 0.5);
+            background: transparent;
+        }
+
+        .aafco-max-marker {
+            background: #f59e0b;
+        }
+
+        .aafco-value {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .percent-value {
+            font-weight: 700;
+            font-size: 1em;
+        }
+
+        .percent-value.deficient {
+            color: #ef4444;
+        }
+
+        .percent-value.adequate {
+            color: #10b981;
+        }
+
+        .percent-value.excess {
+            color: #f59e0b;
+        }
+
+        .actual-value {
+            font-size: 0.7em;
+            color: var(--text-muted);
+        }
+
+        /* Kibble Section Styles */
+        .kibble-toggle-section {
+            margin-bottom: 15px;
+        }
+
+        .kibble-toggle-section label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .kibble-inputs {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .kibble-inputs.hidden {
+            display: none;
+        }
+
+        .kibble-ga-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-divider);
+        }
+
+        .kibble-ga-section summary {
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+
+        .kibble-ga-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .kibble-ga-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .kibble-ga-item label {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .kibble-ga-item input {
+            padding: 6px 8px;
+            font-size: 0.9em;
+        }
+
         /* Empty State */
         .empty-state {
             text-align: center;
@@ -2145,12 +2517,13 @@
         <div class="container">
             <!-- Header -->
             <header>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-                    <div class="logo">
+                <div style="position: relative; width: 100%;">
+                    <!-- Centered Logo -->
+                    <div class="logo" style="justify-content: center; width: 100%;">
                         <img src="images/Logo.png" alt="Fresh Pup" class="app-logo">
                     </div>
-                    <!-- Auth Button -->
-                    <div id="auth-container">
+                    <!-- Auth Button (positioned top-right) -->
+                    <div id="auth-container" style="position: absolute; top: 0; right: 0;">
                         <button id="auth-btn" class="btn btn-secondary" onclick="showAuthModal()" style="display: flex; align-items: center; gap: 8px;">
                             <span>👤</span> <span id="auth-btn-text">Sign In / Sign Up</span>
                         </button>
@@ -2682,20 +3055,90 @@
                                     <label>Select Recipe</label>
                                     <select id="plan-recipe" required></select>
                                 </div>
-                                <div class="form-group">
-                                    <label>Kibble Calories (daily)</label>
-                                    <input type="number" id="plan-kibble" value="0" min="0" placeholder="0 for homemade only">
+                            </div>
+
+                            <!-- Quick Day Selection -->
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label>Batch Size (Days)</label>
+                                <div class="quick-day-buttons" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                                    <button type="button" class="day-btn" data-days="7" onclick="setQuickDays(7)">7 days</button>
+                                    <button type="button" class="day-btn active" data-days="14" onclick="setQuickDays(14)">14 days</button>
+                                    <button type="button" class="day-btn" data-days="21" onclick="setQuickDays(21)">21 days</button>
+                                    <button type="button" class="day-btn" data-days="30" onclick="setQuickDays(30)">30 days</button>
                                 </div>
-                                <div class="form-group">
-                                    <label>Treat Calories (daily)</label>
-                                    <input type="number" id="plan-treats" value="0" min="0" placeholder="Account for treats">
+                                <input type="number" id="plan-days" value="14" min="1" max="60" placeholder="Or enter custom days" style="max-width: 200px;">
+                            </div>
+
+                            <!-- Kibble Integration Section -->
+                            <div class="kibble-section glass-dark" style="margin-top: 20px; padding: 16px; border-radius: 12px; border: 1px solid var(--border-divider);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <h4 style="color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                                        <span>🥣</span> Kibble Base (Optional)
+                                    </h4>
+                                    <label class="toggle-container" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <span style="font-size: 0.85rem; color: var(--text-secondary);">Include Kibble</span>
+                                        <input type="checkbox" id="plan-kibble-toggle" onchange="togglePlanKibble()" style="width: 18px; height: 18px;">
+                                    </label>
                                 </div>
-                                <div class="form-group">
-                                    <label>Prep Days (batch size)</label>
-                                    <input type="number" id="plan-days" value="7" min="1" max="30" placeholder="Days to prep">
+
+                                <div id="plan-kibble-inputs" style="display: none;">
+                                    <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+                                        <div class="form-group">
+                                            <label>Brand Name</label>
+                                            <input type="text" id="plan-kibble-brand" placeholder="e.g., Orijen Original">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Kcal per Cup</label>
+                                            <input type="number" id="plan-kibble-kcal-cup" placeholder="e.g., 449" min="100" max="600" onchange="calculateKibbleDailyKcal()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Cups per Day</label>
+                                            <input type="number" id="plan-kibble-cups" step="0.25" min="0" max="10" placeholder="e.g., 1.5" onchange="calculateKibbleDailyKcal()">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Daily Kibble Kcal</label>
+                                            <input type="number" id="plan-kibble" value="0" readonly style="background: var(--bg-secondary);">
+                                        </div>
+                                    </div>
+
+                                    <!-- Guaranteed Analysis (collapsible) -->
+                                    <details style="margin-top: 12px;">
+                                        <summary style="color: var(--text-secondary); cursor: pointer; font-size: 0.9rem;">
+                                            📋 Guaranteed Analysis (optional - for nutrition chart)
+                                        </summary>
+                                        <div class="form-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 12px; gap: 12px;">
+                                            <div class="form-group">
+                                                <label style="font-size: 0.85rem;">Protein %</label>
+                                                <input type="number" id="plan-kibble-protein" step="0.1" min="0" max="100" placeholder="e.g., 38">
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-size: 0.85rem;">Fat %</label>
+                                                <input type="number" id="plan-kibble-fat" step="0.1" min="0" max="100" placeholder="e.g., 18">
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-size: 0.85rem;">Fiber %</label>
+                                                <input type="number" id="plan-kibble-fiber" step="0.1" min="0" max="100" placeholder="e.g., 4">
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-size: 0.85rem;">Calcium %</label>
+                                                <input type="number" id="plan-kibble-calcium" step="0.01" min="0" max="5" placeholder="e.g., 1.4">
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-size: 0.85rem;">Phosphorus %</label>
+                                                <input type="number" id="plan-kibble-phosphorus" step="0.01" min="0" max="5" placeholder="e.g., 1.1">
+                                            </div>
+                                        </div>
+                                    </details>
                                 </div>
                             </div>
-                            <div class="quick-actions">
+
+                            <!-- Treat Calories -->
+                            <div class="form-group" style="margin-top: 16px;">
+                                <label>Daily Treat Calories</label>
+                                <input type="number" id="plan-treats" value="0" min="0" placeholder="Account for treats" style="max-width: 200px;">
+                            </div>
+
+                            <div class="quick-actions" style="margin-top: 20px;">
                                 <button type="submit" class="btn btn-primary">
                                     <span>🧮</span> Calculate Batch Plan
                                 </button>
@@ -4323,17 +4766,115 @@
         // Eggshell powder calcium content
         const EGGSHELL_CALCIUM_PCT = 38.0;  // 38% calcium by weight
 
-        // AAFCO requirements (per 1000 kcal for adult maintenance)
+        // Ingredient density for gram-to-volume conversions (g per tbsp/tsp)
+        const INGREDIENT_DENSITIES = {
+            oils: {
+                default: { g_per_tbsp: 14, g_per_tsp: 4.7 },
+                fish_oil: { g_per_tbsp: 13.5, g_per_tsp: 4.5 },
+                salmon_oil: { g_per_tbsp: 13.5, g_per_tsp: 4.5 },
+                coconut_oil: { g_per_tbsp: 14, g_per_tsp: 4.7 },
+                olive_oil: { g_per_tbsp: 13.5, g_per_tsp: 4.5 },
+                flaxseed_oil: { g_per_tbsp: 14, g_per_tsp: 4.7 },
+            },
+            powders: {
+                default: { g_per_tbsp: 8, g_per_tsp: 2.7 },
+                eggshell_powder: { g_per_tbsp: 9, g_per_tsp: 3 },
+                bone_meal: { g_per_tbsp: 12, g_per_tsp: 4 },
+                kelp_powder: { g_per_tbsp: 6, g_per_tsp: 2 },
+                spirulina: { g_per_tbsp: 7, g_per_tsp: 2.3 },
+                turmeric: { g_per_tbsp: 7, g_per_tsp: 2.3 },
+            },
+            seeds: {
+                default: { g_per_tbsp: 10, g_per_tsp: 3.3 },
+                chia_seeds: { g_per_tbsp: 12, g_per_tsp: 4 },
+                flax_seeds: { g_per_tbsp: 10, g_per_tsp: 3.3 },
+                flax_seeds_ground: { g_per_tbsp: 7, g_per_tsp: 2.3 },
+                hemp_hearts: { g_per_tbsp: 10, g_per_tsp: 3.3 },
+                pumpkin_seeds: { g_per_tbsp: 8, g_per_tsp: 2.7 },
+            },
+            vegetables: {
+                default: { g_per_tbsp: 15, g_per_tsp: 5 },
+                leafy_greens: { g_per_tbsp: 8, g_per_tsp: 2.7 },
+                spinach: { g_per_tbsp: 8, g_per_tsp: 2.7 },
+                kale: { g_per_tbsp: 8, g_per_tsp: 2.7 },
+                root_veggies: { g_per_tbsp: 16, g_per_tsp: 5.3 },
+                sweet_potato: { g_per_tbsp: 16, g_per_tsp: 5.3 },
+                carrots: { g_per_tbsp: 15, g_per_tsp: 5 },
+                pumpkin: { g_per_tbsp: 15, g_per_tsp: 5 },
+            },
+            fruits: {
+                default: { g_per_tbsp: 15, g_per_tsp: 5 },
+                blueberries: { g_per_tbsp: 9, g_per_tsp: 3 },
+                banana: { g_per_tbsp: 15, g_per_tsp: 5 },
+                apple: { g_per_tbsp: 14, g_per_tsp: 4.7 },
+            },
+            meats: {
+                default: { g_per_tbsp: 15, g_per_tsp: 5 },
+                ground_meat: { g_per_tbsp: 15, g_per_tsp: 5 },
+            },
+            grains: {
+                default: { g_per_tbsp: 12, g_per_tsp: 4 },
+                rice_cooked: { g_per_tbsp: 12, g_per_tsp: 4 },
+                oatmeal: { g_per_tbsp: 10, g_per_tsp: 3.3 },
+            }
+        };
+
+        // Default batch grouping configuration
+        const DEFAULT_BATCH_GROUPS = {
+            veggie_mush: {
+                name: 'Veggie Mush',
+                emoji: '🥗',
+                description: 'Vegetables, fruits, seeds, and powders blended together',
+                included_categories: ['vegetables', 'fruits', 'seeds'],
+                include_powders: true,  // Powder supplements go here (turmeric, etc.)
+                color: '#10b981'
+            },
+            proteins: {
+                name: 'Proteins',
+                emoji: '🥩',
+                description: 'Meat, fish, eggs - cooked separately',
+                included_categories: ['protein'],
+                include_powders: false,
+                color: '#ef4444'
+            },
+            carbs: {
+                name: 'Carbs & Grains',
+                emoji: '🍚',
+                description: 'Rice, oats, quinoa - cooked separately',
+                included_categories: ['carbs', 'grains'],
+                include_powders: false,
+                color: '#f59e0b'
+            }
+        };
+
+        // AAFCO 2023 requirements (per 1000 kcal for adult maintenance)
+        // Source: AAFCO Official Publication 2023, Table 4 - Dog Food Nutrient Profiles
         const AAFCO_REQUIREMENTS = {
-            protein: { min: 45.0, max: null },
-            fat: { min: 13.75, max: null },
-            calcium: { min: 1.25, max: 6.25 },
-            phosphorus: { min: 1.0, max: 4.0 },
-            iron: { min: 10.0, max: null },
-            zinc: { min: 20.0, max: null },
-            vitamin_a: { min: 1250.0, max: 62500.0 },
-            vitamin_d: { min: 3.125, max: 18.75 },
-            vitamin_e: { min: 12.5, max: null },
+            protein: { min: 45.0, max: null, unit: 'g', display_name: 'Protein', emoji: '🥩' },
+            fat: { min: 13.75, max: null, unit: 'g', display_name: 'Fat', emoji: '🧈' },
+            calcium: { min: 1.25, max: 6.25, unit: 'g', display_name: 'Calcium', emoji: '🦴' },
+            phosphorus: { min: 1.0, max: 4.0, unit: 'g', display_name: 'Phosphorus', emoji: '⚡' },
+            ca_p_ratio: { min: 1.0, max: 2.0, unit: ':1', display_name: 'Ca:P Ratio', emoji: '⚖️' },
+            iron: { min: 10.0, max: null, unit: 'mg', display_name: 'Iron', emoji: '🩸' },
+            zinc: { min: 20.0, max: null, unit: 'mg', display_name: 'Zinc', emoji: '💪' },
+            vitamin_a: { min: 1250.0, max: 62500.0, unit: 'IU', display_name: 'Vitamin A', emoji: '👁️' },
+            vitamin_d: { min: 125.0, max: 750.0, unit: 'IU', display_name: 'Vitamin D', emoji: '☀️' },
+            vitamin_e: { min: 12.5, max: null, unit: 'IU', display_name: 'Vitamin E', emoji: '🛡️' },
+        };
+
+        // AAFCO 2023 requirements for puppies/growth (per 1000 kcal)
+        // Source: AAFCO Official Publication 2023, Table 4
+        const AAFCO_PUPPY_REQUIREMENTS = {
+            protein: { min: 56.25, max: null, unit: 'g', display_name: 'Protein', emoji: '🥩' },
+            fat: { min: 21.25, max: null, unit: 'g', display_name: 'Fat', emoji: '🧈' },
+            calcium: { min: 3.0, max: 4.5, unit: 'g', display_name: 'Calcium', emoji: '🦴' },
+            phosphorus: { min: 2.5, max: 4.0, unit: 'g', display_name: 'Phosphorus', emoji: '⚡' },
+            ca_p_ratio: { min: 1.0, max: 2.0, unit: ':1', display_name: 'Ca:P Ratio', emoji: '⚖️' },
+            iron: { min: 22.0, max: null, unit: 'mg', display_name: 'Iron', emoji: '🩸' },
+            zinc: { min: 25.0, max: null, unit: 'mg', display_name: 'Zinc', emoji: '💪' },
+            vitamin_a: { min: 1250.0, max: 62500.0, unit: 'IU', display_name: 'Vitamin A', emoji: '👁️' },
+            vitamin_d: { min: 125.0, max: 750.0, unit: 'IU', display_name: 'Vitamin D', emoji: '☀️' },
+            vitamin_e: { min: 12.5, max: null, unit: 'IU', display_name: 'Vitamin E', emoji: '🛡️' },
         };
 
         /**
@@ -4482,6 +5023,325 @@
             }
 
             return result;
+        }
+
+        /**
+         * Convert grams to volume measurements (tbsp, tsp, cups)
+         * @param {number} grams - Weight in grams
+         * @param {string} category - Ingredient category (oils, powders, seeds, vegetables, etc.)
+         * @param {string} ingredientName - Optional specific ingredient name for precise lookup
+         * @returns {Object} Volume measurements with formatted strings
+         */
+        function gramsToVolume(grams, category = 'vegetables', ingredientName = null) {
+            if (!grams || grams <= 0) {
+                return {
+                    grams: 0, tbsp: 0, tsp: 0, cups: 0, ml: 0,
+                    formatted: '0g',
+                    formatted_with_grams: '0g'
+                };
+            }
+
+            // Normalize category to lowercase
+            const cat = (category || 'vegetables').toLowerCase();
+
+            // Get density from lookup table
+            let density = INGREDIENT_DENSITIES[cat]?.default || { g_per_tbsp: 15, g_per_tsp: 5 };
+
+            // Try specific ingredient lookup if provided
+            if (ingredientName) {
+                const normalized = ingredientName.toLowerCase()
+                    .replace(/[^a-z0-9]/g, '_')
+                    .replace(/_+/g, '_')
+                    .replace(/^_|_$/g, '');
+
+                // Check each category for the specific ingredient
+                for (const [catKey, items] of Object.entries(INGREDIENT_DENSITIES)) {
+                    if (items[normalized]) {
+                        density = items[normalized];
+                        break;
+                    }
+                }
+            }
+
+            const tbsp = grams / density.g_per_tbsp;
+            const tsp = grams / density.g_per_tsp;
+            const cups = tbsp / 16;  // 16 tbsp per cup
+            const ml = grams / (density.g_per_tbsp / 15);  // Approximate ml
+
+            return {
+                grams: Math.round(grams * 10) / 10,
+                tbsp: Math.round(tbsp * 10) / 10,
+                tsp: Math.round(tsp * 10) / 10,
+                cups: Math.round(cups * 100) / 100,
+                ml: Math.round(ml * 10) / 10,
+                formatted: formatVolume(grams, tbsp, tsp, cups),
+                formatted_with_grams: `${grams.toFixed(1)}g / ${formatVolume(grams, tbsp, tsp, cups)}`
+            };
+        }
+
+        /**
+         * Format volume for display (choose most readable unit)
+         */
+        function formatVolume(grams, tbsp, tsp, cups) {
+            if (cups >= 0.5) {
+                return `${cups.toFixed(1)} cups`;
+            } else if (tbsp >= 1) {
+                return `${tbsp.toFixed(1)} tbsp`;
+            } else if (tsp >= 0.25) {
+                return `${tsp.toFixed(1)} tsp`;
+            } else {
+                return `${grams.toFixed(1)}g`;  // Too small for volume
+            }
+        }
+
+        /**
+         * Group ingredients into batch groups (Veggie Mush, Proteins, Carbs)
+         * @param {Array} ingredients - Array of ingredient portions with category info
+         * @param {Object} customGroups - Optional user customization of groups
+         * @returns {Object} Grouped ingredients with totals for each group
+         */
+        function groupIngredientsByBatch(ingredients, customGroups = null) {
+            const groups = customGroups || DEFAULT_BATCH_GROUPS;
+
+            const result = {
+                veggie_mush: {
+                    ...groups.veggie_mush,
+                    ingredients: [],
+                    total_grams_batch: 0,
+                    total_grams_per_meal: 0,
+                    total_grams_per_day: 0,
+                },
+                proteins: {
+                    ...groups.proteins,
+                    ingredients: [],
+                    total_grams_batch: 0,
+                    total_grams_per_meal: 0,
+                    total_grams_per_day: 0,
+                },
+                carbs: {
+                    ...groups.carbs,
+                    ingredients: [],
+                    total_grams_batch: 0,
+                    total_grams_per_meal: 0,
+                    total_grams_per_day: 0,
+                },
+                oils_separate: {
+                    name: 'Oils (Add at Mealtime)',
+                    emoji: '🫒',
+                    description: 'Added fresh at each meal, not batch cooked',
+                    ingredients: [],
+                    color: '#3b82f6'
+                },
+                supplements_separate: {
+                    name: 'Supplements',
+                    emoji: '💊',
+                    description: 'Given separately',
+                    ingredients: [],
+                }
+            };
+
+            for (const ing of ingredients) {
+                const category = (ing.category || 'other').toLowerCase();
+                const type = (ing.ingredient_type || 'food').toLowerCase();
+                const name = (ing.ingredient_name || '').toLowerCase();
+
+                // Oils always go separate (added at mealtime)
+                if (type === 'oil' || category === 'oils' || category === 'fats' || name.includes('oil')) {
+                    result.oils_separate.ingredients.push(ing);
+                    continue;
+                }
+
+                // Supplements that aren't powders go separate
+                if (type === 'supplement' && !name.includes('powder')) {
+                    result.supplements_separate.ingredients.push(ing);
+                    continue;
+                }
+
+                // Proteins
+                if (category === 'protein' || category === 'proteins') {
+                    result.proteins.ingredients.push(ing);
+                    result.proteins.total_grams_batch += ing.total_grams_batch || 0;
+                    result.proteins.total_grams_per_meal += ing.grams_per_meal || 0;
+                    result.proteins.total_grams_per_day += ing.grams_per_day || 0;
+                    continue;
+                }
+
+                // Carbs/Grains
+                if (category === 'carbs' || category === 'grains' || category === 'carbohydrates') {
+                    result.carbs.ingredients.push(ing);
+                    result.carbs.total_grams_batch += ing.total_grams_batch || 0;
+                    result.carbs.total_grams_per_meal += ing.grams_per_meal || 0;
+                    result.carbs.total_grams_per_day += ing.grams_per_day || 0;
+                    continue;
+                }
+
+                // Vegetables, fruits, seeds, and powder supplements go to veggie mush
+                if (['vegetables', 'fruits', 'seeds', 'fruit', 'vegetable'].includes(category) ||
+                    (type === 'supplement' && name.includes('powder')) ||
+                    name.includes('turmeric') || name.includes('kelp') || name.includes('spirulina')) {
+                    result.veggie_mush.ingredients.push(ing);
+                    result.veggie_mush.total_grams_batch += ing.total_grams_batch || 0;
+                    result.veggie_mush.total_grams_per_meal += ing.grams_per_meal || 0;
+                    result.veggie_mush.total_grams_per_day += ing.grams_per_day || 0;
+                    continue;
+                }
+
+                // Default: put in veggie mush
+                result.veggie_mush.ingredients.push(ing);
+                result.veggie_mush.total_grams_batch += ing.total_grams_batch || 0;
+                result.veggie_mush.total_grams_per_meal += ing.grams_per_meal || 0;
+                result.veggie_mush.total_grams_per_day += ing.grams_per_day || 0;
+            }
+
+            // Add volume conversions to totals
+            result.veggie_mush.total_volume = gramsToVolume(result.veggie_mush.total_grams_batch, 'vegetables');
+            result.veggie_mush.per_meal_volume = gramsToVolume(result.veggie_mush.total_grams_per_meal, 'vegetables');
+            result.proteins.total_volume = gramsToVolume(result.proteins.total_grams_batch, 'meats');
+            result.proteins.per_meal_volume = gramsToVolume(result.proteins.total_grams_per_meal, 'meats');
+            result.carbs.total_volume = gramsToVolume(result.carbs.total_grams_batch, 'grains');
+            result.carbs.per_meal_volume = gramsToVolume(result.carbs.total_grams_per_meal, 'grains');
+
+            return result;
+        }
+
+        /**
+         * Combine nutrients from multiple sources (fresh food + kibble)
+         * @param {Object} fresh - Nutrients from homemade/fresh food
+         * @param {Object} kibble - Nutrients from kibble (optional)
+         * @returns {Object} Combined nutrient totals
+         */
+        function combineNutrients(fresh, kibble) {
+            const combined = { ...fresh };
+
+            if (kibble) {
+                combined.kcal = (fresh.kcal || 0) + (kibble.kcal || 0);
+                combined.protein_g = (fresh.protein_g || 0) + (kibble.protein_g || 0);
+                combined.fat_g = (fresh.fat_g || 0) + (kibble.fat_g || 0);
+                combined.carbs_g = (fresh.carbs_g || 0) + (kibble.carbs_g || 0);
+                combined.fiber_g = (fresh.fiber_g || 0) + (kibble.fiber_g || 0);
+                combined.calcium_mg = (fresh.calcium_mg || 0) + (kibble.calcium_mg || 0);
+                combined.phosphorus_mg = (fresh.phosphorus_mg || 0) + (kibble.phosphorus_mg || 0);
+                combined.iron_mg = (fresh.iron_mg || 0) + (kibble.iron_mg || 0);
+                combined.zinc_mg = (fresh.zinc_mg || 0) + (kibble.zinc_mg || 0);
+                combined.vitamin_a_mcg = (fresh.vitamin_a_mcg || 0) + (kibble.vitamin_a_mcg || 0);
+                combined.vitamin_d_mcg = (fresh.vitamin_d_mcg || 0) + (kibble.vitamin_d_mcg || 0);
+                combined.vitamin_e_mg = (fresh.vitamin_e_mg || 0) + (kibble.vitamin_e_mg || 0);
+            }
+
+            return combined;
+        }
+
+        /**
+         * Generate data for AAFCO horizontal bar chart visualization
+         * @param {Object} freshNutrients - Nutrients from homemade food
+         * @param {Object} kibbleNutrients - Nutrients from kibble (optional)
+         * @param {number} totalKcal - Total calories in daily diet
+         * @param {string} lifeStage - 'adult' or 'puppy'
+         * @returns {Array} Chart data for each nutrient with visual properties
+         */
+        function generateAAFCOChartData(freshNutrients, kibbleNutrients, totalKcal, lifeStage = 'adult') {
+            const requirements = lifeStage === 'puppy' ? AAFCO_PUPPY_REQUIREMENTS : AAFCO_REQUIREMENTS;
+
+            // Combine nutrients from fresh and kibble
+            const combined = combineNutrients(freshNutrients, kibbleNutrients);
+
+            const chartData = [];
+
+            // Map our nutrient names to amounts
+            const nutrientMapping = {
+                protein: { amount: combined.protein_g || 0, fresh: freshNutrients?.protein_g || 0, kibble: kibbleNutrients?.protein_g || 0 },
+                fat: { amount: combined.fat_g || 0, fresh: freshNutrients?.fat_g || 0, kibble: kibbleNutrients?.fat_g || 0 },
+                calcium: { amount: (combined.calcium_mg || 0) / 1000, fresh: (freshNutrients?.calcium_mg || 0) / 1000, kibble: (kibbleNutrients?.calcium_mg || 0) / 1000 },  // Convert mg to g
+                phosphorus: { amount: (combined.phosphorus_mg || 0) / 1000, fresh: (freshNutrients?.phosphorus_mg || 0) / 1000, kibble: (kibbleNutrients?.phosphorus_mg || 0) / 1000 },  // Convert mg to g
+                iron: { amount: combined.iron_mg || 0, fresh: freshNutrients?.iron_mg || 0, kibble: kibbleNutrients?.iron_mg || 0 },
+                zinc: { amount: combined.zinc_mg || 0, fresh: freshNutrients?.zinc_mg || 0, kibble: kibbleNutrients?.zinc_mg || 0 },
+                vitamin_a: { amount: ((combined.vitamin_a_mcg || 0) * 3.33), fresh: ((freshNutrients?.vitamin_a_mcg || 0) * 3.33), kibble: ((kibbleNutrients?.vitamin_a_mcg || 0) * 3.33) },  // mcg RAE to IU
+                vitamin_d: { amount: ((combined.vitamin_d_mcg || 0) * 40), fresh: ((freshNutrients?.vitamin_d_mcg || 0) * 40), kibble: ((kibbleNutrients?.vitamin_d_mcg || 0) * 40) },  // mcg to IU
+                vitamin_e: { amount: combined.vitamin_e_mg || 0, fresh: freshNutrients?.vitamin_e_mg || 0, kibble: kibbleNutrients?.vitamin_e_mg || 0 },
+            };
+
+            for (const [nutrient, data] of Object.entries(nutrientMapping)) {
+                const req = requirements[nutrient];
+                if (!req) continue;
+
+                const per1000kcal = nutrientPer1000kcal(data.amount, totalKcal);
+                const minPct = req.min > 0 ? (per1000kcal / req.min) * 100 : 100;
+                const maxPct = req.max ? (per1000kcal / req.max) * 100 : null;
+
+                let status = 'adequate';
+                let zone = 'green';
+
+                if (minPct < 100) {
+                    status = minPct < 50 ? 'deficient' : 'low';
+                    zone = 'red';
+                } else if (maxPct && maxPct > 100) {
+                    status = maxPct > 150 ? 'dangerous' : 'excess';
+                    zone = 'yellow';
+                }
+
+                chartData.push({
+                    nutrient: nutrient,
+                    display_name: req.display_name,
+                    emoji: req.emoji,
+                    amount: data.amount,
+                    amount_per_1000kcal: per1000kcal,
+                    unit: req.unit,
+                    min_required: req.min,
+                    max_allowed: req.max,
+                    percent_of_min: Math.round(minPct * 10) / 10,
+                    percent_of_max: maxPct ? Math.round(maxPct * 10) / 10 : null,
+                    status: status,
+                    zone: zone,
+                    bar_width: Math.min(minPct, 200),  // Cap at 200% for display
+                    min_marker: 100,
+                    max_marker: req.max ? (req.max / req.min) * 100 : null,
+                    from_fresh: data.fresh,
+                    from_kibble: data.kibble,
+                    fresh_pct: data.amount > 0 ? (data.fresh / data.amount) * 100 : 0,
+                    kibble_pct: data.amount > 0 ? (data.kibble / data.amount) * 100 : 0,
+                });
+            }
+
+            // Add Ca:P ratio
+            const calciumG = (combined.calcium_mg || 0) / 1000;
+            const phosphorusG = (combined.phosphorus_mg || 0) / 1000;
+            const caP = phosphorusG > 0 ? calciumG / phosphorusG : 0;
+            const caPReq = requirements.ca_p_ratio;
+
+            if (caPReq) {
+                let caPStatus = 'adequate';
+                let caPZone = 'green';
+
+                if (caP < caPReq.min) {
+                    caPStatus = caP < 0.8 ? 'deficient' : 'low';
+                    caPZone = 'red';
+                } else if (caP > caPReq.max) {
+                    caPStatus = caP > 2.5 ? 'dangerous' : 'excess';
+                    caPZone = 'yellow';
+                }
+
+                chartData.push({
+                    nutrient: 'ca_p_ratio',
+                    display_name: caPReq.display_name,
+                    emoji: caPReq.emoji,
+                    amount: Math.round(caP * 100) / 100,
+                    amount_per_1000kcal: caP,  // Ratio doesn't change with kcal
+                    unit: caPReq.unit,
+                    min_required: caPReq.min,
+                    max_allowed: caPReq.max,
+                    percent_of_min: Math.round((caP / caPReq.min) * 100 * 10) / 10,
+                    percent_of_max: Math.round((caP / caPReq.max) * 100 * 10) / 10,
+                    status: caPStatus,
+                    zone: caPZone,
+                    bar_width: Math.min((caP / caPReq.min) * 100, 200),
+                    min_marker: 100,
+                    max_marker: (caPReq.max / caPReq.min) * 100,
+                    from_fresh: null,
+                    from_kibble: null,
+                });
+            }
+
+            return chartData;
         }
 
         /**
@@ -4709,9 +5569,14 @@
         }
 
         /**
-         * Compute full batch meal plan (replaces /plan/compute endpoint)
+         * Compute full batch meal plan with enhanced features
+         * @param {string} dogId - Dog ID
+         * @param {string} recipeId - Recipe ID
+         * @param {Object|number} kibbleProfile - Kibble profile object or just kcal for backward compatibility
+         * @param {number} treatsKcal - Daily treat calories
+         * @param {number} numDays - Number of days to prep (7, 14, 21, 30)
          */
-        async function computeBatchPlan(dogId, recipeId, kibbleKcal = 0, treatsKcal = 0, numDays = 7) {
+        async function computeBatchPlan(dogId, recipeId, kibbleProfile = null, treatsKcal = 0, numDays = 7) {
             // Fetch dog and recipe data
             const dog = await db.getDog(dogId);
             const recipe = await db.getRecipe(recipeId);
@@ -4720,7 +5585,67 @@
                 throw new Error('Dog or recipe not found');
             }
 
-            const targetKcal = dog.effective_daily_kcal || dog.mer;
+            // Handle backward compatibility - kibbleProfile can be a number (old) or object (new)
+            let kibbleKcal = 0;
+            let kibbleNutrients = null;
+            let kibbleInfo = null;
+
+            if (kibbleProfile) {
+                if (typeof kibbleProfile === 'number') {
+                    kibbleKcal = kibbleProfile;
+                } else if (typeof kibbleProfile === 'object') {
+                    kibbleKcal = kibbleProfile.daily_kcal || 0;
+                    kibbleInfo = {
+                        brand: kibbleProfile.brand_name || 'Kibble',
+                        kcal_per_cup: kibbleProfile.kcal_per_cup || 0,
+                        cups_per_day: kibbleProfile.cups_per_day || 0,
+                        daily_kcal: kibbleKcal,
+                    };
+
+                    // Calculate kibble nutrients if GA data provided
+                    if (kibbleProfile.protein_pct && kibbleProfile.cups_per_day > 0) {
+                        const gramsKibble = kibbleProfile.cups_per_day * 120;  // ~120g per cup average
+                        kibbleNutrients = calculateKibbleNutrients(
+                            kibbleProfile.protein_pct || 0,
+                            kibbleProfile.fat_pct || 0,
+                            kibbleProfile.fiber_pct || 0,
+                            kibbleProfile.moisture_pct || 10,
+                            kibbleProfile.ash_pct || 7,
+                            gramsKibble,
+                            kibbleProfile.calcium_pct || null,
+                            kibbleProfile.phosphorus_pct || null
+                        );
+                    }
+                }
+            }
+
+            // Build enhanced dog info object
+            const rer = calculateRER(dog.weight_kg);
+            const activityFactor = getActivityFactor(
+                dog.neutered,
+                dog.age_years,
+                dog.target_weight_kg,
+                dog.weight_kg
+            );
+            const mer = calculateMER(dog.weight_kg, activityFactor);
+
+            const dogInfo = {
+                id: dog.id,
+                name: dog.name,
+                breed: dog.breed || 'Mixed',
+                weight_kg: dog.weight_kg,
+                target_weight_kg: dog.target_weight_kg,
+                age_years: dog.age_years,
+                life_stage: dog.life_stage || (dog.age_years < 1 ? 'puppy' : 'adult'),
+                activity_level: dog.activity_level || 'moderate',
+                neutered: dog.neutered,
+                rer: Math.round(rer),
+                activity_factor: activityFactor,
+                mer: Math.round(mer),
+                effective_daily_kcal: dog.effective_daily_kcal || Math.round(mer),
+            };
+
+            const targetKcal = dogInfo.effective_daily_kcal;
             const mealsPerDay = recipe.meals_per_day || 2;
             const totalMeals = numDays * mealsPerDay;
 
@@ -4732,7 +5657,7 @@
             const supplementIngredients = recipe.ingredients.filter(i => i.ingredient_type === 'supplement');
             const treatIngredients = recipe.ingredients.filter(i => i.ingredient_type === 'treat');
 
-            // Calculate calories from oils and supplements
+            // Calculate calories from oils with volume conversions
             let oilsKcal = 0;
             const oils = oilIngredients.map(ing => {
                 const mlPerMeal = ing.serving_size_ml || 5;
@@ -4740,23 +5665,45 @@
                 const kcalPerMl = ing.kcal_per_ml || (ing.kcal_per_100g / 100);
                 const kcalPerDay = mlPerDay * kcalPerMl;
                 oilsKcal += kcalPerDay;
+
+                const gramsPerMeal = mlPerMeal * 0.93;  // Oil density ~0.93g/ml
+                const volume = gramsToVolume(gramsPerMeal, 'oils', ing.ingredient_name);
+
                 return {
                     ingredient_name: ing.ingredient_name,
                     ml_per_meal: mlPerMeal,
-                    tsp_per_meal: mlPerMeal / 5,
-                    kcal_per_day: kcalPerDay
+                    ml_per_day: mlPerDay,
+                    ml_total_batch: mlPerDay * numDays,
+                    tsp_per_meal: volume.tsp,
+                    tbsp_per_meal: volume.tbsp,
+                    grams_per_meal: gramsPerMeal,
+                    kcal_per_day: kcalPerDay,
+                    volume: volume,
+                    formatted: volume.formatted_with_grams,
                 };
             });
 
+            // Calculate supplement portions with volume for powders
             let supplementsKcal = 0;
             const supplements = supplementIngredients.map(ing => {
                 const unitsPerDay = ing.units_per_day || 1;
                 const kcalFromSupplement = (ing.kcal_per_unit || 0) * unitsPerDay;
                 supplementsKcal += kcalFromSupplement;
+
+                const isPowder = (ing.ingredient_name || '').toLowerCase().includes('powder') ||
+                                 (ing.ingredient_name || '').toLowerCase().includes('turmeric') ||
+                                 (ing.ingredient_name || '').toLowerCase().includes('kelp');
+                const gramsPerServing = ing.grams_per_serving || (isPowder ? 3 : 0);
+                const volume = isPowder ? gramsToVolume(gramsPerServing, 'powders', ing.ingredient_name) : null;
+
                 return {
                     ingredient_name: ing.ingredient_name,
                     units_per_day: unitsPerDay,
-                    kcal_from_supplement: kcalFromSupplement
+                    grams_per_serving: gramsPerServing,
+                    is_powder: isPowder,
+                    kcal_from_supplement: kcalFromSupplement,
+                    volume: volume,
+                    formatted: volume ? volume.formatted_with_grams : `${unitsPerDay} unit(s)/day`,
                 };
             });
 
@@ -4784,26 +5731,41 @@
             const gramsPerMeal = gramsPerDay / mealsPerDay;
             const gramsPerContainer = gramsPerMeal;
 
-            // Calculate ingredient portions
+            // Calculate ingredient portions with volume conversions
             const ingredientPortions = foodIngredients.map(ing => {
                 const portionPct = ing.percentage / totalFoodPercentage;
                 const gramsPerDayIng = gramsPerDay * portionPct;
                 const gramsPerMealIng = gramsPerMeal * portionPct;
                 const totalGramsBatch = gramsPerDayIng * numDays;
+                const category = (ing.category || 'other').toLowerCase();
+
+                // Get volume conversions
+                const volumeBatch = gramsToVolume(totalGramsBatch, category, ing.ingredient_name);
+                const volumePerMeal = gramsToVolume(gramsPerMealIng, category, ing.ingredient_name);
+                const volumePerDay = gramsToVolume(gramsPerDayIng, category, ing.ingredient_name);
 
                 return {
                     ingredient_name: ing.ingredient_name,
                     percentage: ing.percentage,
-                    category: ing.category || 'other',
+                    category: category,
                     ingredient_type: ing.ingredient_type || 'food',
                     grams_per_day: gramsPerDayIng,
                     grams_per_meal: gramsPerMealIng,
                     total_grams_batch: totalGramsBatch,
                     kcal_per_100g: ing.kcal_per_100g || 0,
+                    // Volume conversions
+                    volume_batch: volumeBatch,
+                    volume_per_meal: volumePerMeal,
+                    volume_per_day: volumePerDay,
+                    formatted_batch: volumeBatch.formatted_with_grams,
+                    formatted_per_meal: volumePerMeal.formatted_with_grams,
                 };
             });
 
-            // Calculate nutrients for AAFCO check
+            // Group ingredients into batch groups (Veggie Mush, Proteins, Carbs)
+            const batchGroups = groupIngredientsByBatch(ingredientPortions);
+
+            // Calculate nutrients for AAFCO check (daily values)
             const nutrients = {
                 kcal: 0, protein_g: 0, fat_g: 0, carbs_g: 0,
                 calcium_mg: 0, phosphorus_mg: 0, iron_mg: 0, zinc_mg: 0,
@@ -4827,53 +5789,92 @@
                 nutrients.vitamin_e_mg += calculateNutrientAmount(grams, ing.vitamin_e_mg_per_100g || 0);
             });
 
-            // Check AAFCO compliance
-            const warnings = [];
-            const nutrientMap = {
-                protein: nutrients.protein_g,
-                fat: nutrients.fat_g,
-                calcium: nutrients.calcium_mg,
-                phosphorus: nutrients.phosphorus_mg,
-                iron: nutrients.iron_mg,
-                zinc: nutrients.zinc_mg,
-                vitamin_a: nutrients.vitamin_a_mcg,
-                vitamin_d: nutrients.vitamin_d_mcg,
-                vitamin_e: nutrients.vitamin_e_mg,
-            };
+            // Combine fresh + kibble nutrients
+            const combinedNutrients = combineNutrients(nutrients, kibbleNutrients);
+            const totalDailyKcal = homemadeKcal + kibbleKcal + oilsKcal + supplementsKcal;
 
-            for (const [nutrient, amount] of Object.entries(nutrientMap)) {
-                const req = AAFCO_REQUIREMENTS[nutrient];
-                if (req) {
-                    const per1000 = nutrientPer1000kcal(amount, nutrients.kcal || homemadeKcal);
-                    if (per1000 < req.min) {
-                        warnings.push(`${nutrient} is below AAFCO minimum (${per1000.toFixed(1)} vs ${req.min} per 1000 kcal)`);
-                    } else if (req.max && per1000 > req.max) {
-                        warnings.push(`${nutrient} exceeds AAFCO maximum (${per1000.toFixed(1)} vs ${req.max} per 1000 kcal)`);
-                    }
+            // Generate AAFCO chart data
+            const lifeStage = dogInfo.life_stage || 'adult';
+            const aafcoChartData = generateAAFCOChartData(nutrients, kibbleNutrients, totalDailyKcal, lifeStage);
+
+            // Check AAFCO compliance and generate warnings
+            const warnings = [];
+            aafcoChartData.forEach(item => {
+                if (item.status === 'deficient' || item.status === 'low') {
+                    warnings.push({
+                        nutrient: item.display_name,
+                        type: 'deficient',
+                        message: `${item.display_name} is ${item.percent_of_min.toFixed(0)}% of AAFCO minimum`,
+                        severity: item.status === 'deficient' ? 'high' : 'medium',
+                    });
+                } else if (item.status === 'excess' || item.status === 'dangerous') {
+                    warnings.push({
+                        nutrient: item.display_name,
+                        type: 'excess',
+                        message: `${item.display_name} is ${item.percent_of_max?.toFixed(0) || item.percent_of_min.toFixed(0)}% of AAFCO maximum`,
+                        severity: item.status === 'dangerous' ? 'high' : 'medium',
+                    });
                 }
-            }
+            });
 
             return {
+                // Dog info
+                dog_info: dogInfo,
                 dog_name: dog.name,
+
+                // Recipe info
                 recipe_name: recipe.name,
+
+                // Calorie targets
                 target_kcal: targetKcal,
                 per_meal_kcal: perMealKcal,
+                total_daily_kcal: totalDailyKcal,
+
+                // Meal planning
                 meals_per_day: mealsPerDay,
                 num_days: numDays,
                 total_meals: totalMeals,
+                containers_needed: totalMeals,
                 grams_per_container: gramsPerContainer,
+
+                // Ingredient portions with volume
                 ingredient_portions: ingredientPortions,
+                batch_ingredients: ingredientPortions,  // Alias for backward compatibility
+
+                // Batch groups (NEW - Veggie Mush, Proteins, Carbs)
+                batch_groups: batchGroups,
+
+                // Oils and supplements (given separately at mealtime)
                 oils,
                 supplements,
                 treats,
+
+                // Kibble info (NEW)
+                kibble: kibbleInfo,
+                kibble_nutrients: kibbleNutrients,
+
+                // Calorie budget breakdown
                 calorie_budget: {
+                    target_daily_kcal: targetKcal,
                     homemade_food_kcal: homemadeKcal,
                     kibble_kcal: kibbleKcal,
                     oils_kcal: oilsKcal,
                     supplements_kcal: supplementsKcal,
                     treats_kcal: treatsKcal,
+                    total_kcal: totalDailyKcal,
+                    remaining_kcal: targetKcal - totalDailyKcal,
                 },
-                nutrients,
+
+                // Nutrient data
+                nutrients,  // Fresh food only
+                combined_nutrients: combinedNutrients,  // Fresh + Kibble
+                nutrient_totals: combinedNutrients,  // Alias for backward compatibility
+
+                // AAFCO analysis (NEW)
+                aafco_chart_data: aafcoChartData,
+                aafco_status: aafcoChartData.every(n => n.status === 'adequate') ? 'compliant' : 'warnings',
+
+                // Warnings
                 warnings,
             };
         }
@@ -7485,20 +8486,71 @@
             }
         }
 
-        // Feeding plan
+        // Quick day selection for meal planner
+        function setQuickDays(days) {
+            document.getElementById('plan-days').value = days;
+            document.querySelectorAll('.day-btn').forEach(btn => {
+                btn.classList.toggle('active', parseInt(btn.dataset.days) === days);
+            });
+        }
+
+        // Toggle kibble section visibility
+        function togglePlanKibble() {
+            const toggle = document.getElementById('plan-kibble-toggle');
+            const inputs = document.getElementById('plan-kibble-inputs');
+            if (toggle && inputs) {
+                inputs.style.display = toggle.checked ? 'block' : 'none';
+                if (!toggle.checked) {
+                    document.getElementById('plan-kibble').value = 0;
+                }
+            }
+        }
+
+        // Calculate kibble daily kcal from cups × kcal/cup
+        function calculateKibbleDailyKcal() {
+            const kcalPerCup = parseFloat(document.getElementById('plan-kibble-kcal-cup')?.value) || 0;
+            const cupsPerDay = parseFloat(document.getElementById('plan-kibble-cups')?.value) || 0;
+            const dailyKcal = Math.round(kcalPerCup * cupsPerDay);
+            const kibbleInput = document.getElementById('plan-kibble');
+            if (kibbleInput) {
+                kibbleInput.value = dailyKcal;
+            }
+        }
+
+        // Build kibble profile object from form inputs
+        function getKibbleProfile() {
+            const toggle = document.getElementById('plan-kibble-toggle');
+            if (!toggle?.checked) return null;
+
+            return {
+                brand_name: document.getElementById('plan-kibble-brand')?.value || 'Kibble',
+                kcal_per_cup: parseFloat(document.getElementById('plan-kibble-kcal-cup')?.value) || 0,
+                cups_per_day: parseFloat(document.getElementById('plan-kibble-cups')?.value) || 0,
+                daily_kcal: parseFloat(document.getElementById('plan-kibble')?.value) || 0,
+                protein_pct: parseFloat(document.getElementById('plan-kibble-protein')?.value) || null,
+                fat_pct: parseFloat(document.getElementById('plan-kibble-fat')?.value) || null,
+                fiber_pct: parseFloat(document.getElementById('plan-kibble-fiber')?.value) || null,
+                calcium_pct: parseFloat(document.getElementById('plan-kibble-calcium')?.value) || null,
+                phosphorus_pct: parseFloat(document.getElementById('plan-kibble-phosphorus')?.value) || null,
+                moisture_pct: 10,  // Default
+                ash_pct: 7,        // Default
+            };
+        }
+
+        // Feeding plan form submission
         document.getElementById('plan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const dogId = parseInt(document.getElementById('plan-dog').value);
             const recipeId = parseInt(document.getElementById('plan-recipe').value);
-            const kibbleKcal = parseFloat(document.getElementById('plan-kibble').value) || 0;
+            const kibbleProfile = getKibbleProfile();
             const treatsKcal = parseFloat(document.getElementById('plan-treats').value) || 0;
-            const numDays = parseInt(document.getElementById('plan-days').value) || 7;
+            const numDays = parseInt(document.getElementById('plan-days').value) || 14;
 
             const resultDiv = document.getElementById('plan-result');
             resultDiv.innerHTML = `<div class="loading"><div class="spinner"></div> Calculating optimal feeding plan...</div>`;
 
             try {
-                const plan = await computeBatchPlan(dogId, recipeId, kibbleKcal, treatsKcal, numDays);
+                const plan = await computeBatchPlan(dogId, recipeId, kibbleProfile, treatsKcal, numDays);
 
                 if (plan) {
                     resultDiv.innerHTML = `
@@ -7509,6 +8561,28 @@
                                 <p>${plan.num_days} day batch using ${plan.recipe_name || 'selected recipe'}</p>
                             </div>
                         </div>
+
+                        <!-- Dog Profile Summary -->
+                        ${plan.dog_info ? `
+                            <div class="form-card glass-dark dog-profile-summary" style="margin-bottom: 20px; padding: 20px;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;">🐾 ${plan.dog_name}'s Profile</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                                    ${plan.dog_info.breed ? `<div class="profile-stat"><span class="stat-label">Breed</span><span class="stat-value">${plan.dog_info.breed}</span></div>` : ''}
+                                    ${plan.dog_info.age_years !== undefined ? `<div class="profile-stat"><span class="stat-label">Age</span><span class="stat-value">${plan.dog_info.age_years} ${plan.dog_info.age_years === 1 ? 'year' : 'years'}</span></div>` : ''}
+                                    ${plan.dog_info.weight_kg ? `<div class="profile-stat"><span class="stat-label">Weight</span><span class="stat-value">${plan.dog_info.weight_kg} kg</span></div>` : ''}
+                                    ${plan.dog_info.target_weight_kg ? `<div class="profile-stat"><span class="stat-label">Target</span><span class="stat-value">${plan.dog_info.target_weight_kg} kg</span></div>` : ''}
+                                    ${plan.dog_info.activity_level ? `<div class="profile-stat"><span class="stat-label">Activity</span><span class="stat-value">${plan.dog_info.activity_level}</span></div>` : ''}
+                                    ${plan.dog_info.life_stage ? `<div class="profile-stat"><span class="stat-label">Stage</span><span class="stat-value">${plan.dog_info.life_stage}</span></div>` : ''}
+                                </div>
+                                ${plan.dog_info.rer && plan.dog_info.activity_factor ? `
+                                    <div style="margin-top: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border-left: 3px solid #10b981;">
+                                        <div style="color: var(--text-primary); font-size: 0.9em;">
+                                            <strong>📐 MER Calculation:</strong> RER ${plan.dog_info.rer?.toFixed(0)} × ${plan.dog_info.activity_factor} = <strong>${plan.target_kcal?.toFixed(0)} kcal/day</strong>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
 
                         <!-- Batch Summary -->
                         <div class="calorie-breakdown">
@@ -7590,36 +8664,106 @@
                             ` : ''}
                         </div>
 
-                        <!-- BATCH Ingredients (FOOD type only) -->
-                        ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
+                        <!-- BATCH GROUPS (Veggie Mush, Proteins, Carbs) -->
+                        ${plan.batch_groups ? `
+                            <div class="batch-groups-section">
+                                <h3 style="color: var(--text-primary); margin-bottom: 15px;"><span>🛒</span> Batch Shopping List (${plan.num_days} days)</h3>
+
+                                <!-- Veggie Mush Group -->
+                                ${plan.batch_groups.veggie_mush && plan.batch_groups.veggie_mush.ingredients.length > 0 ? `
+                                    <div class="batch-group veggie-mush">
+                                        <div class="batch-group-header">
+                                            <div class="batch-group-title">
+                                                <span class="batch-emoji">🥗</span>
+                                                <span>Veggie Mush</span>
+                                            </div>
+                                            <div class="batch-group-total">
+                                                <span class="total-grams">${plan.batch_groups.veggie_mush.total_grams_batch?.toFixed(0)}g total</span>
+                                                ${plan.batch_groups.veggie_mush.total_volume?.formatted ? `<span class="total-volume">(${plan.batch_groups.veggie_mush.total_volume.formatted})</span>` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="batch-group-items">
+                                            ${plan.batch_groups.veggie_mush.ingredients.map(item => `
+                                                <div class="batch-item">
+                                                    <span class="item-name">${item.ingredient_name}</span>
+                                                    <span class="item-amounts">
+                                                        <strong>${item.total_grams_batch?.toFixed(0)}g</strong>
+                                                        ${item.volume_batch?.formatted ? `<span class="volume-hint">(${item.volume_batch.formatted})</span>` : ''}
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        <div class="batch-group-footer">
+                                            <span>Per meal: ${plan.batch_groups.veggie_mush.total_grams_per_meal?.toFixed(0)}g</span>
+                                            ${plan.batch_groups.veggie_mush.per_meal_volume?.formatted ? `<span>(${plan.batch_groups.veggie_mush.per_meal_volume.formatted})</span>` : ''}
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Proteins Group -->
+                                ${plan.batch_groups.proteins && plan.batch_groups.proteins.ingredients.length > 0 ? `
+                                    <div class="batch-group proteins">
+                                        <div class="batch-group-header">
+                                            <div class="batch-group-title">
+                                                <span class="batch-emoji">🥩</span>
+                                                <span>Proteins</span>
+                                            </div>
+                                            <div class="batch-group-total">
+                                                <span class="total-grams">${plan.batch_groups.proteins.total_grams_batch?.toFixed(0)}g total</span>
+                                            </div>
+                                        </div>
+                                        <div class="batch-group-items">
+                                            ${plan.batch_groups.proteins.ingredients.map(item => `
+                                                <div class="batch-item">
+                                                    <span class="item-name">${item.ingredient_name}</span>
+                                                    <span class="item-amounts">
+                                                        <strong>${item.total_grams_batch?.toFixed(0)}g</strong>
+                                                        ${item.volume_batch?.formatted ? `<span class="volume-hint">(${item.volume_batch.formatted})</span>` : ''}
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        <div class="batch-group-footer">
+                                            <span>Per meal: ${plan.batch_groups.proteins.total_grams_per_meal?.toFixed(0)}g</span>
+                                        </div>
+                                    </div>
+                                ` : ''}
+
+                                <!-- Carbs Group -->
+                                ${plan.batch_groups.carbs && plan.batch_groups.carbs.ingredients.length > 0 ? `
+                                    <div class="batch-group carbs">
+                                        <div class="batch-group-header">
+                                            <div class="batch-group-title">
+                                                <span class="batch-emoji">🍚</span>
+                                                <span>Carbs & Grains</span>
+                                            </div>
+                                            <div class="batch-group-total">
+                                                <span class="total-grams">${plan.batch_groups.carbs.total_grams_batch?.toFixed(0)}g total</span>
+                                            </div>
+                                        </div>
+                                        <div class="batch-group-items">
+                                            ${plan.batch_groups.carbs.ingredients.map(item => `
+                                                <div class="batch-item">
+                                                    <span class="item-name">${item.ingredient_name}</span>
+                                                    <span class="item-amounts">
+                                                        <strong>${item.total_grams_batch?.toFixed(0)}g</strong>
+                                                        ${item.volume_batch?.formatted ? `<span class="volume-hint">(${item.volume_batch.formatted})</span>` : ''}
+                                                    </span>
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        <div class="batch-group-footer">
+                                            <span>Per meal: ${plan.batch_groups.carbs.total_grams_per_meal?.toFixed(0)}g</span>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
                             <div class="portions-section">
                                 <h3><span>🛒</span> Batch Ingredients (${plan.num_days} days)</h3>
                                 ${plan.batch_ingredients.map(p => `
                                     <div class="portion-item glass-dark">
                                         <span class="name">${p.ingredient_name} <span class="category-badge category-${p.category || 'other'}">${p.category || 'other'}</span></span>
-                                        <div class="portion-amounts">
-                                            <div class="portion-amount" style="background: rgba(138, 43, 226, 0.3);">
-                                                <div class="value">${p.total_grams_batch?.toFixed(0)}g</div>
-                                                <div class="label">TOTAL BATCH</div>
-                                            </div>
-                                            <div class="portion-amount">
-                                                <div class="value">${p.grams_per_day?.toFixed(1)}g</div>
-                                                <div class="label">per day</div>
-                                            </div>
-                                            <div class="portion-amount">
-                                                <div class="value">${p.grams_per_meal?.toFixed(1)}g</div>
-                                                <div class="label">per meal</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        ` : plan.ingredient_portions && plan.ingredient_portions.length > 0 ? `
-                            <div class="portions-section">
-                                <h3><span>🛒</span> Batch Ingredients (${plan.num_days} days)</h3>
-                                ${plan.ingredient_portions.filter(p => p.ingredient_type === 'food' || !p.ingredient_type).map(p => `
-                                    <div class="portion-item glass-dark">
-                                        <span class="name">${p.ingredient_name}</span>
                                         <div class="portion-amounts">
                                             <div class="portion-amount" style="background: rgba(138, 43, 226, 0.3);">
                                                 <div class="value">${p.total_grams_batch?.toFixed(0)}g</div>
@@ -7652,11 +8796,11 @@
                                                 <span class="name">${o.ingredient_name}</span>
                                                 <div class="portion-amounts">
                                                     <div class="portion-amount" style="background: rgba(234, 179, 8, 0.3);">
-                                                        <div class="value">${o.tsp_per_meal?.toFixed(1)} tsp</div>
+                                                        <div class="value">${o.volume_per_meal || (o.tsp_per_meal?.toFixed(1) + ' tsp')}</div>
                                                         <div class="label">PER MEAL</div>
                                                     </div>
                                                     <div class="portion-amount">
-                                                        <div class="value">${o.ml_per_meal?.toFixed(1)}ml</div>
+                                                        <div class="value">${o.grams_per_meal?.toFixed(1) || o.ml_per_meal?.toFixed(1)}${o.grams_per_meal ? 'g' : 'ml'}</div>
                                                         <div class="label">per meal</div>
                                                     </div>
                                                     <div class="portion-amount">
@@ -7664,6 +8808,9 @@
                                                         <div class="label">kcal/day</div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                            <div style="font-size: 0.85em; color: var(--text-muted); padding: 4px 8px; margin-top: -8px; margin-bottom: 8px;">
+                                                📦 For ${plan.num_days} days: ${o.total_grams_batch?.toFixed(0) || (o.ml_per_meal * plan.num_days * plan.meals_per_day)?.toFixed(0)}${o.total_grams_batch ? 'g' : 'ml'} total
                                             </div>
                                         `).join('')}
                                     </div>
@@ -7776,6 +8923,62 @@
                             </div>
                         ` : ''}
 
+                        <!-- AAFCO Nutritional Chart -->
+                        ${plan.aafco_chart_data && plan.aafco_chart_data.length > 0 ? `
+                            <div class="form-card glass-dark aafco-chart-section" style="margin-top: 20px; padding: 20px;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 5px;">📊 AAFCO 2023 Nutritional Analysis</h3>
+                                <p style="color: var(--text-muted); font-size: 0.85em; margin-bottom: 20px;">
+                                    Based on AAFCO Dog Food Nutrient Profiles for ${plan.dog_info?.life_stage === 'puppy' ? 'Growth' : 'Adult Maintenance'}
+                                    ${plan.kibble?.daily_kcal > 0 ? ' • Includes kibble nutrients' : ''}
+                                </p>
+
+                                <!-- Legend -->
+                                <div class="aafco-legend">
+                                    <div class="legend-item"><span class="legend-color zone-deficient"></span> Below AAFCO minimum</div>
+                                    <div class="legend-item"><span class="legend-color zone-adequate"></span> Meets AAFCO standard</div>
+                                    <div class="legend-item"><span class="legend-color zone-excess"></span> Above AAFCO maximum</div>
+                                </div>
+
+                                <!-- Chart Bars -->
+                                <div class="aafco-chart">
+                                    ${plan.aafco_chart_data.map(nutrient => `
+                                        <div class="aafco-row">
+                                            <div class="aafco-label">
+                                                <span class="nutrient-emoji">${nutrient.emoji || ''}</span>
+                                                <span class="nutrient-name">${nutrient.display_name}</span>
+                                            </div>
+                                            <div class="aafco-bar-container">
+                                                <div class="aafco-bar-track">
+                                                    <div class="aafco-bar zone-${nutrient.zone === 'red' ? 'deficient' : nutrient.zone === 'yellow' ? 'excess' : 'adequate'}" style="width: ${Math.min(nutrient.bar_width || nutrient.percent_of_min, 100)}%;"></div>
+                                                    <!-- Min marker at 100% -->
+                                                    <div class="aafco-marker aafco-min-marker" style="left: 50%;" title="AAFCO Minimum (100%)"></div>
+                                                    ${nutrient.max_marker ? `
+                                                        <!-- Max marker -->
+                                                        <div class="aafco-marker aafco-max-marker" style="left: ${Math.min(nutrient.max_marker / 2, 90)}%;" title="AAFCO Maximum"></div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+                                            <div class="aafco-value">
+                                                <span class="percent-value ${nutrient.zone === 'red' ? 'deficient' : nutrient.zone === 'yellow' ? 'excess' : 'adequate'}">${nutrient.percent_of_min?.toFixed(0)}%</span>
+                                                <span class="actual-value">${nutrient.amount_per_1000kcal?.toFixed(nutrient.unit === 'IU' ? 0 : 2)}${nutrient.unit}/1000kcal</span>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+
+                                <!-- Kibble contribution note -->
+                                ${plan.kibble?.daily_kcal > 0 ? `
+                                    <div style="margin-top: 15px; padding: 10px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; font-size: 0.85em;">
+                                        <strong>🥣 Kibble:</strong> ${plan.kibble.brand || 'Commercial food'} - ${plan.kibble.daily_kcal?.toFixed(0)} kcal/day (${((plan.kibble.daily_kcal / plan.target_kcal) * 100)?.toFixed(0)}% of daily intake)
+                                    </div>
+                                ` : ''}
+
+                                <p style="color: var(--text-muted); font-size: 0.75em; margin-top: 15px; text-align: center;">
+                                    Reference: AAFCO Official Publication 2023, Table 4 - Dog Food Nutrient Profiles
+                                </p>
+                            </div>
+                        ` : ''}
+
                         <!-- Food Pyramid Visualization -->
                         ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
                             <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
@@ -7842,7 +9045,7 @@
                             <div class="warnings-section has-warnings">
                                 <h4>⚠️ AAFCO Warnings</h4>
                                 <ul>
-                                    ${plan.warnings.map(w => `<li>${w}</li>`).join('')}
+                                    ${plan.warnings.map(w => `<li>${typeof w === 'object' ? w.message : w}</li>`).join('')}
                                 </ul>
                                 <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">Consider adding supplements to address deficiencies.</p>
                             </div>
