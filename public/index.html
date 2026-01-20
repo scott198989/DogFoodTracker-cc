@@ -8607,6 +8607,9 @@
                 const plan = await computeBatchPlan(dogId, recipeId, kibbleProfile, treatsKcal, numDays);
 
                 if (plan) {
+                    console.log('Plan generated:', plan);
+                    console.log('AAFCO chart data:', plan.aafco_chart_data);
+                    console.log('Batch groups:', plan.batch_groups);
                     resultDiv.innerHTML = `
                         <div class="plan-header glass-dark">
                             <div class="plan-dog-avatar">🐕</div>
@@ -9031,7 +9034,14 @@
                                     Reference: AAFCO Official Publication 2023, Table 4 - Dog Food Nutrient Profiles
                                 </p>
                             </div>
-                        ` : ''}
+                        ` : `
+                            <div class="form-card glass-dark" style="margin-top: 20px; padding: 20px;">
+                                <h3 style="color: var(--text-primary); margin-bottom: 10px;">📊 AAFCO Nutritional Analysis</h3>
+                                <p style="color: var(--text-muted);">
+                                    No nutritional data available for chart. Make sure your ingredients have nutrient information (protein, fat, calcium, etc.) imported from the USDA database.
+                                </p>
+                            </div>
+                        `}
 
                         <!-- Food Pyramid Visualization -->
                         ${plan.batch_ingredients && plan.batch_ingredients.length > 0 ? `
