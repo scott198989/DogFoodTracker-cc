@@ -12,7 +12,9 @@
       "Bash(xargs ls:*)",
       "Bash(git add:*)",
       "Bash(pip install:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(node -c:*)",
+      "Bash(comm:*)"
     ]
   }
 }

@@ -8937,39 +8937,39 @@
                                         <tbody>
                                             <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🔥 Calories</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1); font-weight: bold;">${(plan.nutrient_totals.kcal * plan.num_days)?.toFixed(0) || (plan.target_kcal * plan.num_days)?.toFixed(0)} kcal</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1); font-weight: bold;">${plan.nutrient_totals.kcal?.toFixed(0) || plan.target_kcal?.toFixed(0)} kcal</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1); font-weight: bold;">${plan.per_meal_kcal?.toFixed(0)} kcal</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1); font-weight: bold;">${((plan.nutrient_totals?.kcal || 0) * plan.num_days).toFixed(0) || (plan.target_kcal * plan.num_days)?.toFixed(0)} kcal</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1); font-weight: bold;">${(plan.nutrient_totals?.kcal || plan.target_kcal || 0).toFixed(0)} kcal</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1); font-weight: bold;">${(plan.per_meal_kcal || 0).toFixed(0)} kcal</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🥩 Protein</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.protein_g * plan.num_days)?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.protein_g?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.protein_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${((plan.nutrient_totals?.protein_g || 0) * plan.num_days).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${(plan.nutrient_totals?.protein_g || 0).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${((plan.nutrient_totals?.protein_g || 0) / plan.meals_per_day).toFixed(1)}g</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🧈 Fat</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.fat_g * plan.num_days)?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.fat_g?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.fat_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${((plan.nutrient_totals?.fat_g || 0) * plan.num_days).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${(plan.nutrient_totals?.fat_g || 0).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${((plan.nutrient_totals?.fat_g || 0) / plan.meals_per_day).toFixed(1)}g</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🍚 Carbs</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.carbs_g * plan.num_days)?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.carbs_g?.toFixed(1)}g</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.carbs_g / plan.meals_per_day)?.toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${((plan.nutrient_totals?.carbs_g || 0) * plan.num_days).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${(plan.nutrient_totals?.carbs_g || 0).toFixed(1)}g</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${((plan.nutrient_totals?.carbs_g || 0) / plan.meals_per_day).toFixed(1)}g</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid var(--border-divider);">
                                                 <td style="padding: 10px 8px;">🦴 Calcium</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.calcium_mg * plan.num_days)?.toFixed(0)}mg</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.calcium_mg?.toFixed(0)}mg</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.calcium_mg / plan.meals_per_day)?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${((plan.nutrient_totals?.calcium_mg || 0) * plan.num_days).toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${(plan.nutrient_totals?.calcium_mg || 0).toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${((plan.nutrient_totals?.calcium_mg || 0) / plan.meals_per_day).toFixed(0)}mg</td>
                                             </tr>
                                             <tr>
                                                 <td style="padding: 10px 8px;">⚡ Phosphorus</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${(plan.nutrient_totals.phosphorus_mg * plan.num_days)?.toFixed(0)}mg</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${plan.nutrient_totals.phosphorus_mg?.toFixed(0)}mg</td>
-                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${(plan.nutrient_totals.phosphorus_mg / plan.meals_per_day)?.toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(138, 43, 226, 0.1);">${((plan.nutrient_totals?.phosphorus_mg || 0) * plan.num_days).toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(16, 185, 129, 0.1);">${(plan.nutrient_totals?.phosphorus_mg || 0).toFixed(0)}mg</td>
+                                                <td style="text-align: center; padding: 10px 8px; background: rgba(234, 179, 8, 0.1);">${((plan.nutrient_totals?.phosphorus_mg || 0) / plan.meals_per_day).toFixed(0)}mg</td>
                                             </tr>
                                         </tbody>
                                     </table>
