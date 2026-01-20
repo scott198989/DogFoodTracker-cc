@@ -3784,7 +3784,7 @@
                 </div>
 
                 <!-- Admin Dashboard (visible only to admins) -->
-                <div id="admin" class="tab-panel" style="display: none;">
+                <div id="admin" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>👑</span> Admin Dashboard</h2>
                     </div>
@@ -6034,7 +6034,8 @@
 
         // Load tier from Supabase user metadata on sign in
         async function loadUserTier() {
-            if (currentUser && currentUser.user_metadata?.subscription_tier === 'PRO') {
+            // Admins automatically get PRO access
+            if (currentUser && (currentUser.user_metadata?.subscription_tier === 'PRO' || currentUser.user_metadata?.role === 'admin')) {
                 userTier = 'PRO';
                 localStorage.setItem('userTier', 'PRO');
             }
@@ -6042,12 +6043,12 @@
         }
 
         function canAddDog() {
-            if (isPro()) return true;
+            if (isPro() || isAdmin()) return true;
             return allDogs.length < 1;
         }
 
         function canAddRecipe() {
-            if (isPro()) return true;
+            if (isPro() || isAdmin()) return true;
             return allRecipes.length < 1;
         }
 
@@ -6055,8 +6056,13 @@
             // Update tier badge in settings
             const tierBadge = document.getElementById('current-tier-badge');
             if (tierBadge) {
-                tierBadge.textContent = userTier;
-                tierBadge.className = 'status-badge ' + (isPro() ? 'excellent' : 'caution');
+                if (isAdmin()) {
+                    tierBadge.textContent = '👑 ADMIN';
+                    tierBadge.className = 'status-badge excellent';
+                } else {
+                    tierBadge.textContent = userTier;
+                    tierBadge.className = 'status-badge ' + (isPro() ? 'excellent' : 'caution');
+                }
             }
 
             // Show/hide PRO gate on History tab
