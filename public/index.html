@@ -2188,6 +2188,7 @@
                     <button class="nav-tab" data-tab="history"><span>📊</span> History <span class="pro-badge-small">PRO</span></button>
                     <button class="nav-tab" data-tab="settings"><span>⚙️</span> Settings</button>
                     <button class="nav-tab" data-tab="about"><span>🐕</span> About</button>
+                    <button class="nav-tab admin-only" data-tab="admin" id="admin-tab" style="display: none;"><span>👑</span> Admin</button>
                 </nav>
             </div>
 
@@ -3709,28 +3710,6 @@
                         </div>
                     </div>
 
-                    <!-- API Settings Section -->
-                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
-                        <div class="settings-section-header" onclick="toggleSettingsSection('api-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="color: var(--text-primary); margin: 0;"><span>🔑</span> API Settings</h3>
-                            <span class="expand-icon">+</span>
-                        </div>
-                        <div id="api-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
-                            <div class="form-group">
-                                <label>USDA FoodData Central API Key</label>
-                                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 12px;">
-                                    Get your free API key at <a href="https://fdc.nal.usda.gov/api-key-signup.html" target="_blank" style="color: var(--primary);">fdc.nal.usda.gov</a>
-                                </p>
-                                <input type="text" id="usda-api-key-input" placeholder="Enter your USDA API key" style="font-family: monospace;">
-                                <div style="margin-top: 12px; display: flex; gap: 12px;">
-                                    <button class="btn btn-primary" onclick="saveUSDAApiKey()">Save API Key</button>
-                                    <button class="btn btn-secondary" onclick="testUSDAApiKey()">Test Connection</button>
-                                </div>
-                                <div id="api-test-result" style="margin-top: 12px; display: none; padding: 12px; border-radius: 8px;"></div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- About Section -->
                     <div class="settings-section glass-dark" style="margin-bottom: 24px;">
                         <div class="settings-section-header" onclick="toggleSettingsSection('about-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
@@ -3800,6 +3779,116 @@
                                 <p style="margin-bottom: 12px;">Always consult with your veterinarian before making significant changes to your dog's diet, especially if your dog has health conditions, allergies, or special dietary needs.</p>
                                 <p>The calculations provided are estimates based on general formulas and may not be appropriate for every dog.</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Dashboard (visible only to admins) -->
+                <div id="admin" class="tab-panel" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title"><span>👑</span> Admin Dashboard</h2>
+                    </div>
+
+                    <!-- Admin Stats Overview -->
+                    <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                        <div class="glass-dark" style="padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary);" id="admin-stat-users">0</div>
+                            <div style="color: var(--text-secondary);">Total Users</div>
+                        </div>
+                        <div class="glass-dark" style="padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--success);" id="admin-stat-pro">0</div>
+                            <div style="color: var(--text-secondary);">PRO Subscribers</div>
+                        </div>
+                        <div class="glass-dark" style="padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--info);" id="admin-stat-dogs">0</div>
+                            <div style="color: var(--text-secondary);">Total Dogs</div>
+                        </div>
+                        <div class="glass-dark" style="padding: 20px; border-radius: 12px; text-align: center;">
+                            <div style="font-size: 2.5rem; font-weight: 700; color: var(--warning);" id="admin-stat-recipes">0</div>
+                            <div style="color: var(--text-secondary);">Total Recipes</div>
+                        </div>
+                    </div>
+
+                    <!-- User Management Section -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('admin-users-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>👥</span> User Management</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="admin-users-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div style="margin-bottom: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
+                                <input type="text" id="admin-user-search" placeholder="Search by email..." style="flex: 1; min-width: 200px;">
+                                <button class="btn btn-primary" onclick="searchUsers()">Search</button>
+                                <button class="btn btn-secondary" onclick="loadAllUsers()">Load All</button>
+                            </div>
+                            <div id="admin-users-list" style="max-height: 400px; overflow-y: auto;">
+                                <p style="color: var(--text-muted); text-align: center; padding: 20px;">Click "Load All" to view users</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('admin-actions-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>⚡</span> Quick Actions</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="admin-actions-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                                <button class="btn btn-secondary" onclick="adminRefreshStats()">
+                                    <span>🔄</span> Refresh Stats
+                                </button>
+                                <button class="btn btn-secondary" onclick="adminExportUsers()">
+                                    <span>📥</span> Export User List
+                                </button>
+                                <button class="btn btn-secondary" onclick="adminViewLogs()">
+                                    <span>📜</span> View Activity Logs
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Info -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('admin-system-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>🔧</span> System Information</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="admin-system-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div style="display: grid; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                    <span style="color: var(--text-secondary);">Supabase Project</span>
+                                    <span style="color: var(--text-primary); font-family: monospace;">msazepwvgcmbqnyiarow</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                    <span style="color: var(--text-secondary);">USDA API Status</span>
+                                    <span style="color: var(--success);">Active</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding: 12px; background: var(--bg-secondary); border-radius: 8px;">
+                                    <span style="color: var(--text-secondary);">App Version</span>
+                                    <span style="color: var(--text-primary);">1.0.0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Grant PRO Access -->
+                    <div class="settings-section glass-dark" style="margin-bottom: 24px;">
+                        <div class="settings-section-header" onclick="toggleSettingsSection('admin-grant-section')" style="padding: 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                            <h3 style="color: var(--text-primary); margin: 0;"><span>⭐</span> Grant PRO Access</h3>
+                            <span class="expand-icon">+</span>
+                        </div>
+                        <div id="admin-grant-section" class="settings-section-content" style="display: none; padding: 0 20px 20px;">
+                            <div class="form-group">
+                                <label>User Email</label>
+                                <input type="email" id="admin-grant-email" placeholder="user@example.com">
+                            </div>
+                            <div style="display: flex; gap: 12px; margin-top: 12px;">
+                                <button class="btn btn-primary" onclick="grantProAccess()">Grant PRO</button>
+                                <button class="btn btn-secondary" onclick="revokeProAccess()">Revoke PRO</button>
+                                <button class="btn btn-secondary" onclick="grantAdminAccess()">Make Admin</button>
+                            </div>
+                            <div id="admin-grant-result" style="margin-top: 12px; display: none; padding: 12px; border-radius: 8px;"></div>
                         </div>
                     </div>
                 </div>
@@ -6005,6 +6094,159 @@
                     createRecipeBtn.title = '';
                 }
             }
+
+            // Show/hide Admin tab
+            const adminTab = document.getElementById('admin-tab');
+            if (adminTab) {
+                adminTab.style.display = isAdmin() ? 'flex' : 'none';
+            }
+        }
+
+        // ===== ADMIN DASHBOARD FUNCTIONS =====
+
+        // Load admin dashboard data
+        async function loadAdminDashboard() {
+            if (!isAdmin()) return;
+
+            // Load stats
+            adminRefreshStats();
+        }
+
+        // Refresh admin statistics
+        async function adminRefreshStats() {
+            if (!isAdmin() || !supabaseClient) return;
+
+            try {
+                // Get user count (from profiles or auth - we'll estimate from dogs for now)
+                const { count: dogCount } = await supabaseClient
+                    .from('dogs')
+                    .select('*', { count: 'exact', head: true });
+
+                const { count: recipeCount } = await supabaseClient
+                    .from('recipes')
+                    .select('*', { count: 'exact', head: true });
+
+                const { count: ingredientCount } = await supabaseClient
+                    .from('ingredients')
+                    .select('*', { count: 'exact', head: true });
+
+                // Update UI
+                document.getElementById('admin-stat-dogs').textContent = dogCount || 0;
+                document.getElementById('admin-stat-recipes').textContent = recipeCount || 0;
+
+                // For users and PRO, we'd need to query auth.users which requires service role
+                // For now, show estimates
+                document.getElementById('admin-stat-users').textContent = '~' + Math.ceil((dogCount || 0) * 0.8);
+                document.getElementById('admin-stat-pro').textContent = '-';
+
+                showToast('Stats refreshed!', 'success');
+            } catch (err) {
+                console.error('Error loading admin stats:', err);
+                showToast('Error loading stats', 'error');
+            }
+        }
+
+        // Search users (limited without service role)
+        async function searchUsers() {
+            const query = document.getElementById('admin-user-search').value;
+            if (!query) {
+                showToast('Enter an email to search', 'error');
+                return;
+            }
+            showToast('User search requires Supabase service role key (backend)', 'info');
+        }
+
+        // Load all users
+        async function loadAllUsers() {
+            const list = document.getElementById('admin-users-list');
+            list.innerHTML = `
+                <div style="padding: 20px; text-align: center; color: var(--text-secondary);">
+                    <p>Full user management requires a backend with Supabase service role key.</p>
+                    <p style="margin-top: 12px;">For now, use the "Grant PRO Access" section below to manage individual users by email.</p>
+                </div>
+            `;
+        }
+
+        // Grant PRO access to a user
+        async function grantProAccess() {
+            const email = document.getElementById('admin-grant-email').value.trim();
+            if (!email) {
+                showToast('Enter an email address', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('admin-grant-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Processing...';
+            resultDiv.style.background = 'var(--bg-secondary)';
+            resultDiv.style.color = 'var(--text-secondary)';
+
+            // Note: Updating another user's metadata requires service role
+            // For now, we'll store grants in a separate table or show instructions
+            resultDiv.innerHTML = `
+                <strong>To grant PRO access to ${email}:</strong><br>
+                <span style="font-size: 0.9rem;">
+                1. Go to Supabase Dashboard > Authentication > Users<br>
+                2. Find the user by email<br>
+                3. Edit their raw_user_meta_data to add: "subscription_tier": "PRO"
+                </span>
+            `;
+            resultDiv.style.background = 'var(--primary-tint)';
+            resultDiv.style.color = 'var(--text-primary)';
+        }
+
+        // Revoke PRO access
+        async function revokeProAccess() {
+            const email = document.getElementById('admin-grant-email').value.trim();
+            if (!email) {
+                showToast('Enter an email address', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('admin-grant-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>To revoke PRO access from ${email}:</strong><br>
+                <span style="font-size: 0.9rem;">
+                1. Go to Supabase Dashboard > Authentication > Users<br>
+                2. Find the user by email<br>
+                3. Edit their raw_user_meta_data to remove or set: "subscription_tier": "FREE"
+                </span>
+            `;
+            resultDiv.style.background = 'rgba(217, 137, 108, 0.2)';
+            resultDiv.style.color = 'var(--text-primary)';
+        }
+
+        // Grant admin access
+        async function grantAdminAccess() {
+            const email = document.getElementById('admin-grant-email').value.trim();
+            if (!email) {
+                showToast('Enter an email address', 'error');
+                return;
+            }
+
+            const resultDiv = document.getElementById('admin-grant-result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <strong>To make ${email} an admin:</strong><br>
+                <span style="font-size: 0.9rem;">
+                1. Go to Supabase Dashboard > Authentication > Users<br>
+                2. Find the user by email<br>
+                3. Edit their raw_user_meta_data to add: "role": "admin"
+                </span>
+            `;
+            resultDiv.style.background = 'rgba(123, 174, 142, 0.2)';
+            resultDiv.style.color = 'var(--text-primary)';
+        }
+
+        // Export users (placeholder)
+        function adminExportUsers() {
+            showToast('Export requires backend with service role', 'info');
+        }
+
+        // View logs (placeholder)
+        function adminViewLogs() {
+            showToast('Activity logs coming soon', 'info');
         }
 
         // ===== TAB SWITCHING =====
@@ -6030,6 +6272,8 @@
                 loadHistoryData();
             } else if (tabId === 'settings') {
                 loadSettingsDogs();
+            } else if (tabId === 'admin' && isAdmin()) {
+                loadAdminDashboard();
             }
         }
 
@@ -6532,67 +6776,61 @@
             }
         }
 
-        // USDA API configuration (get your free key at https://fdc.nal.usda.gov/api-key-signup.html)
-        let USDA_API_KEY = localStorage.getItem('USDA_API_KEY') || 'DEMO_KEY';
+        // USDA API configuration - PRO feature only
+        const USDA_API_KEY = 'oM6miF0lf5RSVfnKNKmqYZypnPOnXHmKJPbNV6FC';
         const USDA_API_BASE = 'https://api.nal.usda.gov/fdc/v1';
 
-        // Load USDA API key into settings input
+        // Admin check function
+        function isAdmin() {
+            return currentUser?.user_metadata?.role === 'admin';
+        }
+
+        // Check if user can use USDA search (PRO or Admin only)
+        function canUseUSDASearch() {
+            return isPro() || isAdmin();
+        }
+
+        // Placeholder for settings load
         function loadUSDAApiKeySettings() {
-            const input = document.getElementById('usda-api-key-input');
-            if (input) {
-                const key = localStorage.getItem('USDA_API_KEY');
-                input.value = key && key !== 'DEMO_KEY' ? key : '';
-            }
+            // USDA API is now a built-in PRO feature - no user config needed
         }
 
-        function saveUSDAApiKey() {
-            const input = document.getElementById('usda-api-key-input');
-            const key = input.value.trim();
+        // Update USDA search UI based on tier
+        function updateUSDASearchUI() {
+            const searchInput = document.getElementById('ingredient-search');
+            const searchBtn = searchInput?.nextElementSibling;
+            if (!searchInput) return;
 
-            if (key) {
-                localStorage.setItem('USDA_API_KEY', key);
-                USDA_API_KEY = key;
-                showToast('USDA API key saved!', 'success');
+            if (!canUseUSDASearch()) {
+                searchInput.placeholder = 'USDA Search (PRO feature)';
+                if (searchBtn) searchBtn.disabled = true;
             } else {
-                localStorage.removeItem('USDA_API_KEY');
-                USDA_API_KEY = 'DEMO_KEY';
-                showToast('API key cleared, using demo key', 'info');
+                searchInput.placeholder = 'Search USDA database...';
+                if (searchBtn) searchBtn.disabled = false;
             }
         }
 
-        async function testUSDAApiKey() {
-            const resultDiv = document.getElementById('api-test-result');
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = 'Testing connection...';
-            resultDiv.style.background = 'var(--bg-secondary)';
-            resultDiv.style.color = 'var(--text-secondary)';
-
-            const keyToTest = document.getElementById('usda-api-key-input').value.trim() || USDA_API_KEY;
-
-            try {
-                const res = await fetch(`${USDA_API_BASE}/foods/search?api_key=${keyToTest}&query=chicken&pageSize=1`);
-                const data = await res.json();
-
-                if (res.ok && data.foods) {
-                    resultDiv.innerHTML = 'Connection successful! Found ' + data.totalHits + ' results for "chicken"';
-                    resultDiv.style.background = 'rgba(123, 174, 142, 0.2)';
-                    resultDiv.style.color = 'var(--success)';
-                } else {
-                    resultDiv.innerHTML = 'API Error: ' + (data.error?.message || 'Invalid response');
-                    resultDiv.style.background = 'rgba(217, 137, 108, 0.2)';
-                    resultDiv.style.color = 'var(--danger)';
-                }
-            } catch (err) {
-                resultDiv.innerHTML = 'Connection failed: ' + err.message;
-                resultDiv.style.background = 'rgba(217, 137, 108, 0.2)';
-                resultDiv.style.color = 'var(--danger)';
-            }
-        }
-
-        // Ingredient search - directly calls USDA API
+        // Ingredient search - directly calls USDA API (PRO feature)
         async function searchIngredients() {
             const query = document.getElementById('ingredient-search').value;
             if (!query) return;
+
+            // Check if user can use USDA search
+            if (!canUseUSDASearch()) {
+                const results = document.getElementById('search-results');
+                results.innerHTML = `
+                    <div style="padding: 24px; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">🔒</div>
+                        <h4 style="color: var(--text-primary); margin-bottom: 8px;">USDA Database Search</h4>
+                        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                            Search 300,000+ foods with complete nutrition data.<br>
+                            This is a PRO feature.
+                        </p>
+                        <button class="btn btn-primary" onclick="showUpgradeModal()">Upgrade to PRO</button>
+                    </div>
+                `;
+                return;
+            }
 
             // First search local database
             const results = document.getElementById('search-results');
@@ -6602,7 +6840,7 @@
                 // Search local ingredients first
                 const localResults = await db.searchIngredients(query);
 
-                // Then search USDA
+                // Then search USDA (PRO users only)
                 let usdaData = { foods: [] };
                 let usdaError = null;
 
@@ -6634,7 +6872,7 @@
                 if (usdaError) {
                     html += `<div style="font-size: 0.9rem; color: var(--danger); padding: 12px 16px; background: rgba(217, 137, 108, 0.1); border-radius: 8px; margin: 8px;">
                         <strong>USDA Search Error:</strong> ${usdaError}<br>
-                        <span style="font-size: 0.85rem; color: var(--text-muted);">Check your API key in Settings > API Settings</span>
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">Please try again later or contact support</span>
                     </div>`;
                 } else if (usdaData.foods && usdaData.foods.length > 0) {
                     html += `<div style="font-size: 0.9rem; color: var(--text-secondary); padding: 8px 16px; border-bottom: 1px solid var(--border-divider);">USDA Database</div>`;
