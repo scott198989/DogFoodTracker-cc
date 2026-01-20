@@ -2557,6 +2557,7 @@
                 <nav class="nav-tabs glass" id="nav-tabs">
                     <button class="nav-tab active" data-tab="home"><span>🏠</span> Home</button>
                     <button class="nav-tab" data-tab="recipes"><span>📋</span> Recipes</button>
+                    <button class="nav-tab" data-tab="planner"><span>📅</span> Meal Planner</button>
                     <button class="nav-tab" data-tab="history"><span>📊</span> History <span class="pro-badge-small">PRO</span></button>
                     <button class="nav-tab" data-tab="settings"><span>⚙️</span> Settings</button>
                     <button class="nav-tab" data-tab="about"><span>🐕</span> About</button>
@@ -3079,7 +3080,7 @@
                     </div>
                 </div><!-- End Recipes Tab -->
 
-                <!-- Meal Planner Tab (HIDDEN - merged into Recipes) -->
+                <!-- Meal Planner Tab -->
                 <div id="planner" class="tab-panel">
                     <div class="section-header">
                         <h2 class="section-title"><span>🍽️</span> Meal Planner</h2>
@@ -6341,26 +6342,46 @@
             },
 
             async createDog(dogData) {
-                if (!supabaseClient) throw new Error('Database not configured');
+                if (!supabaseClient) throw new Error('Database not configured. Please check your Supabase connection.');
+
+                console.log('createDog called with:', dogData);
+                console.log('Current user ID:', currentUser?.id || 'null (anonymous)');
+
+                const insertData = {
+                    user_id: currentUser?.id || null,
+                    name: dogData.name,
+                    breed: dogData.breed || null,
+                    age_years: dogData.age_years,
+                    sex: dogData.sex,
+                    neutered: dogData.neutered,
+                    weight_kg: dogData.weight_kg,
+                    target_weight_kg: dogData.target_weight_kg || null,
+                    target_daily_kcal: dogData.target_daily_kcal || null,
+                    activity_level: dogData.activity_level || 'moderate',
+                    life_stage: dogData.life_stage || 'adult',
+                    notes: dogData.notes || null,
+                };
+
+                console.log('Inserting dog data:', insertData);
+
                 const { data, error } = await supabaseClient
                     .from('dogs')
-                    .insert([{
-                        user_id: currentUser?.id || null,
-                        name: dogData.name,
-                        breed: dogData.breed || null,
-                        age_years: dogData.age_years,
-                        sex: dogData.sex,
-                        neutered: dogData.neutered,
-                        weight_kg: dogData.weight_kg,
-                        target_weight_kg: dogData.target_weight_kg || null,
-                        target_daily_kcal: dogData.target_daily_kcal || null,
-                        activity_level: dogData.activity_level || 'moderate',
-                        life_stage: dogData.life_stage || 'adult',
-                        notes: dogData.notes || null,
-                    }])
+                    .insert([insertData])
                     .select()
                     .single();
-                if (error) throw error;
+
+                if (error) {
+                    console.error('Supabase dog insert error:', error);
+                    // Provide friendlier error messages
+                    if (error.code === '23505') {
+                        throw new Error('A dog with this name already exists');
+                    } else if (error.code === '42501' || error.message?.includes('policy')) {
+                        throw new Error('Permission denied. Please try logging in first.');
+                    } else if (error.code === '23503') {
+                        throw new Error('Invalid reference. Please check all fields.');
+                    }
+                    throw new Error(error.message || 'Database error');
+                }
 
                 // Create initial weight log
                 if (data) {
@@ -7673,17 +7694,36 @@
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
 
+            const nameValue = document.getElementById('dog-name').value?.trim();
             const weightInput = parseFloat(document.getElementById('dog-weight').value);
+            const ageInput = parseFloat(document.getElementById('dog-age').value);
             const targetWeightInput = document.getElementById('dog-target-weight').value;
             const targetKcalInput = document.getElementById('dog-target-kcal').value;
 
+            // Validate required fields
+            if (!nameValue) {
+                showToast('Please enter a name for your dog', 'error');
+                btn.disabled = false;
+                return;
+            }
+            if (isNaN(weightInput) || weightInput <= 0) {
+                showToast('Please enter a valid weight', 'error');
+                btn.disabled = false;
+                return;
+            }
+            if (isNaN(ageInput) || ageInput < 0) {
+                showToast('Please enter a valid age', 'error');
+                btn.disabled = false;
+                return;
+            }
+
             const data = {
-                name: document.getElementById('dog-name').value,
+                name: nameValue,
                 breed: document.getElementById('dog-breed').value || null,
                 weight_kg: inputToKg(weightInput),
                 target_weight_kg: targetWeightInput ? inputToKg(parseFloat(targetWeightInput)) : null,
                 target_daily_kcal: targetKcalInput ? parseFloat(targetKcalInput) : null,
-                age_years: parseFloat(document.getElementById('dog-age').value),
+                age_years: ageInput,
                 life_stage: document.getElementById('dog-life-stage').value,
                 activity_level: document.getElementById('dog-activity').value,
                 neutered: document.getElementById('dog-neutered').value === 'true',
@@ -7692,11 +7732,15 @@
             };
 
             try {
+                console.log('Attempting to create dog with data:', data);
                 await db.createDog(data);
                 e.target.reset();
                 loadDogs();
                 showToast(`${data.name} added successfully!`, 'success');
             } catch (err) {
+                console.error('Dog creation error:', err);
+                console.error('Dog data attempted:', data);
+                console.error('Current user:', currentUser);
                 showToast(err.message || 'Error adding dog', 'error');
             }
             btn.disabled = false;
